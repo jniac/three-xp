@@ -1,0 +1,9 @@
+[submodule "packages/some-utils-three"]
+	path = packages/some-utils-three
+	url = https://github.com/jniac/some-utils-three.git
+[submodule "packages/some-utils-ts"]
+	path = packages/some-utils-ts
+	url = https://github.com/jniac/some-utils-ts.git
+[submodule "packages/some-utils-dom"]
+	path = packages/some-utils-dom
+	url = https://github.com/jniac/some-utils-dom.git

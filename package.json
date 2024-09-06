@@ -1,0 +1,9 @@
+{
+  "name": "three-exp",
+  "scripts": {
+    "dev": "cd packages/front && pnpm dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+} 
