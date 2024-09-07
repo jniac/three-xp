@@ -5,7 +5,7 @@ const isProd = process.env.NODE_ENV === 'production'
 const nextConfig = {
   output: 'export',
   distDir: isProd ? '../../docs' : '.next',
-  assetPrefix: isProd ? '/three-exp/' : '',
+  assetPrefix: isProd ? '/three-xp/' : '',
 }
 
 export default nextConfig

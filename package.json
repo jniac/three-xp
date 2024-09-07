@@ -1,5 +1,5 @@
 {
-  "name": "three-exp",
+  "name": "three-xp",
   "scripts": {
     "dev": "cd packages/front && pnpm dev",
     "build": "cd packages/front && pnpm build"
