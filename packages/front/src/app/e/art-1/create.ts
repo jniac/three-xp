@@ -1,8 +1,10 @@
 import {
+  BufferGeometry,
   Color,
   ColorRepresentation,
   DepthTexture,
   DoubleSide,
+  Material,
   Mesh,
   MeshBasicMaterial,
   OrthographicCamera,
@@ -15,13 +17,21 @@ import {
   WebGLRenderer,
   WebGLRenderTarget
 } from 'three'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { Ticker } from 'some-utils-ts/ticker'
 
 export function create({
   width = window.innerWidth,
   height = window.innerHeight,
+  pixelRatio = window.devicePixelRatio,
 }) {
 
   const renderer = new WebGLRenderer({
@@ -29,7 +39,7 @@ export function create({
   })
 
   renderer.setSize(width, height)
-  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setPixelRatio(pixelRatio)
 
   const camera = new PerspectiveCamera(75, width / height, 0.1, 1000)
   camera.position.z = 4
@@ -56,9 +66,9 @@ export function create({
   knot.add(knot2)
 
   // 1. Create G-buffers and depth texture
-  const gBuffer = new WebGLRenderTarget(width, height, {
+  const gBuffer = new WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
     depthBuffer: true,
-    depthTexture: new DepthTexture(width, height, UnsignedShortType),
+    depthTexture: new DepthTexture(width * pixelRatio, height * pixelRatio, UnsignedShortType),
   })
 
   function vec3(color: ColorRepresentation) {
@@ -151,7 +161,7 @@ export function create({
         }
   
         gl_FragColor.a = 1.0;
-        gl_FragColor.rgb = applyGamma(color);
+        gl_FragColor.rgb = color;
         // gl_FragColor.rgb *= lines(depth);
       }
     `
@@ -159,28 +169,71 @@ export function create({
 
   // 4. Render the depth pass or use it for further processing
   const quadGeometry = new PlaneGeometry(2, 2)
-  const quad = new Mesh(quadGeometry, depthMaterial)
+  const quad = new Mesh<BufferGeometry, Material>(quadGeometry, depthMaterial)
   const quadCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)
 
-  // quad.material = new THREE.MeshBasicMaterial({ map: gBuffer.depthTexture })
+  // quad.material = new MeshBasicMaterial({ map: gBuffer.depthTexture })
 
-  const animate = () => {
-    window.requestAnimationFrame(animate)
+  const composer = new EffectComposer(renderer)
 
-    knot.rotation.x += .001
-    knot.rotation.y += .001
+  const quadRenderPass = new RenderPass(quad as unknown as Scene, quadCamera)
+  composer.addPass(quadRenderPass)
 
+  const aaPass = new ShaderPass(FXAAShader)
+  aaPass.material.uniforms['resolution'].value.set(1 / width, 1 / height)
+  composer.addPass(aaPass)
+
+  const outputPass = new OutputPass()
+  composer.addPass(outputPass)
+
+  function resize(width: number, height: number, pixelRatio = window.devicePixelRatio) {
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(pixelRatio)
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+    gBuffer.setSize(width * pixelRatio, height * pixelRatio)
+    composer.setSize(width, height)
+    composer.setPixelRatio(pixelRatio)
+    aaPass.material.uniforms['resolution'].value.set(1 / width, 1 / height)
+  }
+
+  function render() {
     renderer.setRenderTarget(gBuffer)
     renderer.render(scene, camera)
     renderer.setRenderTarget(null) // Render to the screen
-    renderer.render(quad, quadCamera)
+
+    // renderer.render(quad, quadCamera)
+    composer.render()
   }
 
-  animate()
+  const ticker = new Ticker()
+  ticker.set({ activeDuration: 60 })
+  ticker.onTick(tick => {
+    knot.rotation.x += .1 * tick.deltaTime
+    knot.rotation.y += .1 * tick.deltaTime
+
+    render()
+  })
+
+  function destroy() {
+    renderer.dispose()
+    renderer.domElement.remove()
+    gBuffer.dispose()
+    composer.dispose()
+    ticker.destroy()
+  }
+
+  function* init() {
+    yield handleAnyUserInteraction(ticker.requestActivation)
+    yield destroy
+  }
 
   return {
     renderer,
     scene,
     camera,
+    resize,
+    init,
+    destroy,
   }
 }
