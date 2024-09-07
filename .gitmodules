@@ -7,3 +7,6 @@
 [submodule "packages/some-utils-dom"]
 	path = packages/some-utils-dom
 	url = https://github.com/jniac/some-utils-dom.git
+[submodule "packages/some-utils-react"]
+	path = packages/some-utils-react
+	url = https://github.com/jniac/some-utils-react.git

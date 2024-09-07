@@ -9,38 +9,10 @@ importers:
   .:
     devDependencies:
       typescript:
-        specifier: ^5.0.0
-        version: 5.5.4
-
-  packages/some-utils-dom:
-    dependencies:
-      some-utils-ts:
-        specifier: github:jniac/some-utils-ts
-        version: https://codeload.github.com/jniac/some-utils-ts/tar.gz/59219bb3354ea07e69990dd3c95f798fa12d22e9
-    devDependencies:
-      typescript:
         specifier: ^5.5.4
         version: 5.5.4
 
-  packages/some-utils-three:
-    devDependencies:
-      '@types/three':
-        specifier: ^0.168.0
-        version: 0.168.0
-      three:
-        specifier: ^0.168.0
-        version: 0.168.0
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
-
-  packages/some-utils-ts:
-    devDependencies:
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
-
-  packages/three-exp:
+  packages/front:
     dependencies:
       next:
         specifier: 14.2.8
@@ -54,6 +26,9 @@ importers:
       some-utils-dom:
         specifier: workspace:*
         version: link:../some-utils-dom
+      some-utils-react:
+        specifier: workspace:*
+        version: link:../some-utils-react
       some-utils-three:
         specifier: workspace:*
         version: link:../some-utils-three
@@ -90,6 +65,50 @@ importers:
         version: 3.4.10
       typescript:
         specifier: ^5
+        version: 5.5.4
+
+  packages/some-utils-dom:
+    dependencies:
+      some-utils-ts:
+        specifier: workspace:*
+        version: link:../some-utils-ts
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
+  packages/some-utils-react:
+    dependencies:
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      some-utils-ts:
+        specifier: workspace:*
+        version: link:../some-utils-ts
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.5
+        version: 18.3.5
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
+  packages/some-utils-three:
+    devDependencies:
+      '@types/three':
+        specifier: ^0.168.0
+        version: 0.168.0
+      three:
+        specifier: ^0.168.0
+        version: 0.168.0
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
+  packages/some-utils-ts:
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
         version: 5.5.4
 
 packages:
@@ -1425,10 +1444,6 @@ packages:
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
-
-  some-utils-ts@https://codeload.github.com/jniac/some-utils-ts/tar.gz/59219bb3354ea07e69990dd3c95f798fa12d22e9:
-    resolution: {tarball: https://codeload.github.com/jniac/some-utils-ts/tar.gz/59219bb3354ea07e69990dd3c95f798fa12d22e9}
-    version: 1.0.0
 
   source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
@@ -3183,8 +3198,6 @@ snapshots:
   signal-exit@4.1.0: {}
 
   slash@3.0.0: {}
-
-  some-utils-ts@https://codeload.github.com/jniac/some-utils-ts/tar.gz/59219bb3354ea07e69990dd3c95f798fa12d22e9: {}
 
   source-map-js@1.2.0: {}
 

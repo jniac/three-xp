@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { useEffects } from 'some-utils-react/hooks/effects'
 import { Vector3Declaration, solveVector3Declaration } from 'some-utils-three/declaration'
 import { Ticker } from 'some-utils-ts/ticker'
 
@@ -10,7 +11,7 @@ function TheTicker() {
   const tickerRef = useRef<Ticker>(null)
   const divRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  useEffects(function* () {
     const ticker = new Ticker()
     // @ts-ignore
     tickerRef.current = ticker
@@ -18,15 +19,14 @@ function TheTicker() {
     const div = divRef.current!
     const infoDiv1 = div.querySelector('div:nth-child(2)')!
     const infoDiv2 = div.querySelector('div:nth-child(3)')!
-    ticker.onTick(tick => {
+    yield ticker.onTick(tick => {
       infoDiv1.innerHTML = tick.toString()
       infoDiv2.innerHTML = `activeTime: ${tick.activeTime.toFixed(2)}, activeDuration: ${tick.activeDuration.toFixed(2)}, activeTimeScale: ${tick.activeTimeScale.toFixed(2)}`
     })
-    handleAnyUserInteraction(() => {
-      console.log('User interaction detected')
+    yield handleAnyUserInteraction(() => {
       ticker.requestActivation()
     })
-    return () => ticker.destroy()
+    yield () => ticker.destroy()
   }, [])
 
   return (
@@ -63,7 +63,7 @@ function TheTicker() {
 export function Test() {
   const a: Vector3Declaration = [1, 2, 3]
   const b = solveVector3Declaration(a)
-  const [state, setState] = useState(true)
+  const [state, setState] = useState(false)
   return (
     <div className='flex flex-col gap-2 items-center'>
       <p className='flex flex-row gap-1'>

@@ -25,3 +25,20 @@ body {
     text-wrap: balance;
   }
 }
+
+.page {
+  width: var(--vw);
+  height: var(--vh);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.pointer-through {
+  pointer-events: none;
+}
+
+.pointer-through > *:not(.pointer-through) {
+  pointer-events: all;
+}

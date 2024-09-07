@@ -1,0 +1,15 @@
+.Artboard {
+  position: absolute;
+  inset: 0;
+  padding: 4em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  container-type: size;
+}
+
+.Artboard > div {
+  width: 100cqmin;
+  height: 100cqmin;
+  background-color: red;
+}

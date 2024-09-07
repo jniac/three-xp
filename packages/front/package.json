@@ -14,6 +14,7 @@
     "some-utils-dom": "workspace:*",
     "some-utils-ts": "workspace:*",
     "some-utils-three": "workspace:*",
+    "some-utils-react": "workspace:*",
     "three": "^0.168.0"
   },
   "devDependencies": {
