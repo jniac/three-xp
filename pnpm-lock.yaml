@@ -94,6 +94,10 @@ importers:
         version: 5.5.4
 
   packages/some-utils-three:
+    dependencies:
+      some-utils-ts:
+        specifier: workspace:*
+        version: link:../some-utils-ts
     devDependencies:
       '@types/three':
         specifier: ^0.168.0
