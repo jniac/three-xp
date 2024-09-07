@@ -1,7 +1,7 @@
 import { BoxGeometry, DirectionalLight, EquirectangularReflectionMapping, HemisphereLight, Mesh, MeshPhysicalMaterial, PlaneGeometry, Scene, TorusKnotGeometry } from 'three'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
-import { Ticker } from '@/some-utilz/ticker'
+import { Ticker } from 'some-utils-ts/ticker'
 
 export function createScene(ticker: Ticker) {
   const scene = new Scene()
@@ -51,6 +51,7 @@ export function createScene(ticker: Ticker) {
       roughness: 0,
       dispersion: .1,
       ior: 2.5,
+      opacity: 1,
     }))
   glass.layers.set(1)
   scene.add(glass)

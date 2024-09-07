@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 
 import { Message } from 'some-utils-ts/message'
 import { Ticker } from 'some-utils-ts/ticker'
@@ -68,6 +70,10 @@ export function createThree({
 
   const output = new OutputPass()
   composer.addPass(output)
+
+  const aa = new ShaderPass(FXAAShader)
+  aa.material.uniforms['resolution'].value.set(1 / width, 1 / height)
+  composer.addPass(aa)
 
   const passes = {
     render,
