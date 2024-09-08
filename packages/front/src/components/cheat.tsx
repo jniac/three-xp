@@ -3,9 +3,11 @@
 import * as observables from 'some-utils-ts/observables'
 
 function cheat() {
-  Object.assign(window, {
-    ...observables,
-  })
+  if (typeof window !== 'undefined') {
+    Object.assign(window, {
+      ...observables,
+    })
+  }
 }
 
 export function Cheat() {
