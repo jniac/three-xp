@@ -4,6 +4,7 @@ import {
   ColorRepresentation,
   DepthTexture,
   DoubleSide,
+  Group,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -28,6 +29,7 @@ import { handleSize } from 'some-utils-dom/handle/size'
 import { useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { Message } from 'some-utils-ts/message'
 import { Ticker } from 'some-utils-ts/ticker'
 
 export function create({
@@ -51,13 +53,16 @@ export function create({
 
   const scene = new Scene()
 
+  const knotWrapper = new Group()
+  scene.add(knotWrapper)
+
   const knot = new Mesh(
     new TorusKnotGeometry(2, 1, 1024, 512),
     new MeshBasicMaterial({
       color: 0xffff00,
       side: DoubleSide,
     }))
-  scene.add(knot)
+  knotWrapper.add(knot)
 
   const knot2 = new Mesh(
     new TorusKnotGeometry(2, .25, 1024, 512),
@@ -206,12 +211,18 @@ export function create({
     composer.render()
   }
 
+  const artParts = {
+    camera,
+    knotWrapper,
+    knot,
+  }
+
   const ticker = Ticker.current()
   ticker.set({ activeDuration: 60 })
   ticker.onTick(tick => {
-    knot.rotation.x += .1 * tick.deltaTime
-    knot.rotation.y += .1 * tick.deltaTime
-    camera.position.z = 1.7
+    // knot.rotation.x += .1 * tick.deltaTime
+    // knot.rotation.y += .1 * tick.deltaTime
+    // camera.position.z = 1.7
 
     render()
   })
@@ -227,17 +238,27 @@ export function create({
   function* init() {
     yield handleAnyUserInteraction(ticker.requestActivation)
     yield destroy
+    yield Message.on('REQUIRE:ART_PARTS', message => {
+      message.payloadAssign({
+        camera,
+        knotWrapper,
+        knot,
+      })
+    })
   }
 
   return {
     renderer,
     scene,
     camera,
+    artParts,
     resize,
     init,
     destroy,
   }
 }
+
+export type GlArtParts = ReturnType<typeof create>['artParts']
 
 
 

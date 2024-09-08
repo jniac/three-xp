@@ -12,12 +12,13 @@ import { colors } from './colors'
 
 export function ArtSvg() {
   const CENTER_CIRCLE_COUNT = 24
+  const CIRCLE_THICKNESS = 90
 
   const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
     const svg = div.querySelector('svg')!
 
     const timeObs = new ObservableNumber(0)
-    const thicknessObs = new ObservableNumber(0)
+    const thicknessObs = new ObservableNumber(CIRCLE_THICKNESS)
     const circles = [...svg.querySelectorAll('circle')]
     const centers = circles.map(() => new Vector2())
     yield handlePointer(document.documentElement, {
@@ -27,15 +28,22 @@ export function ArtSvg() {
         centers[0].x = lerpUnclamped(-512, 512, inverseLerpUnclamped(rect.right, rect.left, x))
         centers[0].y = lerpUnclamped(-512, 512, inverseLerpUnclamped(rect.bottom, rect.top, y))
 
+        // timeObs.set(0)
+      },
+      onDown: () => {
         timeObs.set(0)
-      }
+        thicknessObs.set(CIRCLE_THICKNESS * .7)
+        for (let i = 1; i < CENTER_CIRCLE_COUNT; i++) {
+          centers[i].copy(centers[i - 1])
+        }
+      },
     })
 
     yield Ticker.current().onTick(tick => {
       timeObs.increment(tick.deltaTime)
       const t = timeObs.get()
       const tIn = 1, tOut = 2
-      const thickness = t < tIn ? 60 : 0
+      const thickness = t < tIn ? CIRCLE_THICKNESS : 0
       const rate = t < tIn ? .9 : remap(t, tIn, tOut, 0, .9)
       thicknessObs.exponentialGrow(thickness, [rate, .2], tick.deltaTime)
 
@@ -67,7 +75,7 @@ export function ArtSvg() {
             key={i}
             cx='0'
             cy='0'
-            r={400 + 55 * i}
+            r={CIRCLE_THICKNESS * (i * .99 + .25)}
             fill='none'
             stroke={colors[(i + 1) % colors.length]}
             strokeWidth='60'
