@@ -1,3 +1,5 @@
+import { Cheat } from '@/components/cheat'
+
 import { ExpMetadata } from '../types'
 import { Artboard } from './artboard'
 
@@ -13,6 +15,7 @@ export default function Exp1() {
   return (
     <div className='page'>
       <Artboard />
+      <Cheat />
     </div>
   )
 }

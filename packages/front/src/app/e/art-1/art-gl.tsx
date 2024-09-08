@@ -24,6 +24,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleSize } from 'some-utils-dom/handle/size'
+import { useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { Ticker } from 'some-utils-ts/ticker'
@@ -42,7 +44,7 @@ export function create({
   renderer.setPixelRatio(pixelRatio)
 
   const camera = new PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.z = 4
+  camera.position.z = 4.7
   camera.near = camera.position.z - 2.4
   camera.far = camera.position.z + 1
   camera.updateProjectionMatrix()
@@ -156,9 +158,7 @@ export function create({
         vec3 color = mix(color1, color2, easeInout4(f));
         // color *= mix(0.8, 1.1, f * f * f);
   
-          color = 1.0 - color;
-        if (vUv.x + vUv.y < 1.0) {
-        }
+        color = 1.0 - color;
   
         gl_FragColor.a = 1.0;
         gl_FragColor.rgb = color;
@@ -206,11 +206,12 @@ export function create({
     composer.render()
   }
 
-  const ticker = new Ticker()
+  const ticker = Ticker.current()
   ticker.set({ activeDuration: 60 })
   ticker.onTick(tick => {
     knot.rotation.x += .1 * tick.deltaTime
     knot.rotation.y += .1 * tick.deltaTime
+    camera.position.z = 1.7
 
     render()
   })
@@ -236,4 +237,29 @@ export function create({
     init,
     destroy,
   }
+}
+
+
+
+export function ArtGl() {
+  const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
+    const width = div.clientWidth
+    const height = div.clientHeight
+    const art = create({ width, height })
+    yield* art.init()
+    div.appendChild(art.renderer.domElement)
+    yield handleSize(div, {
+      onSize: info => {
+        art.resize(info.size.x, info.size.y)
+      },
+    })
+    yield () => art.renderer.domElement.remove()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className='absolute inset-0'
+    />
+  )
 }

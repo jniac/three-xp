@@ -12,13 +12,13 @@
     "react": "^18",
     "react-dom": "^18",
     "some-utils-dom": "workspace:*",
-    "some-utils-ts": "workspace:*",
-    "some-utils-three": "workspace:*",
     "some-utils-react": "workspace:*",
+    "some-utils-three": "workspace:*",
+    "some-utils-ts": "workspace:*",
     "three": "^0.168.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.16.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/three": "^0.168.0",

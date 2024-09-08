@@ -1,15 +1,22 @@
 .Artboard {
   position: absolute;
   inset: 0;
-  padding: 4em;
   display: flex;
   justify-content: center;
   align-items: center;
   container-type: size;
 }
 
-.Artboard > div {
+.Artboard.square {
+  padding: 4em;
+}
+
+.Artboard.square > div {
   width: 100cqmin;
   height: 100cqmin;
-  background-color: red;
+}
+
+.Artboard.full > div {
+  width: 100%;
+  height: 100%;
 }

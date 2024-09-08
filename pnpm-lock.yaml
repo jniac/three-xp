@@ -40,7 +40,7 @@ importers:
         version: 0.168.0
     devDependencies:
       '@types/node':
-        specifier: ^20
+        specifier: ^20.16.5
         version: 20.16.5
       '@types/react':
         specifier: ^18
