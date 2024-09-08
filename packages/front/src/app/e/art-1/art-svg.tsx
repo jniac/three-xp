@@ -78,7 +78,7 @@ export function ArtSvg() {
             r={CIRCLE_THICKNESS * (i * .99 + .25)}
             fill='none'
             stroke={colors[(i + 1) % colors.length]}
-            strokeWidth='60'
+            strokeWidth={CIRCLE_THICKNESS}
           />
         ))}
 

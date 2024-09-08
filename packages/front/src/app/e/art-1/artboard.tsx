@@ -40,17 +40,28 @@ function useArtMode() {
     yield handlePointer(document.documentElement, {
       onDown: () => {
         artModeObs.set((artModeObs.get() + 1) % ArtModeCount)
-
-        switch (artModeObs.value) {
-          case ArtMode.Rotating: {
-            const turn = Math.random() * Math.PI * 2 * .2
-            knot.rotation.x += turn
-            knot.rotation.y += turn
-            knot.rotation.z += turn
-            break
-          }
-        }
       },
+    })
+
+    artModeObs.onChange(value => {
+      switch (value) {
+        case ArtMode.Static: {
+          knot.geometry = artParts.knotGeometry1
+          break
+        }
+        case ArtMode.Rotating: {
+          const turn = Math.random() * Math.PI * 2 * .2
+          knot.geometry = artParts.knotGeometry2
+          knot.rotation.x += turn
+          knot.rotation.y += turn
+          knot.rotation.z += turn
+          break
+        }
+        case ArtMode.RotatingCloseUp: {
+          knot.geometry = artParts.knotGeometry2
+          break
+        }
+      }
     })
 
     yield Ticker.current().onTick(tick => {

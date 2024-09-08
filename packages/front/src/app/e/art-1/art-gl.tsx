@@ -56,8 +56,13 @@ export function create({
   const knotWrapper = new Group()
   scene.add(knotWrapper)
 
+  const knotGeometry1 = new TorusKnotGeometry(2, 1.02, 1024, 512)
+  const knotGeometry2 = new TorusKnotGeometry(2, .9, 1024, 512)
+  knotGeometry2.computeBoundingSphere()
+  knotGeometry2.computeBoundingBox()
+
   const knot = new Mesh(
-    new TorusKnotGeometry(2, 1, 1024, 512),
+    knotGeometry1,
     new MeshBasicMaterial({
       color: 0xffff00,
       side: DoubleSide,
@@ -71,6 +76,22 @@ export function create({
       side: DoubleSide,
     }))
   knot.add(knot2)
+
+  const knot3 = new Mesh(
+    new TorusKnotGeometry(2, .35, 1024, 512),
+    new MeshBasicMaterial({
+      color: 0xff00ff,
+      side: DoubleSide,
+    }))
+  knot.add(knot3)
+
+  const artParts = {
+    camera,
+    knotWrapper,
+    knot,
+    knotGeometry1,
+    knotGeometry2,
+  }
 
   // 1. Create G-buffers and depth texture
   const gBuffer = new WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
@@ -211,12 +232,6 @@ export function create({
     composer.render()
   }
 
-  const artParts = {
-    camera,
-    knotWrapper,
-    knot,
-  }
-
   const ticker = Ticker.current()
   ticker.set({ activeDuration: 60 })
   ticker.onTick(tick => {
@@ -239,11 +254,7 @@ export function create({
     yield handleAnyUserInteraction(ticker.requestActivation)
     yield destroy
     yield Message.on('REQUIRE:ART_PARTS', message => {
-      message.payloadAssign({
-        camera,
-        knotWrapper,
-        knot,
-      })
+      message.payloadAssign(artParts)
     })
   }
 
