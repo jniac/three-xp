@@ -126,18 +126,22 @@ export function Artboard() {
       },
     })
 
+    let userHaveSwitchedStyle = false
     yield handleKeyboard(document.documentElement, [
-      [{ code: /f/i, noModifiers: true }, info => {
+      [{ key: 'f', noModifiers: true }, info => {
         info.event.preventDefault()
-        if (document.fullscreenElement === div) {
-          document.exitFullscreen()
-        } else {
+        if (document.fullscreenElement !== div) {
           div.requestFullscreen()
+          userHaveSwitchedStyle = false
+        } else {
+          if (userHaveSwitchedStyle === false) {
+            userHaveSwitchedStyle = true
+            setIndex(1)
+          } else {
+            document.exitFullscreen()
+            setIndex(0)
+          }
         }
-      }],
-      [{ code: 'KeyS', noModifiers: true }, info => {
-        info.event.preventDefault()
-        setIndex(i => (i + 1) % artStyles.length)
       }],
     ])
   }, [])
