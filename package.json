@@ -2,7 +2,8 @@
   "name": "three-xp",
   "scripts": {
     "dev": "cd packages/front && pnpm dev",
-    "build": "cd packages/front && pnpm build"
+    "build": "cd packages/front && pnpm build",
+    "pages": "pnpm build && git add . && git commit -m 'deploy (docs)' && git push origin main"
   },
   "devDependencies": {
     "typescript": "^5.5.4"
