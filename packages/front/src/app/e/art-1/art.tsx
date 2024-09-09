@@ -1,20 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-
-import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { handleSize } from 'some-utils-dom/handle/size'
 import { useEffects, useLayoutEffects } from 'some-utils-react/hooks/effects'
+import { lerp, sin01 } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
 import { Observable, ObservableNumber } from 'some-utils-ts/observables'
 import { Ticker } from 'some-utils-ts/ticker'
 
+import { Billboard } from '@/components/billboard'
+
 import { ArtGl, GlArtParts } from './art-gl'
 import { ArtSvg, LineShape, SvgArtParts } from './art-svg'
-
-import { handleSize } from 'some-utils-dom/handle/size'
-import { lerp, sin01 } from 'some-utils-ts/math/basic'
 import { colors } from './colors'
+
 import styles from './style.module.css'
 
 enum ArtMode {
@@ -171,48 +170,14 @@ function Caption() {
 }
 
 export function Artboard() {
-  const artStyles = [
-    styles.frame,
-    styles.full,
-  ]
-  const [index, setIndex] = useState(0)
-
-  const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
-    yield handleSize(div, {
-      onSize: info => {
-        const { x, y } = info.size
-        const landscape = x > y
-        div.classList.toggle(styles.landscape, landscape)
-      },
-    })
-
-    let userHaveSwitchedStyle = false
-    yield handleKeyboard(document.documentElement, [
-      [{ key: 'f', noModifiers: true }, info => {
-        info.event.preventDefault()
-        if (document.fullscreenElement !== div) {
-          div.requestFullscreen()
-          userHaveSwitchedStyle = false
-        } else {
-          if (userHaveSwitchedStyle === false) {
-            userHaveSwitchedStyle = true
-            setIndex(1)
-          } else {
-            document.exitFullscreen()
-            setIndex(0)
-          }
-        }
-      }],
-    ])
-  }, [])
-
   return (
-    <div
-      ref={ref}
-      className={[styles.Artboard, styles.landscape, artStyles[index]].join(' ')}
-    >
-      <Art />
-      <Caption />
+    <div>
+      <Billboard>
+        <Art />
+      </Billboard>
+      <div className='wraps'>
+        <Caption />
+      </div>
     </div>
   )
 }
