@@ -1,4 +1,4 @@
-import { Cheat } from '@/components/cheat'
+import { Leak } from '@/components/leak'
 import { ExpMetadata } from '@/types'
 
 import { Artboard } from './art'
@@ -15,7 +15,7 @@ export default function Exp1() {
   return (
     <div className='page'>
       <Artboard />
-      <Cheat />
+      <Leak />
     </div>
   )
 }
