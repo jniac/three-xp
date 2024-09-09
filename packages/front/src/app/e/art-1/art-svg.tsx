@@ -54,7 +54,7 @@ function CallToAction() {
           })
       } else {
         Animation
-          .during({ target: 'CallToAction:Fade', duration: .66 })
+          .during({ target: 'CallToAction:Fade', duration: .2 })
           .onUpdate(({ progress }) => {
             const alpha = Animation.easing('inOut3')(progress)
             g.setAttribute('opacity', (1 - alpha).toFixed(3))
