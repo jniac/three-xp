@@ -1,7 +1,7 @@
 import { Leak } from '@/components/leak'
 import { ExpMetadata } from '@/types'
 
-import { Artboard } from './art'
+import { Art } from './art'
 
 export const metadata: ExpMetadata = {
   title: 'art-1',
@@ -14,7 +14,7 @@ export const metadata: ExpMetadata = {
 export default function Exp1() {
   return (
     <div className='page'>
-      <Artboard />
+      <Art />
       <Leak />
     </div>
   )

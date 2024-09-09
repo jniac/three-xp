@@ -100,7 +100,7 @@ function useArtMode() {
   }, [])
 }
 
-export function Art() {
+function Content() {
   useArtMode()
   return (
     <div className={styles.Art}>
@@ -169,11 +169,11 @@ function Caption() {
   )
 }
 
-export function Artboard() {
+export function Art() {
   return (
     <div>
       <Billboard>
-        <Art />
+        <Content />
       </Billboard>
       <div className='wraps'>
         <Caption />
