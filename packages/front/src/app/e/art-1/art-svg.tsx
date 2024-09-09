@@ -5,7 +5,8 @@ import { Vector2 } from 'three'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { regularPolygon } from 'some-utils-dom/svg/points'
 import { useLayoutEffects } from 'some-utils-react/hooks/effects'
-import { remap } from 'some-utils-ts/math/basic'
+import { Animation } from 'some-utils-ts/animation'
+import { lerp, remap } from 'some-utils-ts/math/basic'
 import { Observable, ObservableNumber } from 'some-utils-ts/observables'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
@@ -25,6 +26,74 @@ function createArtParts() {
 }
 
 export type SvgArtParts = ReturnType<typeof createArtParts>
+
+function CallToAction() {
+  const { ref } = useLayoutEffects<SVGGElement>(function* (g) {
+    const circle = g.querySelector('circle')!
+
+    const timeObs = new ObservableNumber(0)
+
+    const threshold = 5
+    yield timeObs.onPass('through', threshold, () => {
+      const up = timeObs.passed('above', threshold)
+      if (up) {
+        Animation
+          .during({ target: 'CallToAction:Fade', duration: 1 })
+          .onUpdate(({ progress }) => {
+            const alpha = Animation.easing('out3')(progress)
+            g.setAttribute('opacity', alpha.toFixed(3))
+          })
+        Animation
+          .during({ target: 'CallToAction:Scale', duration: 3 })
+          .onUpdate(({ progress, complete }) => {
+            progress = complete ? 1 : (progress * 2) % 1
+            const alpha = Animation.easing('out3')(progress)
+            const opacity = Math.sin(alpha * Math.PI)
+            circle.setAttribute('opacity', opacity.toFixed(3))
+            circle.setAttribute('r', lerp(200, 300, alpha).toFixed(3))
+          })
+      } else {
+        Animation
+          .during({ target: 'CallToAction:Fade', duration: .66 })
+          .onUpdate(({ progress }) => {
+            const alpha = Animation.easing('inOut3')(progress)
+            g.setAttribute('opacity', (1 - alpha).toFixed(3))
+          })
+      }
+    })
+
+    yield handlePointer(document.documentElement, {
+      onChange: () => {
+        timeObs.set(0)
+      },
+      onDown: () => {
+        timeObs.set(0)
+      },
+    })
+
+    yield Ticker.current().onTick(tick => {
+      timeObs.increment(tick.deltaTime)
+
+      // Loop:
+      if (timeObs.passed('above', 15)) {
+        timeObs.set(0)
+      }
+    })
+
+  }, [])
+
+  return (
+    <g ref={ref}>
+      <circle
+        r={150}
+        fill='none'
+        stroke='white'
+        strokeWidth={1.5}
+        opacity={0}
+      />
+    </g>
+  )
+}
 
 export function ArtSvg() {
   const COUNT = 20
@@ -143,6 +212,8 @@ export function ArtSvg() {
             )
           })}
         </g>
+
+        <CallToAction />
       </svg>
     </div>
   )

@@ -27,6 +27,7 @@ import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
 import { handleSize } from 'some-utils-dom/handle/size'
 import { useLayoutEffects } from 'some-utils-react/hooks/effects'
+import { Animation } from 'some-utils-ts/animation'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { Message } from 'some-utils-ts/message'
@@ -240,6 +241,9 @@ export function create({
     // knot.rotation.x += .1 * tick.deltaTime
     // knot.rotation.y += .1 * tick.deltaTime
     // camera.position.z = 1.7
+
+    // That should not be here. But you know what? It's fine. It's a demo.
+    Animation.core.updateInstances(tick.deltaTime)
 
     render()
   })
