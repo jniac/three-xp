@@ -10,7 +10,7 @@ import { Observable } from 'some-utils-ts/observables'
 import { Ticker } from 'some-utils-ts/ticker'
 
 import { ArtGl, GlArtParts } from './art-gl'
-import { ArtSvg } from './art-svg'
+import { ArtSvg, LineShape, SvgArtParts } from './art-svg'
 
 import { lerp, sin01 } from 'some-utils-ts/math/basic'
 import styles from './style.module.css'
@@ -26,11 +26,12 @@ const ArtModeCount = 3
 function useArtMode() {
   useEffects(function* () {
     const message = Message.send('REQUIRE:ART_PARTS')
-    const artParts = message.payload as GlArtParts
+    const artParts = message.payload as (GlArtParts & SvgArtParts)
     const {
       camera,
       knotWrapper,
       knot,
+      lineShapeObs,
     } = artParts
 
     Object.assign(window, { artParts })
@@ -44,6 +45,7 @@ function useArtMode() {
     })
 
     artModeObs.onChange(value => {
+      lineShapeObs.set(lineShapeObs.get() === LineShape.Circle ? LineShape.Rectangle : LineShape.Circle)
       switch (value) {
         case ArtMode.Static: {
           knot.geometry = artParts.knotGeometry1
@@ -77,9 +79,9 @@ function useArtMode() {
           break
         }
         case ArtMode.Rotating: {
-          knot.rotation.x += .1 * tick.deltaTime
-          knot.rotation.y += .1 * tick.deltaTime
-          knot.rotation.z += .033 * tick.deltaTime
+          knot.rotation.x += .05 * tick.deltaTime
+          knot.rotation.y += .05 * tick.deltaTime
+          knot.rotation.z += .0166 * tick.deltaTime
           knotWrapper.scale.set(1.4, 1.4, 1)
           camera.position.z = 4.5
           break
