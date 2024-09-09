@@ -6,7 +6,7 @@ import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useEffects, useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { Message } from 'some-utils-ts/message'
-import { Observable } from 'some-utils-ts/observables'
+import { Observable, ObservableNumber } from 'some-utils-ts/observables'
 import { Ticker } from 'some-utils-ts/ticker'
 
 import { ArtGl, GlArtParts } from './art-gl'
@@ -14,6 +14,7 @@ import { ArtSvg, LineShape, SvgArtParts } from './art-svg'
 
 import { handleSize } from 'some-utils-dom/handle/size'
 import { lerp, sin01 } from 'some-utils-ts/math/basic'
+import { colors } from './colors'
 import styles from './style.module.css'
 
 enum ArtMode {
@@ -40,7 +41,7 @@ function useArtMode() {
     const artModeObs = new Observable<ArtMode>(ArtMode.Static)
 
     yield handlePointer(document.documentElement, {
-      onDown: () => {
+      onDown: info => {
         artModeObs.set((artModeObs.get() + 1) % ArtModeCount)
       },
     })
@@ -103,9 +104,63 @@ function useArtMode() {
 export function Art() {
   useArtMode()
   return (
-    <div className='relative'>
+    <div className={styles.Art}>
       <ArtGl />
       <ArtSvg />
+    </div>
+  )
+}
+
+function Caption() {
+  const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
+    yield handleSize(document.documentElement, {
+      onSize: ({ size: { x, y } }) => {
+        const landscape = x > y
+        if (landscape === false) {
+          div.style.display = 'none'
+        } else {
+          div.style.display = ''
+        }
+      },
+    })
+
+    const timeObs = new ObservableNumber(0)
+    yield Ticker.current().onTick(tick => {
+      timeObs.increment(tick.deltaTime)
+      div.classList.toggle(styles.hidden, timeObs.get() > 1)
+    })
+
+    yield handlePointer(document.documentElement, {
+      onDown: () => {
+        timeObs.set(0)
+      },
+      onChange: () => {
+        timeObs.set(0)
+      },
+    })
+  }, [])
+
+  return (
+    <div ref={ref} className={`${styles.Caption} pointer-through`}>
+      <div className='flex flex-row items-center'>
+        <span>
+          <span style={{ color: colors[4] }}>Click </span>
+          to switch between art modes.
+        </span>
+        <span>Press <kbd style={{ color: colors[3] }}>F</kbd> to toggle fullscreen.</span>
+        <span style={{ color: colors[2], opacity: .8 }}>
+          <a href="https://github.com/jniac/three-xp">Github</a>
+        </span>
+        <span
+          className={styles.Close}
+          style={{ color: colors[4] }}
+          onPointerDown={event => {
+            event.preventDefault()
+            event.stopPropagation()
+            ref.current.style.display = 'none'
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -152,6 +207,7 @@ export function Artboard() {
       className={[styles.Artboard, styles.landscape, artStyles[index]].join(' ')}
     >
       <Art />
+      <Caption />
     </div>
   )
 }

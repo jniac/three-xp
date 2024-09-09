@@ -11,12 +11,16 @@
   padding: 4em;
 }
 
-.Artboard.landscape.frame > div {
+.Artboard .Art {
+  position: relative;
+}
+
+.Artboard.landscape.frame .Art {
   width: 100cqmin;
   height: 100cqmin;
 }
 
-.Artboard:not(.landscape).frame > div {
+.Artboard:not(.landscape).frame .Art {
   width: 100%;
   aspect-ratio: 3/4;
   border-radius: .75em;
@@ -27,7 +31,61 @@
   padding: 0em;
 }
 
-.Artboard.full > div {
+.Artboard.full .Art {
   width: 100%;
   height: 100%;
+}
+
+.Caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  color: #fff7;
+}
+
+.Caption > div {
+  height: 2rem;
+  padding: .4rem;
+  padding-left: .6rem;
+  gap: .33rem;
+  border: solid 1px currentColor;
+  border-radius: 1.5rem;
+  letter-spacing: .033rem;
+  font-size: .75rem;
+  text-align: center;
+}
+
+.Caption:not(.hidden) {
+  transition: opacity .15s ease-in-out;
+}
+
+.Caption.hidden {
+  opacity: 0;
+  transition: opacity .5s ease-in-out;
+}
+
+.Caption .Close {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: .6rem;
+  border: solid 1px currentColor;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  opacity: .5;
+}
+
+.Caption .Close::before {
+  transform: translate(-.0rem, .03rem) rotate(45deg);
+  content: '╋'; 
+}
+
+.Caption .Close:hover {
+  opacity: 1;
 }
