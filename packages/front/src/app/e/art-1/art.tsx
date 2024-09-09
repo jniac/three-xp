@@ -142,22 +142,27 @@ function Caption() {
 
   return (
     <div ref={ref} className={`${styles.Caption} pointer-through`}>
-      <div className='flex flex-row items-center'>
-        <span>
+      <div
+        className='flex flex-row items-center'
+      >
+        {/* <span>
           <span style={{ color: colors[4] }}>Click </span>
           to switch between art modes.
-        </span>
+        </span> */}
         <span>Press <kbd style={{ color: colors[3] }}>F</kbd> to toggle fullscreen.</span>
-        <span style={{ color: colors[2], opacity: .8 }}>
+        <span className={styles.Github} style={{ color: colors[2] }}>
           <a href="https://github.com/jniac/three-xp">Github</a>
         </span>
         <span
           className={styles.Close}
           style={{ color: colors[4] }}
           onPointerDown={event => {
-            event.preventDefault()
-            event.stopPropagation()
-            ref.current.style.display = 'none'
+            const target = event.target as HTMLElement
+            if (target.tagName !== 'A') {
+              event.preventDefault()
+              event.stopPropagation()
+              ref.current.style.display = 'none'
+            }
           }}
         />
       </div>
