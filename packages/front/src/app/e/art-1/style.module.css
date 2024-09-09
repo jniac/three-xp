@@ -7,13 +7,24 @@
   container-type: size;
 }
 
-.Artboard.square {
+.Artboard.landscape.frame {
   padding: 4em;
 }
 
-.Artboard.square > div {
+.Artboard.landscape.frame > div {
   width: 100cqmin;
   height: 100cqmin;
+}
+
+.Artboard:not(.landscape).frame > div {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: .75em;
+  overflow: hidden;
+}
+
+.Artboard:not(.landscape).frame {
+  padding: 0em;
 }
 
 .Artboard.full > div {

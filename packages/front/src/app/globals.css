@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  overflow: hidden; /* Disable scrolling */
+  height: 100%;     /* Ensure full-page height to avoid content overflow */
+  touch-action: none; /* Prevent touch interactions like scrolling */
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

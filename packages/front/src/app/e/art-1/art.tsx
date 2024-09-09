@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
-import { useEffects } from 'some-utils-react/hooks/effects'
+import { useEffects, useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { Message } from 'some-utils-ts/message'
 import { Observable } from 'some-utils-ts/observables'
 import { Ticker } from 'some-utils-ts/ticker'
@@ -12,6 +12,7 @@ import { Ticker } from 'some-utils-ts/ticker'
 import { ArtGl, GlArtParts } from './art-gl'
 import { ArtSvg, LineShape, SvgArtParts } from './art-svg'
 
+import { handleSize } from 'some-utils-dom/handle/size'
 import { lerp, sin01 } from 'some-utils-ts/math/basic'
 import styles from './style.module.css'
 
@@ -111,12 +112,20 @@ export function Art() {
 
 export function Artboard() {
   const artStyles = [
-    styles.square,
+    styles.frame,
     styles.full,
   ]
   const [index, setIndex] = useState(0)
 
-  const { ref } = useEffects<HTMLDivElement>(function* (div) {
+  const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
+    yield handleSize(div, {
+      onSize: info => {
+        const { x, y } = info.size
+        const landscape = x > y
+        div.classList.toggle(styles.landscape, landscape)
+      },
+    })
+
     yield handleKeyboard(document.documentElement, [
       [{ code: /f/i, noModifiers: true }, info => {
         info.event.preventDefault()
@@ -136,7 +145,7 @@ export function Artboard() {
   return (
     <div
       ref={ref}
-      className={[styles.Artboard, artStyles[index]].join(' ')}
+      className={[styles.Artboard, styles.landscape, artStyles[index]].join(' ')}
     >
       <Art />
     </div>

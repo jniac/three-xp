@@ -38,6 +38,8 @@ export function create({
   pixelRatio = window.devicePixelRatio,
 }) {
 
+  pixelRatio = 1
+
   const renderer = new WebGLRenderer({
     antialias: true,
   })
