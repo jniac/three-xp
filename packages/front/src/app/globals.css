@@ -44,10 +44,25 @@ body {
   align-items: center;
 }
 
+.wraps {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wraps > *:not(.wraps, .pointer-through) {
+  pointer-events: all;
+}
+
 .pointer-through {
   pointer-events: none;
 }
 
-.pointer-through > *:not(.pointer-through) {
+.pointer-through > *:not(.pointer-through, .wraps) {
   pointer-events: all;
+}
+
+select {
+  background-color: transparent;
+  color: unset;
 }

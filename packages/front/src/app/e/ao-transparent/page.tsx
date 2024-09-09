@@ -1,4 +1,5 @@
-import { ExpMetadata } from '../types'
+import { ExpMetadata } from '@/types'
+
 import { Main } from './main'
 
 export const metadata: ExpMetadata = {

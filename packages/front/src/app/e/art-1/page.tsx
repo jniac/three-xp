@@ -1,6 +1,6 @@
 import { Cheat } from '@/components/cheat'
+import { ExpMetadata } from '@/types'
 
-import { ExpMetadata } from '../types'
 import { Artboard } from './art'
 
 export const metadata: ExpMetadata = {
