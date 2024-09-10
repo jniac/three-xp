@@ -50,3 +50,5 @@ export function ThreeProvider({ children }: { children?: ReactNode }) {
     </context.Provider>
   )
 }
+
+export default ThreeProvider

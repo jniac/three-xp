@@ -4,10 +4,15 @@ import { useState } from 'react'
 
 import { Test1 } from './test-1/react'
 import { Test2 } from './test-2/react'
+import ThreeProvider from './three-provider'
 
 const test = {
   Test1,
   Test2,
+}
+
+export function Bar() {
+  return <Test1 />
 }
 
 export function ChooseOne() {
@@ -15,16 +20,19 @@ export function ChooseOne() {
   const [index, setIndex] = useState(0)
   const Test = options[index]
   return (
-    <div className='wraps p-8 flex flex-col gap-2'>
-      <select
-        className='self-start border rounded-lg p-1 pr-3'
-        onChange={event => setIndex(Number.parseInt(event.target.value))}
-      >
-        {options.map((Test, index) => (
-          <option key={index} value={index}>{Test.name}</option>
-        ))}
-      </select>
-      <Test />
-    </div>
+    <ThreeProvider>
+      <div className='wraps p-8 flex flex-col gap-2'>
+        <select
+          className='self-start border rounded-lg p-1 pr-3'
+          onChange={event => setIndex(Number.parseInt(event.target.value))}
+        >
+          {options.map((Test, index) => (
+            <option key={index} value={index}>{Test.name}</option>
+          ))}
+        </select>
+        <Test />
+      </div>
+    </ThreeProvider>
   )
 }
+
