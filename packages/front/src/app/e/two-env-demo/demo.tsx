@@ -44,7 +44,11 @@ function UI() {
 
   return (
     <div className={styles.UI}>
-      <h1 className='text-2xl uppercase mb-2'>two-env-demo</h1>
+      <h1 className='text-2xl uppercase mb-2'>
+        <a href='https://github.com/jniac/three-xp/tree/main/packages/front/src/app/e/two-env-demo'>
+          two-env-demo
+        </a>
+      </h1>
       <Slider label='envMix' value={envMix} onChange={updateEnvMix} />
       <Slider label='skyRoughness' value={skyRoughness} onChange={updateSkyRoughness} />
       <div className='Info text-xs mt-8'>
