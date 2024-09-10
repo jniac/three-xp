@@ -14,6 +14,8 @@ export function createThree({
 }) {
   const ticker = Ticker.get('ThreeTicker')
   const renderer = new WebGLRenderer({
+    antialias: true,
+    alpha: true,
   })
   renderer.setPixelRatio(pixelRatio)
   renderer.setSize(width, height)

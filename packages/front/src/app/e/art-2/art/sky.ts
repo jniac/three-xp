@@ -29,7 +29,7 @@ const fragmentShader =  /* glsl */ `
 
   void main() {
     
-    gl_FragColor.rgb = ${vec3('#b71901')};
+    gl_FragColor.rgb = ${vec3('#b70101')};
     gl_FragColor.a = 1.0;
   }
 `
