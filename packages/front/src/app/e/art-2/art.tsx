@@ -4,7 +4,7 @@ import { IcosahedronGeometry, Mesh, MeshBasicMaterial } from 'three'
 
 import { Billboard } from '@/components/billboard'
 
-import { BasicThreeProvider, Three, UseThree } from '../../../tools/basic-three'
+import { BasicThreeProvider, Three, UseThree } from '@/tools/three/webgl'
 
 function* art(three: Three) {
   const mesh = new Mesh(

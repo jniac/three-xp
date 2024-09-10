@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 
+import { ThreeProvider } from '@/tools/three/webgpu'
+
 import { Test1 } from './test-1/react'
 import { Test2 } from './test-2/react'
-import ThreeProvider from './three-provider'
 
 const test = {
   Test1,

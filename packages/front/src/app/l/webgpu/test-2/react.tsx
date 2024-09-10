@@ -16,8 +16,7 @@ import {
   vec4
 } from 'three/tsl'
 
-import { Three } from '../three'
-import { useThree } from '../three-provider'
+import { Three, useThree } from '@/tools/three/webgpu'
 
 function* create(three: Three) {
   {

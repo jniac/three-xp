@@ -6,7 +6,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 
 import { Message } from 'some-utils-ts/message'
 
-import { Three } from '@/tools/basic-three'
+import { Three } from '@/tools/three/webgl'
 
 import { createSky } from './sky'
 

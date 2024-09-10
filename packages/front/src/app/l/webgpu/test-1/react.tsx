@@ -1,6 +1,7 @@
 'use client'
 
-import { useThree } from '../three-provider'
+import { useThree } from '@/tools/three/webgpu'
+
 import { createGrid } from './create'
 
 export function Test1() {

@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { Message } from 'some-utils-ts/message'
 
-import { BasicThreeProvider, UseThree } from '@/tools/basic-three'
+import { BasicThreeProvider, UseThree } from '@/tools/three/webgl'
 
 import { twoEnvDemo } from './gl/two-env-demo'
 

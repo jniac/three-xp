@@ -17,7 +17,7 @@ import {
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { loop3 } from 'some-utils-ts/iteration/loop'
 
-import { Three } from '../three'
+import { Three } from '@/tools/three/webgpu'
 
 export function* createGrid(three: Three) {
   const w = 16, h = 16, d = 16
