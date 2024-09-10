@@ -15,7 +15,7 @@ const vertexShader = /* glsl */ `
   }
 
   void main() {
-    vWorldNormal = rotate(modelMatrix, position);
+    vWorldNormal = normalize(rotate(modelMatrix, position));
 
     // gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     // Ignore the position, we only need the normal:
@@ -28,9 +28,15 @@ const fragmentShader =  /* glsl */ `
 
   varying vec3 vWorldNormal;
 
+  float signedDistanceToPlane(vec3 p, vec3 origin, vec3 normal) {
+    return dot(normalize(normal), p - origin);
+  } 
+
   void main() {
-    
-    gl_FragColor.rgb = ${vec3(colors.red)};
+    float d = signedDistanceToPlane(vWorldNormal, vec3(0.313, 0.0, 0.0), normalize(vec3(-1.0, 1.0, 0.0)));
+    float alpha = smoothstep(0.0, 0.001, d);
+    gl_FragColor.rgb = mix(${vec3(colors.black)}, ${vec3(colors.red)}, alpha);
+    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.33));
     gl_FragColor.a = 1.0;
   }
 `

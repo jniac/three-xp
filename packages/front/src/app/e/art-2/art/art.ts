@@ -8,7 +8,7 @@ import { Three } from '@/tools/three/webgl'
 
 import { colors } from './colors'
 import { Lights } from './lights'
-import { GradientRing, Ring } from './ring'
+import { GradientRing, Ring, Torus } from './ring'
 import { Sky } from './sky'
 import { MainSphere, SmallGradientSphere } from './sphere'
 
@@ -84,15 +84,15 @@ export function* art(three: Three) {
 
   group.add(new MainSphere())
 
-  group.add(new GradientRing({ z: -1 }))
+  group.add(new GradientRing({ z: -1, radius: 1.4, innerRadiusRatio: .805 }))
   group.add(new Ring({ z: -1, radius: .8, thickness: .01, color: colors.notSoWhite }))
 
   slash.add(new SmallGradientSphere({ x: -1.5, z: .5, singleColor: colors.yellow }))
-  slash.add(new Ring({ x: -1.81, radius: .1, thickness: .01, color: colors.notSoWhite }))
-  slash.add(new Ring({ x: -2.2, radius: .2, thickness: .01, color: colors.notSoWhite }))
-  slash.add(new Line({ x: -2.5, color: colors.notSoWhite, thickness: .01, length: .45 }))
+  slash.add(new Torus({ x: -1.81, radius: .1, thickness: .01, color: colors.notSoWhite }))
+  slash.add(new Torus({ x: -2.2, radius: .2, thickness: .01, color: colors.notSoWhite }))
+  slash.add(new Line({ x: -2.5, thickness: .01, length: .45, shaded: true, color: colors.notSoWhite }))
 
-  slash.add(new SmallGradientSphere({ x: 1.7, z: .5, rotationZ: Math.PI * -.25 }))
+  slash.add(new SmallGradientSphere({ x: 1.7, z: .5 }))
   slash.add(new SmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
   slash.add(new Blacky({ x: 2.3 }))
 
@@ -100,6 +100,8 @@ export function* art(three: Three) {
 
   const antiSlash = new Group()
   antiSlash.rotation.z = Math.PI * .25
+  group.add(antiSlash)
 
-  antiSlash.add(new SmallGradientSphere({ x: -1.5, z: .5, singleColor: colors.yellow }))
+  antiSlash.add(new Line({ x: -1.6, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
+  antiSlash.add(new Line({ x: 1.6, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
 }

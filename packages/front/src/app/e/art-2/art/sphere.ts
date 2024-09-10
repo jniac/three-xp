@@ -18,7 +18,7 @@ export class MainSphere extends Mesh {
       ...transformProps
     } = { ...MainSphere.defaultProps, ...props }
 
-    const geometry = new IcosahedronGeometry(radius, 12)
+    const geometry = new IcosahedronGeometry(radius, 18)
     const material = new MeshPhysicalMaterial()
     material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines({ USE_UV: '' })
