@@ -35,19 +35,19 @@ const fragmentShader =  /* glsl */ `
   }
 `
 
-export function createSky() {
-  const material = new ShaderMaterial({
-    depthWrite: false,
-    side: BackSide,
-    vertexShader,
-    fragmentShader,
-    uniforms: {},
-  })
+export class Sky extends Mesh {
+  constructor() {
+    const material = new ShaderMaterial({
+      depthWrite: false,
+      side: BackSide,
+      vertexShader,
+      fragmentShader,
+      uniforms: {},
+    })
 
-  const geometry = new IcosahedronGeometry(10, 12)
-  const sky = new Mesh(geometry, material)
-  sky.renderOrder = -1
-  sky.name = 'sky'
-
-  return sky
-} 
+    const geometry = new IcosahedronGeometry(10, 12)
+    super(geometry, material)
+    this.renderOrder = -1
+    this.name = 'sky'
+  }
+}

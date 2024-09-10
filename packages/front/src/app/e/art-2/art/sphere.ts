@@ -7,85 +7,83 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { colors } from './colors'
 
-const defaultMainSphereProps = {
-  radius: 1,
-}
+type MainSphereProps = TransformProps & Partial<typeof MainSphere.defaultProps>
 
-export function createMainSphere(props?: TransformProps & Partial<typeof defaultMainSphereProps>) {
-  const {
-    radius,
-    ...transformProps
-  } = { ...defaultMainSphereProps, ...props }
+export class MainSphere extends Mesh {
+  static defaultProps = { radius: 1 }
 
-  const geometry = new IcosahedronGeometry(radius, 12)
-  const material = new MeshPhysicalMaterial()
-  material.onBeforeCompile = shader => ShaderForge.with(shader)
-    .defines({ USE_UV: '' })
-    .fragment.top(glsl_ramp)
-    .fragment.after('map_fragment', /* glsl */ `
-      vec2 p = vUv - 0.5;
-      float alpha = vUv.y;
-      diffuseColor.rgb = regularRampEaseInout4(alpha,
-        ${vec3(colors.black)},
-        ${vec3(colors.white)},
-        ${vec3(colors.yellow)});
-    `)
+  constructor(props?: TransformProps & Partial<typeof MainSphere.defaultProps>) {
+    const {
+      radius,
+      ...transformProps
+    } = { ...MainSphere.defaultProps, ...props }
 
-  const mesh = new Mesh(geometry, material)
-  applyTransform(mesh, transformProps)
-
-  return mesh
-}
-
-const defaultSmallGradientSphereProps = {
-  radius: .225,
-  singleColor: null as ColorRepresentation | null,
-  colorTop: colors.white,
-  colorBottom: colors.yellow,
-  emmissiveIntensity: .25,
-}
-let smallGradientSphereNextId = 0
-export function createSmallGradientSphere(props?: TransformProps & Partial<typeof defaultSmallGradientSphereProps>) {
-  const {
-    radius,
-    singleColor,
-    emmissiveIntensity,
-    ...transformProps
-  } = { ...defaultSmallGradientSphereProps, ...props }
-  const {
-    colorTop = singleColor ?? defaultSmallGradientSphereProps.colorTop,
-    colorBottom = singleColor ?? defaultSmallGradientSphereProps.colorBottom,
-  } = { ...props }
-
-  const geometry = new IcosahedronGeometry(radius, 12)
-  const material = new MeshPhysicalMaterial({
-    color: colorTop,
-    emissive: colorBottom,
-  })
-  material.onBeforeCompile = shader => {
-    ShaderForge.with(shader)
+    const geometry = new IcosahedronGeometry(radius, 12)
+    const material = new MeshPhysicalMaterial()
+    material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines({ USE_UV: '' })
-      .uniforms({
-        colorTop: { value: new Color(colorTop) },
-        colorBottom: { value: new Color(colorBottom) },
-      })
-      .fragment.top(glsl_ramp, glsl_utils)
-      .fragment.mainBeforeAll(/* glsl */ `
-        float alpha = inverseLerp(.3, .7, vUv.y);
-        vec3 sphereColor = regularRampEaseInout6(alpha, colorBottom, colorTop);
-      `)
+      .fragment.top(glsl_ramp)
       .fragment.after('map_fragment', /* glsl */ `
-        diffuseColor.rgb = sphereColor;
+        vec2 p = vUv - 0.5;
+        float alpha = vUv.y;
+        diffuseColor.rgb = regularRampEaseInout4(alpha,
+          ${vec3(colors.black)},
+          ${vec3(colors.white)},
+          ${vec3(colors.yellow)});
       `)
-      .fragment.after('emissivemap_fragment', /* glsl */ `
-        totalEmissiveRadiance.rgb = sphereColor * ${emmissiveIntensity.toFixed(2)};
-      `)
+
+    super(geometry, material)
+    applyTransform(this, transformProps)
+  }
+}
+
+export class SmallGradientSphere extends Mesh {
+  static defaultProps = {
+    radius: .225,
+    singleColor: null as ColorRepresentation | null,
+    colorTop: colors.white,
+    colorBottom: colors.yellow,
+    emmissiveIntensity: .25,
   }
 
-  const mesh = new Mesh(geometry, material)
-  mesh.name = `SmallGradientSphere-${smallGradientSphereNextId++}`
-  applyTransform(mesh, transformProps)
+  constructor(props?: TransformProps & Partial<typeof SmallGradientSphere.defaultProps>) {
+    const {
+      radius,
+      singleColor,
+      emmissiveIntensity,
+      ...transformProps
+    } = { ...SmallGradientSphere.defaultProps, ...props }
+    const {
+      colorTop = singleColor ?? SmallGradientSphere.defaultProps.colorTop,
+      colorBottom = singleColor ?? SmallGradientSphere.defaultProps.colorBottom,
+    } = { ...props }
 
-  return mesh
+    const geometry = new IcosahedronGeometry(radius, 12)
+    const material = new MeshPhysicalMaterial({
+      color: colorTop,
+      emissive: colorBottom,
+    })
+    material.onBeforeCompile = shader => {
+      ShaderForge.with(shader)
+        .defines({ USE_UV: '' })
+        .uniforms({
+          colorTop: { value: new Color(colorTop) },
+          colorBottom: { value: new Color(colorBottom) },
+        })
+        .fragment.top(glsl_ramp, glsl_utils)
+        .fragment.mainBeforeAll(/* glsl */ `
+          float alpha = inverseLerp(.3, .7, vUv.y);
+          vec3 sphereColor = regularRampEaseInout6(alpha, colorBottom, colorTop);
+        `)
+        .fragment.after('map_fragment', /* glsl */ `
+          diffuseColor.rgb = sphereColor;
+        `)
+        .fragment.after('emissivemap_fragment', /* glsl */ `
+          totalEmissiveRadiance.rgb = sphereColor * ${emmissiveIntensity.toFixed(2)};
+        `)
+    }
+
+    super(geometry, material)
+    applyTransform(this, transformProps)
+  }
 }
-
