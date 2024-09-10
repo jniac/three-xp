@@ -1,12 +1,14 @@
 'use client'
 
-import { EquirectangularReflectionMapping, Group, Mesh, MeshStandardMaterial, Texture } from 'three'
+import { EquirectangularReflectionMapping, Group, Mesh, MeshStandardMaterial, PMREMGenerator, Texture, WebGLProgramParametersWithUniforms } from 'three'
 
 import { GLTF, GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 
 import { BasicThreeProvider, Three, UseThree } from '../tools/basic-three'
 
+import { useState } from 'react'
+import { Message } from 'some-utils-ts/message'
 import customFragmentGlsl from './mesh-standard-material.glsl'
 
 const gltfLoader = new GLTFLoader()
@@ -31,49 +33,97 @@ function loadRgbe(url: string) {
 }
 
 async function* demo(three: Three) {
-  const { scene } = three
-  let mounted = true
+  const { scene, orbitControls } = three
+
+  orbitControls.object.position.set(2, .5, 3.5)
+  orbitControls.update()
+
   const group = new Group()
   scene.add(group)
 
   // Unmount:
   yield () => {
-    mounted = false
     scene.remove(group)
   }
 
+  const pmremGenerator = new PMREMGenerator(three.renderer)
   const env1 = await loadRgbe('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
   const env2 = await loadRgbe('https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr')
 
-  scene.environment = env2
-  scene.background = env2
+  const envMap1 = pmremGenerator.fromEquirectangular(env1).texture
+  const envMap2 = pmremGenerator.fromEquirectangular(env2).texture
+
+  // scene.environment = env1
+  // scene.background = env1
 
   const helmet = await loadGltf('https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf')
 
+  const shaders = [] as WebGLProgramParametersWithUniforms[]
   helmet.scene.traverse(child => {
     if (child instanceof Mesh) {
       const { material } = child
       if (material instanceof MeshStandardMaterial) {
-        // Function to replace all #include statements with actual chunks
+        material.envMap = envMap1 // enable envMap
 
         material.onBeforeCompile = shader => {
-          shader.uniforms.envMap1 = { value: env1 }
-          shader.uniforms.envMap2 = { value: env2 }
-          shader.uniforms.envMix = { value: 0 }
+          shaders.push(shader)
+          shader.uniforms.uTime = { value: 0 }
+          shader.uniforms.envMap1 = { value: envMap1 }
+          shader.uniforms.envMap2 = { value: envMap2 }
+          shader.uniforms.uEnvMix = { value: 0 }
           shader.fragmentShader = customFragmentGlsl
         }
       }
     }
   })
 
+  yield Message.on('INPUT:ENV_MIX', message => {
+    const { value } = message.payload
+    for (const shader of shaders) {
+      shader.uniforms.uEnvMix.value = value
+    }
+  })
+
+  yield three.ticker.onTick(tick => {
+    for (const shader of shaders) {
+      shader.uniforms.uTime.value = tick.time
+    }
+  })
+
   group.add(helmet.scene)
+}
+
+function UI() {
+  const [envMix, setEnvMix] = useState(0)
+  function updateEnvMix(value: number) {
+    setEnvMix(value)
+    Message.send('INPUT:ENV_MIX', { payload: { value } })
+  }
+  return (
+    <div className='UI'>
+      <h1>two-env-demo</h1>
+      <input
+        type="range"
+        name="envMix"
+        id="envMix"
+        min={0}
+        max={1}
+        step={0.01}
+        value={envMix}
+        onChange={e => updateEnvMix(parseFloat(e.target.value))}
+      />
+    </div>
+  )
 }
 
 export function Demo() {
   return (
-    <div className='wraps'>
+    <div className='Demo wraps'>
       <BasicThreeProvider>
-        <UseThree fn={demo} />
+        <div className='wraps p-8'>
+          <UI />
+          <UseThree fn={demo} />
+        </div>
       </BasicThreeProvider>
     </div>
   )

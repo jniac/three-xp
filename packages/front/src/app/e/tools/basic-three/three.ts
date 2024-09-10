@@ -57,6 +57,7 @@ export function createThree({
   const three = {
     renderer,
     camera,
+    orbitControls,
     scene,
     ticker,
     init,

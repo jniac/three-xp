@@ -496,22 +496,53 @@ float perspectiveDepthToViewZ( const in float depth, const in float near, const 
 		}
 	}
 #endif
+
+// FORK: use two envmaps ->
+uniform float uTime;
+// <- FORK: use two envmaps
+
 #ifdef USE_ENVMAP
 	uniform float envMapIntensity;
 	uniform float flipEnvMap;
 	uniform mat3 envMapRotation;
 	#ifdef ENVMAP_TYPE_CUBE
 		uniform samplerCube envMap;
+
+		// FORK: use two envmaps ->
+		uniform samplerCube envMap1;
+		uniform samplerCube envMap2;
+		// <- FORK: use two envmaps
+
 	#else
+		uniform float uEnvMix;
 		uniform sampler2D envMap;
+
+		// FORK: use two envmaps ->
+		uniform sampler2D envMap1;
+		uniform sampler2D envMap2;
+		// <- FORK: use two envmaps
+
 	#endif
 	
 #endif
 #ifdef USE_ENVMAP
+	// FORK: use two envmaps ->
+	vec4 getEnvMapColor(vec3 sampleDir, float roughness) {
+		vec4 envMapColor1 = textureCubeUV( envMap1, sampleDir, roughness );
+		vec4 envMapColor2 = textureCubeUV( envMap2, sampleDir, roughness );
+		return mix( envMapColor1, envMapColor2, uEnvMix );
+	}
+	// <- FORK: use two envmaps
+
 	vec3 getIBLIrradiance( const in vec3 normal ) {
 		#ifdef ENVMAP_TYPE_CUBE_UV
 			vec3 worldNormal = inverseTransformDirection( normal, viewMatrix );
-			vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+
+			// FORK: use two envmaps ->
+			// vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+			vec4 envMapColor = getEnvMapColor( envMapRotation * worldNormal, 1.0 );
+			// <- FORK: use two envmaps
+			
 			return PI * envMapColor.rgb * envMapIntensity;
 		#else
 			return vec3( 0.0 );
@@ -522,7 +553,12 @@ float perspectiveDepthToViewZ( const in float depth, const in float near, const 
 			vec3 reflectVec = reflect( - viewDir, normal );
 			reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );
 			reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-			vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+
+			// FORK: use two envmaps ->
+			// vec4 envMapColor = textureCubeUV( envMap1, envMapRotation * reflectVec, roughness );
+			vec4 envMapColor = getEnvMapColor( envMapRotation * reflectVec, roughness );
+			// <- FORK: use two envmaps
+
 			return envMapColor.rgb * envMapIntensity;
 		#else
 			return vec3( 0.0 );
@@ -1777,6 +1813,7 @@ IncidentLight directLight;
 	#endif
 #endif
 	vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
+	// vec3 totalSpecular = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
 	vec3 totalSpecular = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
 	#ifdef USE_TRANSMISSION
 	material.transmission = transmission;

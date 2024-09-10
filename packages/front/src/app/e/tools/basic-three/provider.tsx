@@ -48,12 +48,12 @@ function __BasicThreeProvider({ children }: { children?: ReactNode }) {
 
   return (
     <context.Provider value={three} >
-      <div>
+      <div className='wraps'>
         <div
           ref={ref}
-          className='absolute inset-0'
+          className='wraps'
         />
-        <div className='absolute inset-0 pointer-through' >
+        <div className='wraps' >
           {children}
         </div>
       </div>
