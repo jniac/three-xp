@@ -1,6 +1,6 @@
 import { ExpMetadata } from '@/types'
 
-import { Art } from './art'
+import { Main } from './main'
 
 export const metadata: ExpMetadata = {
   title: 'art-2',
@@ -13,7 +13,7 @@ export const metadata: ExpMetadata = {
 export default function Exp1() {
   return (
     <div className='Art2 page'>
-      <Art />
+      <Main />
     </div>
   )
 }
