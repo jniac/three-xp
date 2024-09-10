@@ -6,11 +6,11 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 
 import { Message } from 'some-utils-ts/message'
 
-import { Three } from '../../tools/basic-three'
+import { Three } from '@/tools/basic-three'
 
 import { createSky } from './sky'
 
-import customFragmentGlsl from '../glsl/mesh-standard-material.glsl'
+import meshStandarMaterialCustomFragment from '../glsl/mesh_standard_material_custom_fragment.glsl'
 
 const gltfLoader = new GLTFLoader()
 const rgbeLoader = new RGBELoader()
@@ -69,7 +69,7 @@ export async function* twoEnvDemo(three: Three) {
           shader.uniforms.envMap1 = { value: envMap1 }
           shader.uniforms.envMap2 = { value: envMap2 }
           shader.uniforms.uEnvMix = { value: 0 }
-          shader.fragmentShader = customFragmentGlsl
+          shader.fragmentShader = meshStandarMaterialCustomFragment
         }
       }
     }
