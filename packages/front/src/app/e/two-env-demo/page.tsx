@@ -9,7 +9,7 @@ export const metadata: ExpMetadata = {
   title: 'two-env-demo',
   slug: 'two-env-demo',
   description: `
-    # Graphic Art 2
+    # Demo of two environments map blending
   `,
 }
 
