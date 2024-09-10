@@ -1,3 +1,7 @@
+/**
+ * Same as ShaderChunk.cube_uv_reflection_fragment
+ * @see https://github.com/mrdoob/three.js/blob/dev/src/renderers/shaders/ShaderChunk/cube_uv_reflection_fragment.glsl.js
+ */
 export default /* glsl */`
 #ifdef ENVMAP_TYPE_CUBE_UV
 

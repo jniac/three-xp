@@ -3,7 +3,7 @@ import { ExpMetadata } from '@/types'
 
 import { Demo } from './demo'
 
-import styles from './page.module.css'
+import styles from './styles.module.css'
 
 export const metadata: ExpMetadata = {
   title: 'two-env-demo',

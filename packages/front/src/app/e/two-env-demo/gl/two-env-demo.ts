@@ -33,6 +33,9 @@ function loadRgbe(url: string) {
   })
 }
 
+/**
+ * Setup a scene with a helmet model and a sky.
+ */
 export async function* twoEnvDemo(three: Three) {
   const { scene, orbitControls } = three
 
@@ -55,6 +58,7 @@ export async function* twoEnvDemo(three: Three) {
   const envMap2 = pmremGenerator.fromEquirectangular(env2).texture
 
   const helmet = await loadGltf('https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf')
+  group.add(helmet.scene)
 
   const shaders = [] as WebGLProgramParametersWithUniforms[]
   helmet.scene.traverse(child => {
@@ -65,7 +69,6 @@ export async function* twoEnvDemo(three: Three) {
 
         material.onBeforeCompile = shader => {
           shaders.push(shader)
-          shader.uniforms.uTime = { value: 0 }
           shader.uniforms.envMap1 = { value: envMap1 }
           shader.uniforms.envMap2 = { value: envMap2 }
           shader.uniforms.uEnvMix = { value: 0 }
@@ -77,6 +80,8 @@ export async function* twoEnvDemo(three: Three) {
 
   const sky = createSky(envMap1, envMap2)
   group.add(sky)
+
+  // Message handling:
 
   yield Message.on('INPUT:ENV_MIX', message => {
     const { value } = message.payload
@@ -90,12 +95,4 @@ export async function* twoEnvDemo(three: Three) {
     const { value } = message.payload
     sky.material.uniforms.uRoughness.value = value
   })
-
-  yield three.ticker.onTick(tick => {
-    for (const shader of shaders) {
-      shader.uniforms.uTime.value = tick.time
-    }
-  })
-
-  group.add(helmet.scene)
 }

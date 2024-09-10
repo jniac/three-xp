@@ -1,0 +1,37 @@
+
+.TwoEnvDemo a {
+  color: #ffb8f9;
+}
+
+.TwoEnvDemo a:hover {
+  color: #0275ff;
+}
+
+.TwoEnvDemo ul {
+  display: flex;
+  flex-direction: column;
+  margin-top: .5em;
+  gap: 0.75em;
+  padding-left: 2em;
+}
+.TwoEnvDemo ul li {
+  display: flex;
+  flex-direction: column;
+}
+
+.TwoEnvDemo ul li::before {
+  position: absolute;
+  content: '•';
+  margin-left: -1em;
+  margin-right: 0.5em;
+}
+
+.UI {
+  max-width: 360px;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  border-radius: .5em;
+  backdrop-filter: blur(32px) brightness(0.8);
+}

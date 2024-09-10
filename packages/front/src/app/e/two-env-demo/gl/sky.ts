@@ -1,6 +1,5 @@
 import { BackSide, IcosahedronGeometry, Mesh, ShaderMaterial, Texture } from 'three'
 
-// same as ShaderChunk.cube_uv_reflection_fragment
 import cube_uv_reflection_fragment from '../glsl/cube_uv_reflection_fragment.glsl'
 
 const vertexShader = /* glsl */ `
@@ -15,10 +14,10 @@ const vertexShader = /* glsl */ `
   }
 
   void main() {
-    // vec4 worldPosition = modelMatrix * vec4(position, 1.0);
     vWorldNormal = rotate(modelMatrix, position);
 
     // gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    // Ignore the position, we only need the normal:
     gl_Position = projectionMatrix * vec4(rotate(modelViewMatrix, position), 1.0);
   }
 `
@@ -60,7 +59,7 @@ export function createSky(envMap1: Texture, envMap2: Texture) {
   const sky = new Mesh(
     new IcosahedronGeometry(10, 8),
     new ShaderMaterial({
-      depthWrite: false,
+      depthWrite: false, // The sky should not write to the depth buffer
       defines: {
         ENVMAP_TYPE_CUBE_UV: '',
         CUBEUV_MAX_MIP: maxMip.toFixed(1),
