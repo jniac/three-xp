@@ -1,117 +1,60 @@
 'use client'
 
-import { EquirectangularReflectionMapping, Group, Mesh, MeshStandardMaterial, PMREMGenerator, Texture, WebGLProgramParametersWithUniforms } from 'three'
-
-import { GLTF, GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
-
-import { BasicThreeProvider, Three, UseThree } from '../tools/basic-three'
-
 import { useState } from 'react'
+
 import { Message } from 'some-utils-ts/message'
-import customFragmentGlsl from './mesh-standard-material.glsl'
 
-const gltfLoader = new GLTFLoader()
-const rgbeLoader = new RGBELoader()
+import { BasicThreeProvider, UseThree } from '../tools/basic-three'
 
-function loadGltf(url: string) {
-  return new Promise<GLTF>(resolve => {
-    gltfLoader.load(url, gltf => {
-      resolve(gltf)
-    })
-  })
-}
+import { twoEnvDemo } from './gl/two-env-demo'
 
-function loadRgbe(url: string) {
-  return new Promise<Texture>(resolve => {
-    rgbeLoader.load(url, texture => {
-      // Assuming the texture is an equirectangular HDR image:
-      texture.mapping = EquirectangularReflectionMapping
-      resolve(texture)
-    })
-  })
-}
-
-async function* demo(three: Three) {
-  const { scene, orbitControls } = three
-
-  orbitControls.object.position.set(2, .5, 3.5)
-  orbitControls.update()
-
-  const group = new Group()
-  scene.add(group)
-
-  // Unmount:
-  yield () => {
-    scene.remove(group)
-  }
-
-  const pmremGenerator = new PMREMGenerator(three.renderer)
-  const env1 = await loadRgbe('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
-  const env2 = await loadRgbe('https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr')
-
-  const envMap1 = pmremGenerator.fromEquirectangular(env1).texture
-  const envMap2 = pmremGenerator.fromEquirectangular(env2).texture
-
-  // scene.environment = env1
-  // scene.background = env1
-
-  const helmet = await loadGltf('https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf')
-
-  const shaders = [] as WebGLProgramParametersWithUniforms[]
-  helmet.scene.traverse(child => {
-    if (child instanceof Mesh) {
-      const { material } = child
-      if (material instanceof MeshStandardMaterial) {
-        material.envMap = envMap1 // enable envMap
-
-        material.onBeforeCompile = shader => {
-          shaders.push(shader)
-          shader.uniforms.uTime = { value: 0 }
-          shader.uniforms.envMap1 = { value: envMap1 }
-          shader.uniforms.envMap2 = { value: envMap2 }
-          shader.uniforms.uEnvMix = { value: 0 }
-          shader.fragmentShader = customFragmentGlsl
-        }
-      }
-    }
-  })
-
-  yield Message.on('INPUT:ENV_MIX', message => {
-    const { value } = message.payload
-    for (const shader of shaders) {
-      shader.uniforms.uEnvMix.value = value
-    }
-  })
-
-  yield three.ticker.onTick(tick => {
-    for (const shader of shaders) {
-      shader.uniforms.uTime.value = tick.time
-    }
-  })
-
-  group.add(helmet.scene)
+function Slider({ label, value, onChange }: { label: string, value: number, onChange: (value: number) => void }) {
+  return (
+    <div className='flex flex-row gap-2'>
+      <label htmlFor={label}>{label}</label>
+      <input
+        type="range"
+        name={label}
+        id={label}
+        min={0}
+        max={1}
+        step={0.01}
+        value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+      />
+      <span>{value.toFixed(2)}</span>
+    </div>
+  )
 }
 
 function UI() {
   const [envMix, setEnvMix] = useState(0)
+  const [skyRoughness, setSkyRoughness] = useState(.5)
+
   function updateEnvMix(value: number) {
     setEnvMix(value)
     Message.send('INPUT:ENV_MIX', { payload: { value } })
   }
+  function updateSkyRoughness(value: number) {
+    setSkyRoughness(value)
+    Message.send('INPUT:SKY_ROUGHNESS', { payload: { value } })
+  }
+
   return (
     <div className='UI'>
-      <h1>two-env-demo</h1>
-      <input
-        type="range"
-        name="envMix"
-        id="envMix"
-        min={0}
-        max={1}
-        step={0.01}
-        value={envMix}
-        onChange={e => updateEnvMix(parseFloat(e.target.value))}
-      />
+      <h1 className='text-2xl uppercase'>two-env-demo</h1>
+      <Slider label='envMix' value={envMix} onChange={updateEnvMix} />
+      <Slider label='skyRoughness' value={skyRoughness} onChange={updateSkyRoughness} />
+      <div>
+        <ul>
+          <li>
+            <a href='https://github.com/mrdoob/three.js/blob/dev/src/renderers/shaders/ShaderLib/meshphysical.glsl.js'>ShaderLib/meshphysical</a>
+          </li>
+          <li>
+            <a href='https://github.com/mrdoob/three.js/blob/dev/src/renderers/shaders/ShaderChunk/cube_uv_reflection_fragment.glsl.js'>ShaderChunk/cube_uv_reflection_fragment</a>
+          </li>
+        </ul>
+      </div>
     </div>
   )
 }
@@ -122,7 +65,7 @@ export function Demo() {
       <BasicThreeProvider>
         <div className='wraps p-8'>
           <UI />
-          <UseThree fn={demo} />
+          <UseThree fn={twoEnvDemo} />
         </div>
       </BasicThreeProvider>
     </div>

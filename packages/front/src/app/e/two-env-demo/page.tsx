@@ -3,6 +3,8 @@ import { ExpMetadata } from '@/types'
 
 import { Demo } from './demo'
 
+import styles from './page.module.css'
+
 export const metadata: ExpMetadata = {
   title: 'two-env-demo',
   slug: 'two-env-demo',
@@ -13,7 +15,7 @@ export const metadata: ExpMetadata = {
 
 export default function Exp1() {
   return (
-    <div className='Demo page'>
+    <div className={`TwoEnvDemo page ${styles.TwoEnvDemo}`}>
       <Demo />
     </div>
   )
