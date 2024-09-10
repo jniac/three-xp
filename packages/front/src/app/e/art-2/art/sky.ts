@@ -1,6 +1,7 @@
 import { vec3 } from 'some-utils-ts/glsl/conversion'
 
 import { BackSide, IcosahedronGeometry, Mesh, ShaderChunk, ShaderMaterial } from 'three'
+import { colors } from './colors'
 
 const vertexShader = /* glsl */ `
   varying vec3 vWorldNormal;
@@ -29,7 +30,7 @@ const fragmentShader =  /* glsl */ `
 
   void main() {
     
-    gl_FragColor.rgb = ${vec3('#b70101')};
+    gl_FragColor.rgb = ${vec3(colors.red)};
     gl_FragColor.a = 1.0;
   }
 `

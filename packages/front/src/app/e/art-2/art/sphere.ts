@@ -1,4 +1,4 @@
-import { Color, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
+import { Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
@@ -38,7 +38,8 @@ export function createMainSphere(props?: TransformProps & Partial<typeof default
 }
 
 const defaultSmallGradientSphereProps = {
-  radius: .2,
+  radius: .225,
+  singleColor: null as ColorRepresentation | null,
   colorTop: colors.white,
   colorBottom: colors.yellow,
   emmissiveIntensity: .25,
@@ -47,11 +48,14 @@ let smallGradientSphereNextId = 0
 export function createSmallGradientSphere(props?: TransformProps & Partial<typeof defaultSmallGradientSphereProps>) {
   const {
     radius,
-    colorTop,
-    colorBottom,
+    singleColor,
     emmissiveIntensity,
     ...transformProps
   } = { ...defaultSmallGradientSphereProps, ...props }
+  const {
+    colorTop = singleColor ?? defaultSmallGradientSphereProps.colorTop,
+    colorBottom = singleColor ?? defaultSmallGradientSphereProps.colorBottom,
+  } = { ...props }
 
   const geometry = new IcosahedronGeometry(radius, 12)
   const material = new MeshPhysicalMaterial({

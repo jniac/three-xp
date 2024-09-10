@@ -1,4 +1,4 @@
-import { Group, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
+import { CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
@@ -7,8 +7,8 @@ import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { Three } from '@/tools/three/webgl'
 
 import { colors } from './colors'
-import { createDisc } from './disc'
-import { createLights } from './light'
+import { createLights } from './lights'
+import { createGradientRing, createRing } from './ring'
 import { createSky } from './sky'
 import { createMainSphere, createSmallGradientSphere } from './sphere'
 
@@ -38,6 +38,29 @@ function createBlacky(transformProps?: TransformProps) {
   return mesh
 }
 
+const defaultLineProps = {
+  color: colors.black,
+  thickness: .018,
+  shaded: false,
+  length: 1,
+}
+export function createLine(props?: TransformProps & Partial<typeof defaultLineProps>) {
+  const {
+    color,
+    thickness,
+    length,
+    shaded,
+    ...transformProps
+  } = { ...defaultLineProps, ...props }
+  const material = shaded
+    ? new MeshPhysicalMaterial({ color })
+    : new MeshBasicMaterial({ color })
+  const geometry = new CylinderGeometry(thickness / 2, thickness / 2, length, 12, 1).rotateZ(Math.PI * .5)
+  const mesh = new Mesh(geometry, material)
+  applyTransform(mesh, transformProps)
+  return mesh
+}
+
 export function* art(three: Three) {
   const { scene, camera } = three
 
@@ -49,17 +72,29 @@ export function* art(three: Three) {
   scene.add(group)
   yield () => group.removeFromParent()
 
+  const rotate45 = new Group()
+  rotate45.rotation.z = Math.PI * -.25
+  group.add(rotate45)
+
   const lights = createLights()
   scene.add(lights)
 
-  group.add(createMainSphere({ z: .5 }))
+  group.add(createMainSphere())
 
-  group.add(createDisc({ z: -.5 }))
+  group.add(createGradientRing({ z: -1 }))
+  group.add(createRing({ z: -1, radius: .8, thickness: .01, color: colors.notSoWhite }))
 
-  group.add(createSmallGradientSphere({ x: -1.3, y: 1.3, z: .5, colorTop: colors.yellow }))
-  group.add(createSmallGradientSphere({ x: 1.1, y: -1.1, z: .5, rotationZ: Math.PI * -.25 }))
+  rotate45.add(createSmallGradientSphere({ x: -1.5, z: .5, singleColor: colors.yellow }))
+  rotate45.add(createRing({ x: -1.81, radius: .1, thickness: .01, color: colors.notSoWhite }))
+  rotate45.add(createRing({ x: -2.2, radius: .2, thickness: .01, color: colors.notSoWhite }))
+  rotate45.add(createLine({ x: -2.5, color: colors.notSoWhite, thickness: .01, length: .45 }))
+
+  rotate45.add(createSmallGradientSphere({ x: 1.7, z: .5, rotationZ: Math.PI * -.25 }))
+  rotate45.add(createSmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
+  rotate45.add(createBlacky({ x: 2.3 }))
+
+  rotate45.add(createLine({ x: 1.5 }))
 
   scene.add(createSky())
 
-  scene.add(createBlacky({ x: 1.5, y: -1.5 }))
 }
