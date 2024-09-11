@@ -87,10 +87,11 @@ export class GradientRing extends Ring {
       vec2 p = vUv - 0.5;
       float alpha = atan(p.y, p.x) / 6.2831853;
       alpha = 1.0 - mod(alpha + 0.0, 1.0);
-      diffuseColor.rgb = regularRampEaseInout4(alpha,
+      Vec3Ramp r = ramp(alpha,
         ${vec3(colors.black)},
         ${vec3(colors.white)},
         ${vec3(colors.yellow)});
+      diffuseColor.rgb = mix(r.a, r.b, easeInOut4(r.t));
     `)
   }
 }

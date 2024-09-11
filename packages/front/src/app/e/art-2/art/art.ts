@@ -4,15 +4,17 @@ import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { range } from 'some-utils-ts/iteration/range'
+import { lerp } from 'some-utils-ts/math/basic'
+import { PRNG } from 'some-utils-ts/random/prng'
+import { Destroyable } from 'some-utils-ts/types'
 
 import { config } from '@/config'
 import { Three } from '@/tools/three/webgl'
 
-import { PRNG } from 'some-utils-ts/random/prng'
 import { GradientRing, Torus } from './circular'
 import { colors } from './colors'
 import { Lights } from './lights'
-import { Sky } from './sky'
+import { RedSky } from './skies/red-sky'
 import { MainSphere, SmallGradientSphere } from './sphere'
 
 class Blacky extends Mesh {
@@ -35,7 +37,7 @@ class Blacky extends Mesh {
       float fresnel = dot(vNormalWorld, vViewDir);
       vec3 inner = ${vec3(colors.white)};
       vec3 outer = ${vec3(colors.black)};
-      diffuseColor.rgb = mix(inner, outer, easeInout(1.0 - fresnel * fresnel, 2.0, 0.0));
+      diffuseColor.rgb = mix(inner, outer, easeInOut(1.0 - fresnel * fresnel, 2.0, 0.0));
     `)
     super(geometry, material)
     applyTransform(this, transformProps)
@@ -78,7 +80,7 @@ function addTo<T extends Object3D>(child: T, parent: Object3D): T {
   return child
 }
 
-function* setup(three: Three) {
+function* setup(three: Three): Generator<Destroyable, Group> {
   const { camera, ticker, scene } = three
 
   camera.fov = 25
@@ -100,9 +102,7 @@ function* setup(three: Three) {
 export function* art(three: Three) {
   const group = yield* setup(three)
 
-  console.log(group)
-
-  group.add(new Sky())
+  group.add(new RedSky())
 
   group.add(new Lights())
 
@@ -117,11 +117,12 @@ export function* art(three: Three) {
     const colorTop = PRNG.pick(colors)
     const colorBottom = PRNG.pick(colors)
     const satellite = new SmallGradientSphere({ z: -1, radius: .1, colorTop, colorBottom })
+    satellite.rotation.set(PRNG.between(Math.PI * 2), PRNG.between(Math.PI * 2), PRNG.between(Math.PI * 2))
     group.add(satellite)
     satellite.satellite.set({
-      radius: i === 0 ? .875 : PRNG.between(.25, .75),
-      center: new Vector3(0, 0, -1 - .2 * i),
-      turnVelocity: PRNG.between(.25, .75),
+      radius: i === 0 ? .875 : PRNG.between(.25, .75) * lerp(1, 1.5, i),
+      center: new Vector3(0, 0, -1 - .4 * i),
+      turnVelocity: PRNG.between(.05, .25),
     })
     yield three.ticker.onTick(tick => {
       satellite.satellite.update(tick.deltaTime)
@@ -138,7 +139,7 @@ export function* art(three: Three) {
   const ring = addTo(new Torus({ x: -2.315, radius: .2, thickness: .01, color: colors.notSoWhite }), slash)
   addTo(new Line({ x: -.2, thickness: .01, length: .4, shaded: true, color: colors.notSoWhite }), ring)
 
-  slash.add(new SmallGradientSphere({ x: 1.7, z: .5 }))
+  slash.add(new SmallGradientSphere({ x: 1.7, z: .5, lerpIn: .3, lerpOut: .7 }))
   slash.add(new SmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
   slash.add(new Blacky({ x: 2.3 }))
 

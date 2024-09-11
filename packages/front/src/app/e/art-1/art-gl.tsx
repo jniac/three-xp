@@ -184,7 +184,7 @@ export function create({
         vec3 color1 = COLORS[i];
         vec3 color2 = COLORS[(i + COLORS_COUNT - 1) % COLORS_COUNT];
   
-        vec3 color = mix(color1, color2, easeInout4(f));
+        vec3 color = mix(color1, color2, easeInOut4(f));
         // color *= mix(0.8, 1.1, f * f * f);
   
         color = 1.0 - color;

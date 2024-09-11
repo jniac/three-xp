@@ -3,9 +3,12 @@ import { Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMate
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
-
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
+
+import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { colors } from './colors'
+
+console.log('glsl_ramp', glsl_ramp.slice(0, 10))
 
 type MainSphereProps = TransformProps & Partial<typeof MainSphere.defaultProps>
 
@@ -26,10 +29,8 @@ export class MainSphere extends Mesh {
       .fragment.after('map_fragment', /* glsl */ `
         vec2 p = vUv - 0.5;
         float alpha = vUv.y;
-        diffuseColor.rgb = regularRampEaseInout4(alpha,
-          ${vec3(colors.black)},
-          ${vec3(colors.white)},
-          ${vec3(colors.yellow)});
+        Vec3Ramp r = ramp(alpha, ${vec3(colors.black)}, ${vec3(colors.white)}, ${vec3(colors.yellow)});
+        diffuseColor.rgb = mix(r.a, r.b, easeInOut4(r.t));
       `)
 
     super(geometry, material)
@@ -85,6 +86,8 @@ export class SmallGradientSphere extends Mesh {
     colorTop: colors.white,
     colorBottom: colors.yellow,
     emmissiveIntensity: .25,
+    lerpIn: .4,
+    lerpOut: .6,
   }
 
   private _satellite: Satellite | null = null
@@ -95,6 +98,8 @@ export class SmallGradientSphere extends Mesh {
       radius,
       singleColor,
       emmissiveIntensity,
+      lerpIn,
+      lerpOut,
       ...transformProps
     } = { ...SmallGradientSphere.defaultProps, ...props }
     const {
@@ -111,13 +116,17 @@ export class SmallGradientSphere extends Mesh {
       ShaderForge.with(shader)
         .defines({ USE_UV: '' })
         .uniforms({
-          colorTop: { value: new Color(colorTop) },
-          colorBottom: { value: new Color(colorBottom) },
+          uLerpIn: { value: lerpIn },
+          uLerpOut: { value: lerpOut },
+          uColorTop: { value: new Color(colorTop) },
+          uColorBottom: { value: new Color(colorBottom) },
         })
-        .fragment.top(glsl_ramp, glsl_utils)
+        .fragment.top(
+          glsl_easings,
+          glsl_utils)
         .fragment.mainBeforeAll(/* glsl */ `
-          float alpha = inverseLerp(.3, .7, vUv.y);
-          vec3 sphereColor = regularRampEaseInout6(alpha, colorBottom, colorTop);
+          float alpha = inverseLerp(uLerpIn, uLerpOut, vUv.y);
+          vec3 sphereColor = mix(uColorBottom, uColorTop, easeInOut10(alpha));
         `)
         .fragment.after('map_fragment', /* glsl */ `
           diffuseColor.rgb = sphereColor;
