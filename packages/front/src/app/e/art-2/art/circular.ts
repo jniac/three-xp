@@ -6,7 +6,7 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 
 import { colors } from './colors'
 
-type RingProps = TransformProps & Partial<typeof Ring.defaultProps>
+type CircularProps = TransformProps & Partial<typeof Ring.defaultProps>
 
 export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMaterial> {
   static defaultProps = {
@@ -18,7 +18,7 @@ export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMat
     shaded: true,
   }
 
-  constructor(props?: RingProps) {
+  constructor(props?: CircularProps) {
     const {
       radius,
       thickness,
@@ -48,7 +48,7 @@ export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMat
 }
 
 export class Torus extends Mesh<TorusGeometry, MeshPhysicalMaterial | MeshBasicMaterial> {
-  constructor(props?: RingProps) {
+  constructor(props?: CircularProps) {
     const {
       radius,
       thickness,
@@ -78,7 +78,7 @@ export class Torus extends Mesh<TorusGeometry, MeshPhysicalMaterial | MeshBasicM
 }
 
 export class GradientRing extends Ring {
-  constructor(props?: RingProps) {
+  constructor(props?: CircularProps) {
     super(props)
     this.material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines({ USE_UV: '' })

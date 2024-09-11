@@ -1,4 +1,4 @@
-import { Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
+import { Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
@@ -37,6 +37,47 @@ export class MainSphere extends Mesh {
   }
 }
 
+type SatelliteProps = typeof Satellite.defaultProps
+class Satellite {
+  static defaultProps = {
+    center: new Vector3(),
+    normal: new Vector3(1, 0, 0),
+    binormal: new Vector3(0, 1, 0),
+    radius: 1,
+    turnVelocity: 1,
+    turn: 0,
+  }
+
+  props!: SatelliteProps
+
+  target: Object3D
+
+  constructor(target: Object3D, props?: Partial<SatelliteProps>) {
+    this.target = target
+    this.set({ ...Satellite.defaultProps, ...props })
+  }
+
+  set(props: Partial<SatelliteProps>) {
+    this.props = { ...this.props, ...props }
+
+    this.props.center = this.props.center.clone()
+    this.props.normal = this.props.normal.clone().normalize()
+    this.props.binormal = this.props.binormal.clone().normalize()
+  }
+
+  update(deltaTime: number) {
+    const { radius, turnVelocity, turn, center, normal, binormal } = this.props
+    const newTurn = turn + turnVelocity * deltaTime
+    this.props.turn = newTurn
+
+    const cos = Math.cos(newTurn * Math.PI * 2)
+    const sin = Math.sin(newTurn * Math.PI * 2)
+    this.target.position.copy(center)
+      .addScaledVector(normal, radius * cos)
+      .addScaledVector(binormal, radius * sin)
+  }
+}
+
 export class SmallGradientSphere extends Mesh {
   static defaultProps = {
     radius: .225,
@@ -45,6 +86,9 @@ export class SmallGradientSphere extends Mesh {
     colorBottom: colors.yellow,
     emmissiveIntensity: .25,
   }
+
+  private _satellite: Satellite | null = null
+  get satellite() { return this._satellite ??= new Satellite(this) }
 
   constructor(props?: TransformProps & Partial<typeof SmallGradientSphere.defaultProps>) {
     const {

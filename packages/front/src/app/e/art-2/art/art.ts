@@ -1,14 +1,17 @@
-import { CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial } from 'three'
+import { CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { range } from 'some-utils-ts/iteration/range'
 
+import { config } from '@/config'
 import { Three } from '@/tools/three/webgl'
 
+import { PRNG } from 'some-utils-ts/random/prng'
+import { GradientRing, Torus } from './circular'
 import { colors } from './colors'
 import { Lights } from './lights'
-import { GradientRing, Ring, Torus } from './ring'
 import { Sky } from './sky'
 import { MainSphere, SmallGradientSphere } from './sphere'
 
@@ -63,34 +66,77 @@ export class Line extends Mesh {
   }
 }
 
-export function* art(three: Three) {
-  const { scene, camera } = three
+function add<T extends Object3D>(parent: T, ...children: Object3D[]): T {
+  for (const child of children) {
+    parent.add(child)
+  }
+  return parent
+}
+
+function addTo<T extends Object3D>(child: T, parent: Object3D): T {
+  parent.add(child)
+  return child
+}
+
+function* setup(three: Three) {
+  const { camera, ticker, scene } = three
 
   camera.fov = 25
   camera.updateProjectionMatrix()
   camera.position.set(0, 0, 10)
 
+  ticker.set({ activeDuration: config.development ? 3 : 180 })
+
   const group = new Group()
   scene.add(group)
-  yield () => group.removeFromParent()
+  yield () => {
+    console.log('remove')
+    group.removeFromParent()
+  }
 
-  scene.add(new Sky())
+  return group
+}
+
+export function* art(three: Three) {
+  const group = yield* setup(three)
+
+  console.log(group)
+
+  group.add(new Sky())
+
+  group.add(new Lights())
+
+  group.add(new MainSphere())
+
+  group.add(new GradientRing({ z: -1, radius: 1.4, innerRadiusRatio: .805 }))
+  group.add(new Torus({ z: -1, radius: 1.05, thickness: .01, color: colors.notSoWhite }))
+  group.add(new Torus({ z: -1, radius: .7, thickness: .01, color: colors.notSoWhite }))
+
+  PRNG.seed(6789402)
+  for (const { i } of range(8)) {
+    const colorTop = PRNG.pick(colors)
+    const colorBottom = PRNG.pick(colors)
+    const satellite = new SmallGradientSphere({ z: -1, radius: .1, colorTop, colorBottom })
+    group.add(satellite)
+    satellite.satellite.set({
+      radius: i === 0 ? .875 : PRNG.between(.25, .75),
+      center: new Vector3(0, 0, -1 - .2 * i),
+      turnVelocity: PRNG.between(.25, .75),
+    })
+    yield three.ticker.onTick(tick => {
+      satellite.satellite.update(tick.deltaTime)
+    })
+  }
 
   const slash = new Group()
   slash.rotation.z = Math.PI * -.25
   group.add(slash)
 
-  scene.add(new Lights())
-
-  group.add(new MainSphere())
-
-  group.add(new GradientRing({ z: -1, radius: 1.4, innerRadiusRatio: .805 }))
-  group.add(new Ring({ z: -1, radius: .8, thickness: .01, color: colors.notSoWhite }))
-
   slash.add(new SmallGradientSphere({ x: -1.5, z: .5, singleColor: colors.yellow }))
   slash.add(new Torus({ x: -1.81, radius: .1, thickness: .01, color: colors.notSoWhite }))
-  slash.add(new Torus({ x: -2.2, radius: .2, thickness: .01, color: colors.notSoWhite }))
-  slash.add(new Line({ x: -2.5, thickness: .01, length: .45, shaded: true, color: colors.notSoWhite }))
+
+  const ring = addTo(new Torus({ x: -2.315, radius: .2, thickness: .01, color: colors.notSoWhite }), slash)
+  addTo(new Line({ x: -.2, thickness: .01, length: .4, shaded: true, color: colors.notSoWhite }), ring)
 
   slash.add(new SmallGradientSphere({ x: 1.7, z: .5 }))
   slash.add(new SmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
@@ -104,4 +150,11 @@ export function* art(three: Three) {
 
   antiSlash.add(new Line({ x: -1.6, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
   antiSlash.add(new Line({ x: 1.6, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
+
+  const frontal = new Group()
+  frontal.rotation.y = Math.PI * .5
+  group.add(frontal)
+
+  frontal.add(new Line({ x: -1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
+  frontal.add(new Line({ x: 1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
 }
