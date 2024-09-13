@@ -1,4 +1,4 @@
-import { CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
+import { BackSide, Color, CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PMREMGenerator, Vector3 } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
@@ -9,12 +9,14 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { config } from '@/config'
+import { loadRgbe } from '@/tools/three/utils/rgbe'
 import { Three } from '@/tools/three/webgl'
 
+import { UseEffectsState } from 'some-utils-react/hooks/effects'
 import { GradientRing, Torus } from './circular'
 import { colors } from './colors'
 import { Lights } from './lights'
-import { RedSky } from './skies/red-sky'
+import { ASky } from './skies/a-sky'
 import { MainSphere, SmallGradientSphere } from './sphere'
 
 class Blacky extends Mesh {
@@ -47,7 +49,7 @@ class Blacky extends Mesh {
 export class Line extends Mesh {
   static defaultProps = {
     color: colors.black,
-    thickness: .018,
+    thickness: .01,
     shaded: false,
     length: 1,
   }
@@ -81,36 +83,46 @@ function addTo<T extends Object3D>(child: T, parent: Object3D): T {
 }
 
 function* setup(three: Three): Generator<Destroyable, Group> {
-  const { camera, ticker, scene } = three
-
-  camera.fov = 25
-  camera.updateProjectionMatrix()
-  camera.position.set(0, 0, 10)
+  const { ticker, scene } = three
 
   ticker.set({ activeDuration: config.development ? 3 : 180 })
+
+  loadRgbe('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
+    .then(texture => {
+      const pmremGenerator = new PMREMGenerator(three.renderer)
+      const env = pmremGenerator.fromEquirectangular(texture).texture
+      // scene.environment = env
+    })
 
   const group = new Group()
   scene.add(group)
   yield () => {
-    console.log('remove')
     group.removeFromParent()
   }
 
   return group
 }
 
-export function* art(three: Three) {
+export function* art(three: Three, state: UseEffectsState) {
   const group = yield* setup(three)
 
-  group.add(new RedSky())
+  if (state.renderCount === 1) {
+    const { camera } = three
+    camera.fov = 25
+    camera.far = 1000
+    camera.updateProjectionMatrix()
+    camera.position.set(0, 0, 10)
+  }
+
+  group.add(new ASky())
 
   group.add(new Lights())
 
   group.add(new MainSphere())
 
   group.add(new GradientRing({ z: -1, radius: 1.4, innerRadiusRatio: .805 }))
-  group.add(new Torus({ z: -1, radius: 1.05, thickness: .01, color: colors.notSoWhite }))
-  group.add(new Torus({ z: -1, radius: .7, thickness: .01, color: colors.notSoWhite }))
+  group.add(new Torus({ z: -1, radius: .75, thickness: .01, color: colors.yellow, emissiveIntensity: 1 }))
+  group.add(new Torus({ z: -1, radius: .8, thickness: .01, color: colors.notSoWhite }))
 
   PRNG.seed(6789402)
   for (const { i } of range(8)) {
@@ -141,9 +153,10 @@ export function* art(three: Three) {
 
   slash.add(new SmallGradientSphere({ x: 1.7, z: .5, lerpIn: .3, lerpOut: .7 }))
   slash.add(new SmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
-  slash.add(new Blacky({ x: 2.3 }))
+  const blacky = addTo(new Blacky({ x: 2.3 }), slash)
+  addTo(new Torus({ radius: .43, thickness: .015, color: colors.black }), blacky)
 
-  slash.add(new Line({ x: 1.5 }))
+  slash.add(new Line({ x: 1.5, thickness: .015, color: colors.black }))
 
   const antiSlash = new Group()
   antiSlash.rotation.z = Math.PI * .25
@@ -158,4 +171,50 @@ export function* art(three: Three) {
 
   frontal.add(new Line({ x: -1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
   frontal.add(new Line({ x: 1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
+
+  // const torus = new Torus({ shaded: true, radius: 7, thickness: 3, rotationX: Math.PI * .8, rotationY: Math.PI * -.25 })
+  // torus.material = new MeshPhysicalMaterial({
+  //   color: new Color('white').lerp(colors.red, .8),
+  //   // emissive: colors.yellow,
+  //   // emissiveIntensity: 1,
+  //   transmission: 1,
+  //   roughness: .1,
+  //   thickness: 1,
+  //   clearcoat: 1,
+
+  //   ior: 1.5,
+  // })
+  // addTo(torus, group)
+
+  const blackGroup = addTo(new Group(), group)
+  blackGroup.rotation.z = Math.PI * .25
+  class BlackCylinder extends Group {
+    constructor(props: TransformProps) {
+      super()
+      const height = 5
+      const radius = 15
+      {
+        const geometry = new CylinderGeometry(radius, radius, height, 6, 1, true).rotateY(Math.PI / 6)
+        const material = new MeshPhysicalMaterial({
+          color: new Color('white').lerp(colors.black, .995),
+          side: BackSide,
+          flatShading: true,
+        })
+        addTo(new Mesh(geometry, material), this)
+      }
+      {
+        const geometry = new CylinderGeometry(radius, radius, height, 6, 60, true).rotateY(Math.PI / 6)
+        const material = new MeshPhysicalMaterial({
+          color: colors.black,
+          wireframe: true,
+          flatShading: true,
+          side: BackSide,
+        })
+        addTo(new Mesh(geometry, material), this)
+      }
+      applyTransform(this, props)
+    }
+  }
+  addTo(new BlackCylinder({ y: 7.8 }), blackGroup)
+  addTo(new BlackCylinder({ y: -7.8 }), blackGroup)
 }

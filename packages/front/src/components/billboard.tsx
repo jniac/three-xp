@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
+import { HTMLAttributes, useState } from 'react'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handleSize } from 'some-utils-dom/handle/size'
@@ -13,7 +13,7 @@ const billboardStyles = [
   styles.full,
 ]
 
-export function Billboard({ children }: { children?: ReactNode }) {
+export function Billboard(props: HTMLAttributes<HTMLDivElement>) {
   const [index, setIndex] = useState(0)
 
   const { ref } = useLayoutEffects<HTMLDivElement>(function* (div) {
@@ -45,6 +45,7 @@ export function Billboard({ children }: { children?: ReactNode }) {
     ])
   }, [])
 
+  const { children, className } = props
   return (
     <div
       ref={ref}
@@ -52,6 +53,7 @@ export function Billboard({ children }: { children?: ReactNode }) {
         styles.Billboard,
         styles.landscape,
         billboardStyles[index],
+        className ?? '',
       ].join(' ')}
     >
       {children}

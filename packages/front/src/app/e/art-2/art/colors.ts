@@ -1,9 +1,10 @@
-import { ColorRepresentation } from 'three'
+import { Color } from 'three'
 
 export const colors = {
-  white: <ColorRepresentation>'#ffffff',
-  notSoWhite: <ColorRepresentation>'#f1f3e2',
-  yellow: <ColorRepresentation>'#ffff00',
-  black: <ColorRepresentation>'#200320',
-  red: <ColorRepresentation>'#c00b0b',
+  white: new Color('#ffffff'),
+  notSoWhite: new Color('#f1f3e2'),
+  yellow: new Color('#ffff00'),
+  black: new Color('#110111'),
+  // red: new Color('#102dd3'),
+  red: new Color('#dd1a41'),
 }

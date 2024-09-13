@@ -1,6 +1,7 @@
 import { vec3 } from 'some-utils-ts/glsl/conversion'
 
-import { BackSide, BoxGeometry, Mesh, ShaderChunk, ShaderMaterial } from 'three'
+import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
+import { BackSide, BoxGeometry, IcosahedronGeometry, Mesh, MeshBasicMaterial, ShaderChunk, ShaderMaterial } from 'three'
 import { colors } from '../colors'
 
 const vertexShader = /* glsl */ `
@@ -27,6 +28,7 @@ const vertexShader = /* glsl */ `
 
 const fragmentShader =  /* glsl */ `
   ${ShaderChunk.cube_uv_reflection_fragment}
+  ${glsl_stegu_snoise}
 
   varying vec3 vPosition;
   varying vec3 vWorldNormal;
@@ -36,18 +38,8 @@ const fragmentShader =  /* glsl */ `
     vec3 normal;
   };
 
-  const Plane p1 = Plane(
-    vec3(0.19, 0.0, 0.0),            // origin
-    normalize(vec3(-1.0, 1.0, 0.0))   // normal
-  );
-  
-  const Plane p2 = Plane(
-    vec3(0.6, 0.0, 0.0),            // origin
-    normalize(vec3(1.0, -1.0, 0.0))   // normal
-  );
-  
-  float signedDistanceToPlane(vec3 p, vec3 origin, vec3 normal) {
-    return dot(normalize(normal), p - origin);
+  float signedDistanceToPlane(Plane plane, vec3 p) {
+    return dot(plane.normal, p - plane.origin);
   }
 
   vec3 checker3(vec3 position, float scale, float edgeWidth, vec3 color1, vec3 color2) {
@@ -97,12 +89,20 @@ const fragmentShader =  /* glsl */ `
   }
 
   void main() {
-    float d1 = signedDistanceToPlane(vWorldNormal, p1.origin, p1.normal);
-    float d2 = signedDistanceToPlane(vWorldNormal, p2.origin, p2.normal);
-    float d3 = signedDistanceToPlane(vWorldNormal, -p1.origin, -p1.normal);
-    float alpha = smoothstep(0.0, 0.001, d1) * smoothstep(0.0, 0.001, d3) + smoothstep(0.0, 0.001, d2);
+    vec3 p = vWorldNormal * 0.33;
+    float n1 = snoise(p * 6.0 * 0.2 + 0.2);
+    float n2 = snoise(p * 20.0 + 10.1);
+    float n3 = snoise(p * 40.0 + 10.1);
+    float n4 = snoise(p * 1400.0 + 13.1);
+    float n = n1 * 0.5;
+    n += pow(fract((n1 + n2 * 0.015 + n3 * 0.01 + n4 * 0.005) * 85.0), 4.0) * 0.5;
+    n += pow(fract((n1 + n2 * 0.015) * 85.0), 4.0) * 0.25;
+    n += n4 * 0.2;
+    n += 0.8;
+    n = pow(n, 0.3);
+    float alpha = n;
+
     gl_FragColor.rgb = mix(${vec3(colors.black)}, ${vec3(colors.red)}, alpha);
-    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.33));
     gl_FragColor.a = 1.0;
 
     // float x = sphereGrid(vPosition, 1.0, 0.01);
@@ -111,8 +111,10 @@ const fragmentShader =  /* glsl */ `
   }
 `
 
-export class RedSky extends Mesh {
-  constructor() {
+export class ASky extends Mesh {
+  constructor({
+    debug = false,
+  } = {}) {
     const material = new ShaderMaterial({
       depthWrite: false,
       side: BackSide,
@@ -121,11 +123,27 @@ export class RedSky extends Mesh {
       uniforms: {},
     })
 
-    // const geometry = new IcosahedronGeometry(10, 12)
     const size = 11
-    const geometry = new BoxGeometry(size, size, size)
+    const useSphere = true
+    const geometry = useSphere
+      ? new IcosahedronGeometry(size / 2, 12)
+      : new BoxGeometry(size, size, size)
     super(geometry, material)
+
+    if (debug) {
+      this.material = new MeshBasicMaterial({
+        depthWrite: false,
+        color: 'white',
+        wireframe: true,
+      })
+    }
+
+    this.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+      this.position.copy(camera.position)
+    }
+
     this.renderOrder = -1
-    this.name = 'sky'
+    this.frustumCulled = false
+    this.name = 'a-sky'
   }
 }

@@ -9,7 +9,7 @@ import { art } from './art/art'
 export function Main() {
   return (
     <div className='wraps'>
-      <Billboard>
+      <Billboard className='bg-[#ddd]'>
         <BasicThreeProvider>
           <UseThree fn={art} />
         </BasicThreeProvider>

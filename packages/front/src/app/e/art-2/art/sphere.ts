@@ -15,22 +15,23 @@ type MainSphereProps = TransformProps & Partial<typeof MainSphere.defaultProps>
 export class MainSphere extends Mesh {
   static defaultProps = { radius: 1 }
 
-  constructor(props?: TransformProps & Partial<typeof MainSphere.defaultProps>) {
+  constructor(props?: MainSphereProps) {
     const {
       radius,
       ...transformProps
     } = { ...MainSphere.defaultProps, ...props }
 
     const geometry = new IcosahedronGeometry(radius, 18)
-    const material = new MeshPhysicalMaterial()
+    const material = new MeshPhysicalMaterial({
+    })
     material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines({ USE_UV: '' })
       .fragment.top(glsl_ramp)
       .fragment.after('map_fragment', /* glsl */ `
         vec2 p = vUv - 0.5;
-        float alpha = vUv.y;
+        float alpha = easeInOut(vUv.y, 1.6, 0.5);
         Vec3Ramp r = ramp(alpha, ${vec3(colors.black)}, ${vec3(colors.white)}, ${vec3(colors.yellow)});
-        diffuseColor.rgb = mix(r.a, r.b, easeInOut4(r.t));
+        diffuseColor.rgb = mix(r.a, r.b, easeInOut3(r.t));
       `)
 
     super(geometry, material)
@@ -126,7 +127,7 @@ export class SmallGradientSphere extends Mesh {
           glsl_utils)
         .fragment.mainBeforeAll(/* glsl */ `
           float alpha = inverseLerp(uLerpIn, uLerpOut, vUv.y);
-          vec3 sphereColor = mix(uColorBottom, uColorTop, easeInOut10(alpha));
+          vec3 sphereColor = mix(uColorBottom, uColorTop, easeInOut2(alpha));
         `)
         .fragment.after('map_fragment', /* glsl */ `
           diffuseColor.rgb = sphereColor;

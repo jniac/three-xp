@@ -2,34 +2,37 @@
 
 import { createContext, ReactNode, useContext, useMemo } from 'react'
 
-import { useEffects, UseEffectsYieldable } from 'some-utils-react/hooks/effects'
+import { useEffects, UseEffectsCallback, UseEffectsDeps } from 'some-utils-react/hooks/effects'
 
 import { useIsClient } from '@/utils/is-client'
 import { createThree, Three } from './three'
 
 const context = createContext<Three>(null!)
 
-type EffectsGenerator = (three: Three) => Generator<UseEffectsYieldable> | AsyncGenerator<UseEffectsYieldable>
-
 export function useThree(
-  effectsGenerator?: EffectsGenerator,
-  deps?: unknown[],
+  effectsGenerator?: UseEffectsCallback<Three>,
+  deps?: UseEffectsDeps,
 ) {
   const three = useContext(context)
 
-  useEffects(async function* () {
+  useEffects(async function* (_, state) {
     if (effectsGenerator) {
-      for await (const effect of effectsGenerator(three)) {
-        yield effect
+      const it = effectsGenerator(three, state)
+      if (it && typeof it.next === 'function') {
+        do {
+          const { value, done } = await it.next()
+          if (done) break
+          yield value
+        } while (state.mounted)
       }
     }
-  }, deps ?? [])
+  }, deps ?? 'always')
 
   return three
 }
 
-export function UseThree({ fn }: { fn: EffectsGenerator }) {
-  useThree(fn)
+export function UseThree({ fn }: { fn: UseEffectsCallback<Three> }) {
+  useThree(fn, 'always')
   return null
 }
 

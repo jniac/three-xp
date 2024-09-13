@@ -1,4 +1,4 @@
-import { DoubleSide, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, TorusGeometry } from 'three'
+import { DoubleSide, FrontSide, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, Side, TorusGeometry } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
@@ -6,9 +6,9 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 
 import { colors } from './colors'
 
-type CircularProps = TransformProps & Partial<typeof Ring.defaultProps>
+type CircularProps = TransformProps & Partial<typeof Circular.defaultProps>
 
-export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMaterial> {
+export class Circular extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMaterial> {
   static defaultProps = {
     color: colors.black,
     radius: 1.3,
@@ -16,8 +16,29 @@ export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMat
     thickness: .3,
     innerRadiusRatio: null as number | null,
     shaded: true,
+    emissiveIntensity: .333,
   }
+  static createMaterial(props: CircularProps & { side: Side }) {
+    const {
+      color,
+      shaded,
+      emissiveIntensity,
+      side,
+    } = { ...Circular.defaultProps, ...props }
+    return shaded
+      ? new MeshPhysicalMaterial({
+        color,
+        emissiveIntensity,
+        emissive: emissiveIntensity > 0 ? color : undefined,
+        side,
+      })
+      : new MeshBasicMaterial({
+        color,
+      })
+  }
+}
 
+export class Ring extends Circular {
   constructor(props?: CircularProps) {
     const {
       radius,
@@ -27,7 +48,7 @@ export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMat
       color,
       shaded,
       ...transformProps
-    } = { ...Ring.defaultProps, ...props }
+    } = { ...Circular.defaultProps, ...props }
 
     let innerRadius = radius - thickness * align
     let outerRadius = radius + thickness * (1 - align)
@@ -38,9 +59,7 @@ export class Ring extends Mesh<RingGeometry, MeshPhysicalMaterial | MeshBasicMat
     }
 
     const geometry = new RingGeometry(innerRadius, outerRadius, 128)
-    const material = shaded
-      ? new MeshPhysicalMaterial({ color, side: DoubleSide })
-      : new MeshBasicMaterial({ color, side: DoubleSide })
+    const material = Circular.createMaterial({ ...props, side: DoubleSide })
 
     super(geometry, material)
     applyTransform(this, transformProps)
@@ -56,8 +75,9 @@ export class Torus extends Mesh<TorusGeometry, MeshPhysicalMaterial | MeshBasicM
       innerRadiusRatio,
       color,
       shaded,
+      emissiveIntensity,
       ...transformProps
-    } = { ...Ring.defaultProps, ...props }
+    } = { ...Circular.defaultProps, ...props }
 
     let innerRadius = radius - thickness * align
     let outerRadius = radius + thickness * (1 - align)
@@ -68,9 +88,7 @@ export class Torus extends Mesh<TorusGeometry, MeshPhysicalMaterial | MeshBasicM
     }
 
     const geometry = new TorusGeometry((innerRadius + outerRadius) / 2, (outerRadius - innerRadius) / 2, 128, 512)
-    const material = shaded
-      ? new MeshPhysicalMaterial({ color, side: DoubleSide })
-      : new MeshBasicMaterial({ color, side: DoubleSide })
+    const material = Circular.createMaterial({ ...props, side: FrontSide })
 
     super(geometry, material)
     applyTransform(this, transformProps)
