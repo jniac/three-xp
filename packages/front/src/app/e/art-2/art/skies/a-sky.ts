@@ -102,12 +102,12 @@ const fragmentShader =  /* glsl */ `
     n = pow(n, 0.3);
     float alpha = n;
 
-    gl_FragColor.rgb = mix(${vec3(colors.black)}, ${vec3(colors.red)}, alpha);
+    gl_FragColor.rgb = mix(${vec3(colors.white)}, ${vec3(colors.brightSkin)}, alpha);
     gl_FragColor.a = 1.0;
 
     // float x = sphereGrid(vPosition, 1.0, 0.01);
-    // gl_FragColor.rgb = mix(${vec3(colors.black)}, ${vec3(colors.red)}, x);
-    // gl_FragColor.rgb = checker3(vPosition, 1.0, 0.1, ${vec3(colors.black)}, ${vec3(colors.red)});
+    // gl_FragColor.rgb = mix(${vec3(colors.black)}, ${vec3(colors.brightSkin)}, x);
+    // gl_FragColor.rgb = checker3(vPosition, 1.0, 0.1, ${vec3(colors.black)}, ${vec3(colors.brightSkin)});
   }
 `
 

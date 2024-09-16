@@ -1,7 +1,9 @@
-import { BackSide, Color, CylinderGeometry, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PMREMGenerator, Vector3 } from 'three'
+import { BackSide, BufferGeometry, Color, CylinderGeometry, EquirectangularReflectionMapping, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PMREMGenerator, Vector3 } from 'three'
 
+import { UseEffectsState } from 'some-utils-react/hooks/effects'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
+import { glsl_color_adjust } from 'some-utils-ts/glsl/color-adjust'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { range } from 'some-utils-ts/iteration/range'
 import { lerp } from 'some-utils-ts/math/basic'
@@ -9,17 +11,16 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { config } from '@/config'
-import { loadRgbe } from '@/tools/three/utils/rgbe'
+import { loadRgbe, loadTexture } from '@/tools/three/utils/rgbe'
 import { Three } from '@/tools/three/webgl'
 
-import { UseEffectsState } from 'some-utils-react/hooks/effects'
 import { GradientRing, Torus } from './circular'
 import { colors } from './colors'
 import { Lights } from './lights'
 import { ASky } from './skies/a-sky'
 import { MainSphere, SmallGradientSphere } from './sphere'
 
-class Blacky extends Mesh {
+class Blacky extends Mesh<BufferGeometry, MeshPhysicalMaterial> {
   constructor(transformProps?: TransformProps) {
     const geometry = new IcosahedronGeometry(.4, 12)
     const material = new MeshPhysicalMaterial({})
@@ -30,17 +31,25 @@ class Blacky extends Mesh {
         vViewDir: 'vec3',
       })
       .vertex.mainAfterAll(/* glsl */`
-      vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-      vNormalWorld = normalize(mat3(modelMatrix) * normal);
-      vViewDir = normalize(cameraPosition - vWorldPosition);
-    `)
-      .fragment.top(glsl_easings)
+        vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+        vNormalWorld = normalize(mat3(modelMatrix) * normal);
+        vViewDir = normalize(cameraPosition - vWorldPosition);
+      `)
+      .fragment.top(
+        glsl_easings,
+        glsl_color_adjust
+      )
       .fragment.after('map_fragment', /* glsl */`
-      float fresnel = dot(vNormalWorld, vViewDir);
-      vec3 inner = ${vec3(colors.white)};
-      vec3 outer = ${vec3(colors.black)};
-      diffuseColor.rgb = mix(inner, outer, easeInOut(1.0 - fresnel * fresnel, 2.0, 0.0));
-    `)
+        float fresnel = dot(vNormalWorld, vViewDir);
+        vec3 inner = ${vec3(colors.white)};
+        vec3 outer = ${vec3(colors.black)};
+        float alpha = easeInOut(1.0 - fresnel * fresnel, 2.0, 0.0);
+        diffuseColor.rgb = mix(inner, outer, alpha);
+      `)
+      .fragment.mainAfterAll(/* glsl */`
+        gl_FragColor.rgb = mix(greyscale(gl_FragColor.rgb) * 1.2, diffuseColor.rgb, pow(alpha, 8.0));
+      `)
+
     super(geometry, material)
     applyTransform(this, transformProps)
   }
@@ -118,17 +127,22 @@ export function* art(three: Three, state: UseEffectsState) {
 
   group.add(new Lights())
 
-  group.add(new MainSphere())
+  const mainSphere = addTo(new MainSphere(), group)
 
   group.add(new GradientRing({ z: -1, radius: 1.4, innerRadiusRatio: .805 }))
   group.add(new Torus({ z: -1, radius: .75, thickness: .01, color: colors.yellow, emissiveIntensity: 1 }))
   group.add(new Torus({ z: -1, radius: .8, thickness: .01, color: colors.notSoWhite }))
 
   PRNG.seed(6789402)
+  const sizePicker = PRNG.createPicker([
+    [1, 4],
+    [2, 2],
+    [4, 1],
+  ])
   for (const { i } of range(8)) {
     const colorTop = PRNG.pick(colors)
     const colorBottom = PRNG.pick(colors)
-    const satellite = new SmallGradientSphere({ z: -1, radius: .1, colorTop, colorBottom })
+    const satellite = new SmallGradientSphere({ z: -1, radius: .1 * sizePicker(), colorTop, colorBottom })
     satellite.rotation.set(PRNG.between(Math.PI * 2), PRNG.between(Math.PI * 2), PRNG.between(Math.PI * 2))
     group.add(satellite)
     satellite.satellite.set({
@@ -151,7 +165,7 @@ export function* art(three: Three, state: UseEffectsState) {
   const ring = addTo(new Torus({ x: -2.315, radius: .2, thickness: .01, color: colors.notSoWhite }), slash)
   addTo(new Line({ x: -.2, thickness: .01, length: .4, shaded: true, color: colors.notSoWhite }), ring)
 
-  slash.add(new SmallGradientSphere({ x: 1.7, z: .5, lerpIn: .3, lerpOut: .7 }))
+  slash.add(new SmallGradientSphere({ x: 1.7, z: .5, lerpIn: 0, lerpOut: 1 }))
   slash.add(new SmallGradientSphere({ x: 1.4, radius: .1, singleColor: colors.black }))
   const blacky = addTo(new Blacky({ x: 2.3 }), slash)
   addTo(new Torus({ radius: .43, thickness: .015, color: colors.black }), blacky)
@@ -171,6 +185,24 @@ export function* art(three: Three, state: UseEffectsState) {
 
   frontal.add(new Line({ x: -1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
   frontal.add(new Line({ x: 1.2, thickness: .01, length: .35, shaded: true, color: colors.notSoWhite }))
+
+  // loadTexture('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
+  loadTexture('https://threejs.org/examples/textures/piz_compressed.exr')
+    .then(texture => {
+      texture.mapping = EquirectangularReflectionMapping
+      blacky.material.envMap = texture
+      blacky.material.envMapIntensity = .25
+      blacky.material.envMapRotation.set(Math.PI * -.1, Math.PI, 0)
+      blacky.material.roughness = .3
+      blacky.material.metalness = .5
+      blacky.material.needsUpdate = true
+
+      mainSphere.material.envMap = texture
+      mainSphere.material.roughness = .2
+      mainSphere.material.envMapIntensity = .5
+      mainSphere.material.envMapRotation.set(Math.PI * -.1, Math.PI, 0)
+      mainSphere.material.needsUpdate = true
+    })
 
   // const torus = new Torus({ shaded: true, radius: 7, thickness: 3, rotationX: Math.PI * .8, rotationY: Math.PI * -.25 })
   // torus.material = new MeshPhysicalMaterial({

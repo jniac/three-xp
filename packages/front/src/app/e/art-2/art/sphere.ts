@@ -1,18 +1,16 @@
-import { Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
+import { BufferGeometry, Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
+import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 
-import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { colors } from './colors'
-
-console.log('glsl_ramp', glsl_ramp.slice(0, 10))
 
 type MainSphereProps = TransformProps & Partial<typeof MainSphere.defaultProps>
 
-export class MainSphere extends Mesh {
+export class MainSphere extends Mesh<BufferGeometry, MeshPhysicalMaterial> {
   static defaultProps = { radius: 1 }
 
   constructor(props?: MainSphereProps) {
@@ -87,8 +85,8 @@ export class SmallGradientSphere extends Mesh {
     colorTop: colors.white,
     colorBottom: colors.yellow,
     emmissiveIntensity: .25,
-    lerpIn: .4,
-    lerpOut: .6,
+    lerpIn: -.2,
+    lerpOut: 1.2,
   }
 
   private _satellite: Satellite | null = null
@@ -127,7 +125,7 @@ export class SmallGradientSphere extends Mesh {
           glsl_utils)
         .fragment.mainBeforeAll(/* glsl */ `
           float alpha = inverseLerp(uLerpIn, uLerpOut, vUv.y);
-          vec3 sphereColor = mix(uColorBottom, uColorTop, easeInOut2(alpha));
+          vec3 sphereColor = mix(uColorBottom, uColorTop, easeInOut3(alpha));
         `)
         .fragment.after('map_fragment', /* glsl */ `
           diffuseColor.rgb = sphereColor;
