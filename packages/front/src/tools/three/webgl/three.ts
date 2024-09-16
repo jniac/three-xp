@@ -26,6 +26,7 @@ export function createThree({
   camera.position.z = 5
 
   const orbitControls = new OrbitControls(camera, renderer.domElement)
+  orbitControls.enableDamping = true
 
   const scene = new Scene()
 
@@ -47,6 +48,7 @@ export function createThree({
 
   function* init(element: HTMLDivElement) {
     yield ticker.onTick(tick => {
+      orbitControls.update()
       render()
     })
 
