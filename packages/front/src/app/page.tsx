@@ -6,6 +6,16 @@ export default function Home() {
       <Link href='e'>
         Three.js experiments
       </Link>
+
+      <footer className='fixed w-screen bottom-0 p-4 flex flex-row justify-end'>
+        <div>
+          <Link
+            className='text-[#e08ac6] hover:text-[#4d9fce]'
+            href='https://github.com/jniac/three-xp'>
+            Github
+          </Link>
+        </div>
+      </footer>
     </div>
   )
 }
