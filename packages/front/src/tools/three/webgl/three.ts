@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Scene, WebGLRenderer } from 'three'
+import { PerspectiveCamera, Scene, Vector2, WebGLRenderer } from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
@@ -13,6 +13,8 @@ export function createThree({
   pixelRatio = window.devicePixelRatio,
 }) {
   const ticker = Ticker.get('ThreeTicker')
+  const size = new Vector2(width, height)
+  const fullSize = new Vector2(width, height).multiplyScalar(pixelRatio)
   const renderer = new WebGLRenderer({
     antialias: true,
     alpha: true,
@@ -31,6 +33,18 @@ export function createThree({
     renderer.render(scene, camera)
   }
 
+  function resize(newWidth: number, newHeight: number, newPixelRatio: number = devicePixelRatio) {
+    width = newWidth
+    height = newHeight
+    pixelRatio = newPixelRatio
+    size.set(width, height)
+    fullSize.set(width, height).multiplyScalar(pixelRatio)
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(pixelRatio)
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+  }
+
   function* init(element: HTMLDivElement) {
     yield ticker.onTick(tick => {
       render()
@@ -38,9 +52,7 @@ export function createThree({
 
     yield handleSize(element, {
       onSize: ({ size: { x, y } }) => {
-        renderer.setSize(x, y)
-        camera.aspect = x / y
-        camera.updateProjectionMatrix()
+        resize(x, y)
       },
     })
 
@@ -58,6 +70,10 @@ export function createThree({
 
   const three = {
     renderer,
+    size,
+    fullSize,
+    get pixelRatio() { return pixelRatio },
+    get aspect() { return width / height },
     camera,
     orbitControls,
     scene,

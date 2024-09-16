@@ -2,6 +2,7 @@ import { BackSide, BufferGeometry, Color, CylinderGeometry, EquirectangularRefle
 
 import { UseEffectsState } from 'some-utils-react/hooks/effects'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
+import { calculateVFOV } from 'some-utils-three/utils/camera'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
 import { glsl_color_adjust } from 'some-utils-ts/glsl/color-adjust'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
@@ -118,7 +119,8 @@ export function* art(three: Three, state: UseEffectsState) {
 
   if (state.renderCount === 1) {
     const { camera } = three
-    camera.fov = 25
+    // Handle the portrait mode
+    camera.fov = three.aspect > 1 ? 25 : calculateVFOV(25, three.aspect)
     camera.far = 1000
     camera.updateProjectionMatrix()
     camera.position.set(0, 0, 10)
