@@ -43,11 +43,12 @@ class Blacky extends Mesh<BufferGeometry, MeshPhysicalMaterial> {
         float fresnel = dot(vNormalWorld, vViewDir);
         vec3 inner = ${vec3(colors.white)};
         vec3 outer = ${vec3(colors.black)};
-        float alpha = easeInOut(1.0 - fresnel * fresnel, 2.0, 0.0);
+        float alpha = easeInOut(1.0 - pow(fresnel, 1.5), 2.0, 0.0);
         diffuseColor.rgb = mix(inner, outer, alpha);
       `)
       .fragment.mainAfterAll(/* glsl */`
-        gl_FragColor.rgb = mix(greyscale(gl_FragColor.rgb) * 1.2, diffuseColor.rgb, pow(alpha, 8.0));
+        // Final tuning
+        gl_FragColor.rgb = mix(contrast(greyscale(gl_FragColor.rgb), 1.5), diffuseColor.rgb, alpha);
       `)
 
     super(geometry, material)
