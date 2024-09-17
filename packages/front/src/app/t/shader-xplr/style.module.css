@@ -1,0 +1,81 @@
+.ShaderXplr {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+}
+
+.ShaderXplr h1 {
+  font-size: 1.5em;
+}
+
+.ShaderXplr select {
+  /* border: solid 1px #fff2; */
+  background-color: #fff1;
+  border-radius: .25em;
+  padding: .25em;
+}
+
+.Selectors {
+  display: flex;
+  flex-direction: row;
+  padding-left: .25em;
+  padding-bottom: 1em;
+  margin-bottom: .5em;
+  gap: .5em;
+  border-bottom: solid 1px #fff6;
+}
+
+.Include {
+  cursor: pointer;
+}
+
+.Include.Hover {
+  text-decoration: underline;
+}
+
+.Base {
+  display: flex;
+  flex-direction: column;
+}
+
+.Base.Dim {
+  filter: brightness(0.66);
+}
+
+.BaseContentWrapper {
+  flex: 1;
+  overflow: scroll;
+}
+
+.Base, 
+.OverlayContentWrapper {
+  padding: 1em;
+  overflow: hidden;
+  border-radius: .5em;
+}
+
+.IncludeHighlight {
+  position: absolute;
+  background-color: #fff1;
+  border-radius: .25em;
+}
+
+.Overlay {
+  padding: 2em;
+  height: 100%;
+  overflow: scroll;
+}
+
+.OverlayContentWrapper {
+  pointer-events: all;
+  box-shadow: 
+    0 0 4em rgba(0, 0, 0, .5),
+    0 0 1em rgba(0, 0, 0, .5);
+  background-color: rgb(40, 44, 52);
+}
+
+.OverlayContentWrapper h1 {
+  padding-left: .25em;
+  padding-bottom: .5em;
+  margin-bottom: .5em;
+  border-bottom: solid 1px #fff6;
+}
