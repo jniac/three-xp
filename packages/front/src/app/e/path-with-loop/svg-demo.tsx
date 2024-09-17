@@ -64,7 +64,7 @@ function Polyline({
   )
 }
 
-function Formula() {
+function Formulae() {
   return (
     <div className='absolute inset-0 text-xs p-4'>
       <BlockMath math={String.raw`t_2 = t^q`} />
@@ -87,7 +87,7 @@ export function SvgDemo() {
   PRNG.reset()
   return (
     <div className='relative self-start'>
-      <Formula />
+      <Formulae />
       <svg viewBox={viewBox} width={400} style={{ border: '1px solid #fff3', borderRadius: '.25em' }}>
         <g transform='scale(1, -1) translate(0, -1)'>
           <g stroke='#fff2' strokeWidth={.2 / 100}>
@@ -105,8 +105,7 @@ export function SvgDemo() {
               return (
                 <Polyline key={i} curve={curve} color={color} />
               )
-            }
-            )}
+            })}
             <Polyline curve={looping} />
           </g>
         </g>

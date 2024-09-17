@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 /**
  * C'mon nextjs. Why "use client" is not enough? Why do I have to write this?
@@ -19,7 +19,7 @@ export function useIsClient() {
   // `useState` is used to prevent rendering on server
   const [isClient, setIsClient] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setIsClient(true)
   }, [])
 

@@ -5,11 +5,13 @@ import SyntaxHighlighter from 'react-syntax-highlighter'
 import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { ShaderChunk, ShaderLib } from 'three'
 
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { makeClassName } from 'some-utils-react/utils/classname'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 
-import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { useIsClient } from '@/utils/is-client'
+
 import style from './style.module.css'
 
 const shaderPrograms = [
@@ -36,7 +38,7 @@ function parseFromHash() {
   }
 }
 
-export function Client() {
+function __Client() {
   const initial = parseFromHash()
   const [libName, setLibName] = useState<keyof typeof ShaderLib>(initial.libName)
   const [shaderProgram, setShaderProgram] = useState<typeof shaderPrograms[number]>(initial.shaderProgram)
@@ -151,4 +153,8 @@ export function Client() {
       </div>
     </div>
   )
+}
+
+export function Client() {
+  return useIsClient() && <__Client />
 }

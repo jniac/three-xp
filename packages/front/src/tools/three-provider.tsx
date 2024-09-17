@@ -1,8 +1,12 @@
+'use client'
+
 import { createContext, HTMLAttributes, useContext, useMemo } from 'react'
 import * as THREE from 'three'
 
 import { useEffects, UseEffectsCallback, UseEffectsDeps } from 'some-utils-react/hooks/effects'
 import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+
+import { useIsClient } from '@/utils/is-client'
 
 const reactThreeContext = createContext<ThreeWebglContext>(null!)
 
@@ -28,7 +32,7 @@ export function useThree(
   return three
 }
 
-export function ThreeProvider({ children, className }: HTMLAttributes<HTMLDivElement>) {
+function Inner({ children, className }: HTMLAttributes<HTMLDivElement>) {
   const three = useMemo(() => new ThreeWebglContext(), [])
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
@@ -43,5 +47,9 @@ export function ThreeProvider({ children, className }: HTMLAttributes<HTMLDivEle
       </reactThreeContext.Provider>
     </div>
   )
+}
+
+export function ThreeProvider(props: HTMLAttributes<HTMLDivElement>) {
+  return useIsClient() && <Inner {...props} />
 }
 
