@@ -8,7 +8,7 @@ import { art } from './art/art'
 
 export function Main() {
   return (
-    <div className='wraps'>
+    <div className='absolute-through'>
       <Billboard className='bg-[#ddd]'>
         <BasicThreeProvider>
           <UseThree fn={art} />

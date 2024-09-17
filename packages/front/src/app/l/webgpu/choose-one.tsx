@@ -22,7 +22,7 @@ export function ChooseOne() {
   const Test = options[index]
   return (
     <ThreeProvider>
-      <div className='wraps p-8 flex flex-col gap-2'>
+      <div className='absolute-through p-8 flex flex-col gap-2'>
         <select
           className='self-start border rounded-lg p-1 pr-3'
           onChange={event => setIndex(Number.parseInt(event.target.value))}

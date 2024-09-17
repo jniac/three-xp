@@ -44,13 +44,13 @@ body {
   align-items: center;
 }
 
-.wraps {
+.absolute-through {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.wraps > *:not(.wraps, .pointer-through) {
+.absolute-through > *:not(.absolute-through, .pointer-through) {
   pointer-events: all;
 }
 
@@ -58,7 +58,7 @@ body {
   pointer-events: none;
 }
 
-.pointer-through > *:not(.pointer-through, .wraps) {
+.pointer-through > *:not(.pointer-through, .absolute-through) {
   pointer-events: all;
 }
 

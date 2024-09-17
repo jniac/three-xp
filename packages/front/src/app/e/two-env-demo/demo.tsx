@@ -99,9 +99,9 @@ function UI() {
 
 export function Demo() {
   return (
-    <div className='Demo wraps'>
+    <div className='Demo absolute-through'>
       <BasicThreeProvider>
-        <div className='wraps p-8 flex flex-col'>
+        <div className='absolute-through p-8 flex flex-col'>
           <UI />
           <UseThree fn={twoEnvDemo} />
         </div>

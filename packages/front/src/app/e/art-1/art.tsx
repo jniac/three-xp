@@ -175,7 +175,7 @@ export function Art() {
       <Billboard>
         <Content />
       </Billboard>
-      <div className='wraps'>
+      <div className='absolute-through'>
         <Caption />
       </div>
     </div>
