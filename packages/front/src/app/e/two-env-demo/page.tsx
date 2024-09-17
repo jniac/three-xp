@@ -1,17 +1,17 @@
 
-import { ExpMetadata } from '@/types'
+import { XpMetadata } from '@/types'
 
 import { Demo } from './demo'
 
 import styles from './styles.module.css'
 
-export const metadata: ExpMetadata = {
+export const metadata = new XpMetadata({
   title: 'two-env-demo',
   slug: 'two-env-demo',
   description: `
     # Demo of two environments map blending
   `,
-}
+})
 
 export default function Exp1() {
   return (

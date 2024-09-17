@@ -8,9 +8,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "katex": "^0.16.11",
     "next": "14.2.9",
     "react": "^18",
     "react-dom": "^18",
+    "react-katex": "^3.0.1",
     "some-utils-dom": "workspace:*",
     "some-utils-react": "workspace:*",
     "some-utils-three": "workspace:*",
@@ -21,6 +23,7 @@
     "@types/node": "^20.16.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-katex": "^3.0.4",
     "@types/three": "^0.168.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.8",
