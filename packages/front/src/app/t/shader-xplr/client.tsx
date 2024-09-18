@@ -12,6 +12,8 @@ import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 
 import { useIsClient } from '@/utils/is-client'
 
+import IconCopySvg from '@/components/svg/icon-copy.svg'
+
 import style from './style.module.css'
 
 const shaderPrograms = [
@@ -143,7 +145,16 @@ function __Client() {
           <div className={style.Overlay}>
             <div style={{ height: `${Math.max(rect.top, 110)}px`, pointerEvents: 'none' }} />
             <div className={style.OverlayContentWrapper} style={{ background: atomOneDark.hljs.background }}>
-              <h1>{chunkName}</h1>
+              <div className={style.TitleBar}>
+                <h1>{chunkName}</h1>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(ShaderChunk[chunkName])
+                  }}
+                >
+                  <IconCopySvg />
+                </button>
+              </div>
               <SyntaxHighlighter language='cpp' style={atomOneDark}>
                 {ShaderChunk[chunkName]}
               </SyntaxHighlighter>

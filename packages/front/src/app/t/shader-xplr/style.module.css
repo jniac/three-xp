@@ -60,6 +60,8 @@
 }
 
 .Overlay {
+  position: absolute;
+  inset: 0;
   padding: 2em;
   height: 100%;
   overflow: scroll;
@@ -73,9 +75,23 @@
   background-color: rgb(40, 44, 52);
 }
 
-.OverlayContentWrapper h1 {
+.OverlayContentWrapper .TitleBar {
   padding-left: .25em;
   padding-bottom: .5em;
   margin-bottom: .5em;
   border-bottom: solid 1px #fff6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .5em;
+}
+
+.OverlayContentWrapper .TitleBar button {
+  padding: .5em;
+  background-color: #fff1;
+  border-radius: .25em;
+}
+
+.OverlayContentWrapper .TitleBar button:hover {
+  background-color: #fff2;
 }
