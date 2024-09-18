@@ -9,21 +9,11 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
 
+import { looping } from './looping'
+
 type Curve2D = {
   (out: { x: number, y: number }, t: number): void
   (out: { x: number, y: number }, t: number, options?: Record<string, number>): void
-}
-
-const looping = (out: { x: number, y: number }, t: number, {
-  h = .3,
-  w = 1,
-  p = 3,
-  q = 1,
-  a = .3,
-} = {}) => {
-  const t2 = t ** q
-  out.x = (t + a * Math.sin(t2 * Math.PI * 2)) * w
-  out.y = h * Math.pow(Math.sin(t2 * Math.PI), p)
 }
 
 const getPoints = (() => {
@@ -66,10 +56,9 @@ function Polyline({
 
 function Formulae() {
   return (
-    <div className='absolute inset-0 text-xs p-4'>
-      <BlockMath math={String.raw`t_2 = t^q`} />
-      <BlockMath math={String.raw`x(t) = w \cdot \left( t + a \cdot \sin(2 \pi \cdot t_2) \right)`} />
-      <BlockMath math={String.raw`y(t) = h \cdot \left( \sin(\pi \cdot t_2) \right)^p`} />
+    <div className='absolute inset-0 text-sm p-4 pt-12'>
+      <BlockMath math={String.raw`x(t) = w \cdot \left( t + a \cdot \sin(2 \pi \cdot t^q) \right)`} />
+      <BlockMath math={String.raw`y(t) = h \cdot \left( \sin(\pi \cdot t^q) \right)^p`} />
     </div>
   )
 }
@@ -93,6 +82,8 @@ export function SvgDemo() {
           <g stroke='#fff2' strokeWidth={.2 / 100}>
             <line x1={-10} x2={10} />
             <line y1={-10} y2={10} />
+            <line x1={1} x2={1} y1={-10} y2={10} />
+            <line x1={-10} x2={10} y1={1} y2={1} />
           </g>
           <g id='curves' stroke='#fff' fill='none' strokeWidth={.2 / 100}>
             {Array.from({ length: 10 }, (_, i) => {
