@@ -109,9 +109,9 @@ export class SphereToSphereDemo extends Group {
 
     this.onTick = ({ deltaTime, time }) => {
       pointEnd.position.y = Math.sin(time * .33) * .5
-      // pointEnd.rotation.x += .1 * deltaTime
-      // pointEnd.rotation.y += .1 * deltaTime
-      // pointEnd.rotation.z += .1 * deltaTime
+      pointEnd.rotation.x += .1 * deltaTime
+      pointEnd.rotation.y += .1 * deltaTime
+      pointEnd.rotation.z += .1 * deltaTime
     }
 
     const count = geometryStart.attributes.position.count
@@ -150,7 +150,8 @@ export class SphereToSphereDemo extends Group {
 
       // Color:
       // color.setHSL(i / count, 1, .5)
-      color.set(0xffffff * PRNG.random())
+      // color.set(0xffffff * PRNG.random())
+      color.set(`hsl(${PRNG.between(180, 360)}, 100%, 70%)`)
       lines.setColorAt(i, color)
     }
 
@@ -170,7 +171,18 @@ export class SphereToSphereDemo extends Group {
       attribute mat4 aStartMat;
       attribute mat4 aEndMat;
 
+      float rand(vec3 p) {
+        p = fract(p * vec3(443.8975, 441.4236, 437.1954));  // Scale and modulate each component
+        p += dot(p, p.yzx + 19.19);  // Dot product with a shifted version of itself
+        return fract((p.x + p.y) * p.z);  // Compute a pseudo-random float
+      }
+
+      float rand(vec3 p, float rangeMin, float rangeMax) {
+        return mix(rangeMin, rangeMax, rand(p));
+      }
+
       vec3 bezier3(vec3 a, vec3 b, vec3 c, vec3 d, float t) {
+        t = clamp(t, 0.0, 1.0);
         vec3 ab = mix(a, b, t);
         vec3 bc = mix(b, c, t);
         vec3 cd = mix(c, d, t);  
@@ -180,6 +192,7 @@ export class SphereToSphereDemo extends Group {
       }
 
       vec3 bezier3_tangent(vec3 a, vec3 b, vec3 c, vec3 d, float t) {
+        t = clamp(t, 0.0, 1.0);
         return 3.0 * ( 
           (1.0 - t) * (1.0 - t) * (b - a) + 
           2.0 * (1.0 - t) * t * (c - b) + 
@@ -192,32 +205,37 @@ export class SphereToSphereDemo extends Group {
 
       vec3 start = startMat[3].xyz;
       vec3 end = endMat[3].xyz;
-
+      
+      float dt = mix(-.33, 1.0, fract(uTime * .33 + rand(start) * 0.4));
+      float t = position.x * .33 + dt;
+      t = clamp(t, 0.0, 1.0);
       float d = distance(start, end);
 
       vec3 p0 = start;
-      vec3 p1 = mix(start, end, 0.0) + d * 0.1 * startMat[2].xyz;
-      vec3 p2 = mix(start, end, 1.0) + d * 0.1 * endMat[2].xyz;
+      vec3 p1 = mix(start, end, 0.2) + d * 0.1 * startMat[2].xyz;
+      vec3 p2 = mix(start, end, 0.8) + d * 0.1 * endMat[2].xyz;
       vec3 p3 = end;
       
       // p1 = mix(start, end, 0.33);
       // p2 = mix(start, end, 0.66);
 
-      vec3 normal = mix(startMat[2].xyz, endMat[2].xyz, position.x);
-      vec3 up = mix(startMat[1].xyz, endMat[1].xyz, position.x);
-      vec3 tangent = bezier3_tangent(p0, p1, p2, p3, position.x);
+      vec3 normal = mix(startMat[2].xyz, endMat[2].xyz, t);
+      vec3 up = mix(startMat[1].xyz, endMat[1].xyz, t);
+      vec3 tangent = bezier3_tangent(p0, p1, p2, p3, t);
 
       float width = (position.y - 0.5)
-        * easeInThenOut(position.x, 6.0)
+        * easeInThenOut(t, 6.0)
+        * easeInThenOut((t - dt) / .33, 3.0)
         * uWidth;
       
-      float loopT = inverseLerp(0.0, 0.66, position.x);
-      vec2 loop = looping(loopT);
-      // loop = vec2(position.x, 0.0);
+      float loopT = inverseLerp(0.0, 0.66, t);
+
+      vec2 loop = looping(loopT, 0.3, 1.0, 3.0, rand(start, 0.6, 1.6), 0.3);
+      // loop = vec2(t, 0.0);
 
       vec3 transformed = 
-        bezier3(p0, p1, p2, p3, position.x)
-        + tangent * (loop.x - loopT) * d * 0.066 + normal * loop.y * d * 0.66
+        bezier3(p0, p1, p2, p3, t)
+        + tangent * (loop.x - loopT) * d * 0.066 + normal * loop.y * d * 1.0
         + up * width;
       
       #ifdef USE_ALPHAHASH
@@ -251,7 +269,10 @@ export class SphereToSphereDemo extends Group {
     lines.geometry.computeBoundingBox = () => { }
     lines.geometry.computeBoundingSphere = () => { }
 
-    new InstanceMatrixHelper(aStartMat)
-      .addTo(this)
+    // new InstanceMatrixHelper(aStartMat)
+    //   .addTo(this)
+
+    pointStart.visible = false
+    pointEnd.visible = false
   }
 }

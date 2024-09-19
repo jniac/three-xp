@@ -91,7 +91,7 @@ export function SvgDemo() {
               const q = PRNG.between(1 / 3, 1.5)
               const h = PRNG.between(.1, .5)
               const a = PRNG.between(.2, .3)
-              const color = `hsl(${PRNG.between(0, 120)}, 100%, 70%)`
+              const color = `hsl(${PRNG.between(180, 360)}, 100%, 70%)`
               const curve: Curve2D = (out, t) => looping(out, t, { a, p, h, q })
               return (
                 <Polyline key={i} curve={curve} color={color} />

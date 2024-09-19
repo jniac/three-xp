@@ -11,7 +11,11 @@ import { addTo } from './utils'
 class Axes extends Mesh {
   constructor() {
     super(
-      new AxesGeometry(),
+      new AxesGeometry({
+        xColor: '#ff338b',
+        yColor: '#33cc9c',
+        zColor: '#4e33ff',
+      }),
       new AutoLitMaterial()
     )
   }
@@ -23,7 +27,7 @@ export class AxesToAxesDemo extends Object3D {
 
   onTick: TickCallback = ({ deltaTime }) => {
     const { axes1, axes2 } = this
-    axes1.rotation.x += .5 * deltaTime
+    axes1.rotation.y += .5 * deltaTime
     axes2.rotation.x += .5 * deltaTime
   }
 
@@ -33,10 +37,10 @@ export class AxesToAxesDemo extends Object3D {
     const { axes1, axes2 } = this
 
     axes1.position.set(-1, 0, 0)
-    axes1.rotation.x = Math.PI
+    axes1.rotation.x = -Math.PI / 2
 
     axes2.position.set(1, 0, 0)
-    axes2.rotation.x = Math.PI
+    axes2.rotation.x = -Math.PI / 2
 
     const geometry = new PlaneGeometry(1, 1, 1000, 1).translate(.5, .5, 0)
     const material = new MeshPhysicalMaterial({

@@ -14,7 +14,7 @@ export function ThreeDemo() {
       target: [.4, 1.6, -.8],
     })
 
-    group.add(new GridHelper(10, 10))
+    group.add(new GridHelper(10, 10, '#5c4f7d', '#352945'))
 
     const axesToAxes = new AxesToAxesDemo()
     axesToAxes.position.set(-5, 0, 0)
