@@ -1,14 +1,14 @@
 
-import { BufferGeometry, CapsuleGeometry, Color, DirectionalLight, DoubleSide, Group, HemisphereLight, IcosahedronGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Vector3 } from 'three'
+import { BufferGeometry, CapsuleGeometry, Color, DirectionalLight, DoubleSide, Group, HemisphereLight, IcosahedronGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Vector3, Vector4 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { computeTangentMatrixFromNormal } from 'some-utils-three/utils/matrix'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { TickCallback, Ticker } from 'some-utils-ts/ticker'
 
-import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { glsl_looping } from './looping'
 import { setvertexColors } from './utils'
 
@@ -96,7 +96,7 @@ export class SphereToSphereDemo extends Group {
     this.add(sun)
     sun.position.set(2, 4, 1)
 
-    const geometryStart = new IcosahedronGeometry(1, 1)
+    const geometryStart = new IcosahedronGeometry(1, 8)
     const geometryEnd = geometryStart.clone()
 
     const pointStart = new Points(geometryStart, new PointsMaterial({ size: .05 }))
@@ -104,19 +104,20 @@ export class SphereToSphereDemo extends Group {
 
     const pointEnd = new Points(geometryEnd, new PointsMaterial({ size: .05 }))
     this.add(pointEnd)
+    pointEnd.scale.setScalar(.33)
     pointEnd.position.set(0, 0, -8)
     pointEnd.rotation.set(0, 0, Math.PI * 0.66)
 
     this.onTick = ({ deltaTime, time }) => {
       pointEnd.position.y = Math.sin(time * .33) * .5
-      pointEnd.rotation.x += .1 * deltaTime
-      pointEnd.rotation.y += .1 * deltaTime
-      pointEnd.rotation.z += .1 * deltaTime
+      // pointEnd.rotation.x += .1 * deltaTime
+      // pointEnd.rotation.y += .1 * deltaTime
+      // pointEnd.rotation.z += .1 * deltaTime
     }
 
     const count = geometryStart.attributes.position.count
     const lines = new InstancedMesh(
-      new PlaneGeometry(1, 1, 1000, 1).translate(.5, .5, 0),
+      new PlaneGeometry(1, 1, 100, 1).translate(.5, .5, 0),
       new MeshPhysicalMaterial({
         // wireframe: true,
         side: DoubleSide,
@@ -124,12 +125,12 @@ export class SphereToSphereDemo extends Group {
       }),
       count)
     this.add(lines)
+    lines.frustumCulled = false
 
     const aStartMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
     const aEndMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
     lines.geometry.setAttribute('aStartMat', aStartMat)
     lines.geometry.setAttribute('aEndMat', aEndMat)
-    lines.frustumCulled = false
 
     const matrix = new Matrix4()
     const up = new Vector3(0, 1, 0)
@@ -157,11 +158,13 @@ export class SphereToSphereDemo extends Group {
 
     const uniforms = {
       uTime: { get value() { return Ticker.current().time } },
+      uRand: { value: PRNG.vector(new Vector4(), { min: 0, max: 1 }) },
       uWorldStartMatrix: { value: pointStart.matrix },
       uWorldEndMatrix: { value: pointEnd.matrix },
-      uWidth: { value: .2 },
+      uWidth: { value: .1 },
     }
     lines.material.onBeforeCompile = shader => ShaderForge.with(shader)
+      .shaderName('with-loop')
       .uniforms(uniforms)
       .vertex.top(
         glsl_utils,
@@ -172,13 +175,29 @@ export class SphereToSphereDemo extends Group {
       attribute mat4 aEndMat;
 
       float rand(vec3 p) {
-        p = fract(p * vec3(443.8975, 441.4236, 437.1954));  // Scale and modulate each component
-        p += dot(p, p.yzx + 19.19);  // Dot product with a shifted version of itself
-        return fract((p.x + p.y) * p.z);  // Compute a pseudo-random float
+        return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
       }
+
+      // float rand(vec3 p) {
+      //   p = fract(p * vec3(443.8975, 441.4236, 437.1954));
+      //   p += dot(p, p.yzx + 19.19);
+      //   return fract((p.x + p.y) * p.z);
+      // }
 
       float rand(vec3 p, float rangeMin, float rangeMax) {
         return mix(rangeMin, rangeMax, rand(p));
+      }
+
+      float rand11(vec3 p) {
+        float r = rand(p) * 2.0 - 1.0;
+        float s = sign(r);
+        r = fract(r);
+        r *= r * r * r;
+        return r * s;
+      }
+
+      float rand11(vec3 p, float rangeMin, float rangeMax) {
+        return (rand11(p) * 0.5 + 0.5) * (rangeMax - rangeMin) + rangeMin;
       }
 
       vec3 bezier3(vec3 a, vec3 b, vec3 c, vec3 d, float t) {
@@ -205,9 +224,13 @@ export class SphereToSphereDemo extends Group {
 
       vec3 start = startMat[3].xyz;
       vec3 end = endMat[3].xyz;
+
+      start += vec3(rand11(start.xyz), rand11(start.yzx), rand11(start.zxy)) * 0.66;
+      end += vec3(rand11(start.zyx), rand11(start.xzy), rand11(start.yxz)) * 0.33;
       
-      float dt = mix(-.33, 1.0, fract(uTime * .33 + rand(start) * 0.4));
-      float t = position.x * .33 + dt;
+      float len = 0.06; 
+      float dt = mix(-len, 1.0, fract(uTime * 0.33 + rand11(start) * 0.4));
+      float t = position.x * len + dt;
       t = clamp(t, 0.0, 1.0);
       float d = distance(start, end);
 
@@ -219,23 +242,27 @@ export class SphereToSphereDemo extends Group {
       // p1 = mix(start, end, 0.33);
       // p2 = mix(start, end, 0.66);
 
-      vec3 normal = mix(startMat[2].xyz, endMat[2].xyz, t);
-      vec3 up = mix(startMat[1].xyz, endMat[1].xyz, t);
-      vec3 tangent = bezier3_tangent(p0, p1, p2, p3, t);
+      vec3 normal = normalize(mix(startMat[2].xyz, endMat[2].xyz, t));
+      vec3 up = normalize(mix(startMat[1].xyz, endMat[1].xyz, t));
+      vec3 tangent = normalize(bezier3_tangent(p0, p1, p2, p3, t));
 
       float width = (position.y - 0.5)
         * easeInThenOut(t, 6.0)
-        * easeInThenOut((t - dt) / .33, 3.0)
+        * easeInThenOut((t - dt) / len, 3.0)
         * uWidth;
       
-      float loopT = inverseLerp(0.0, 0.66, t);
+      float loopT = inverseLerp(0.0, 1.0, t);
 
-      vec2 loop = looping(loopT, 0.3, 1.0, 3.0, rand(start, 0.6, 1.6), 0.3);
+      vec2 loop = looping(loopT, 0.3, 1.0, 3.0, rand11(start, 0.6, 1.2), 0.3);
       // loop = vec2(t, 0.0);
-
+      
+      // Loop Random Scalar:
+      vec2 lrs = vec2(
+        rand11(start, 0.4, 1.0),
+        rand11(start.zyx, 0.9, 1.1));
       vec3 transformed = 
         bezier3(p0, p1, p2, p3, t)
-        + tangent * (loop.x - loopT) * d * 0.066 + normal * loop.y * d * 1.0
+        + tangent * (loop.x - loopT) * d * lrs.x + normal * loop.y * d * lrs.y
         + up * width;
       
       #ifdef USE_ALPHAHASH
