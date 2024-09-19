@@ -157,7 +157,7 @@ export class SphereToSphereDemo extends Group {
     }
 
     const uniforms = {
-      uTime: { get value() { return Ticker.current().time } },
+      uTime: Ticker.get('three').uTime,
       uRand: { value: PRNG.vector(new Vector4(), { min: 0, max: 1 }) },
       uWorldStartMatrix: { value: pointStart.matrix },
       uWorldEndMatrix: { value: pointEnd.matrix },
@@ -235,8 +235,8 @@ export class SphereToSphereDemo extends Group {
       float d = distance(start, end);
 
       vec3 p0 = start;
-      vec3 p1 = mix(start, end, 0.2) + d * 0.1 * startMat[2].xyz;
-      vec3 p2 = mix(start, end, 0.8) + d * 0.1 * endMat[2].xyz;
+      vec3 p1 = mix(start, end, 0.2) + d * 0.2 * startMat[2].xyz;
+      vec3 p2 = mix(start, end, 0.8) + d * 0.2 * endMat[2].xyz;
       vec3 p3 = end;
       
       // p1 = mix(start, end, 0.33);
@@ -245,13 +245,17 @@ export class SphereToSphereDemo extends Group {
       vec3 normal = normalize(mix(startMat[2].xyz, endMat[2].xyz, t));
       vec3 up = normalize(mix(startMat[1].xyz, endMat[1].xyz, t));
       vec3 tangent = normalize(bezier3_tangent(p0, p1, p2, p3, t));
-
+      
+      float shortT = (t - dt) / len;
       float width = (position.y - 0.5)
         * easeInThenOut(t, 6.0)
-        * easeInThenOut((t - dt) / len, 3.0)
+        * easeInThenOut(shortT, 3.0)
+        * mix(0.33, 1.0, pcurve(t, 1.0, 2.0)) // Narrower at the end.
         * uWidth;
       
-      float loopT = inverseLerp(0.0, 1.0, t);
+      float randomness = 0.2;
+      float startLoopT = rand(start) * randomness;
+      float loopT = startLoopT + inverseLerp(0.0, 1.0 - randomness, t);
 
       vec2 loop = looping(loopT, 0.3, 1.0, 3.0, rand11(start, 0.6, 1.2), 0.3);
       // loop = vec2(t, 0.0);

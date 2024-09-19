@@ -52,7 +52,7 @@ export class AxesToAxesDemo extends Object3D {
     addTo(new Mesh(geometry, material), this)
 
     const uniforms = {
-      uTime: { get value() { return Ticker.current().time } },
+      uTime: Ticker.get('three').uTime,
       uWidth: { value: .6 },
       uStartMatrix: { value: axes1.matrix },
       uEndMatrix: { value: axes2.matrix },

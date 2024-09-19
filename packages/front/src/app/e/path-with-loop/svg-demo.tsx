@@ -38,7 +38,8 @@ function Polyline({
 
   const { ref } = useEffects<SVGCircleElement>(function* (circle) {
     const p = new Vector2()
-    yield Ticker.current().onTick(tick => {
+    console.log('foo')
+    yield Ticker.get('three').onTick(tick => {
       const t = (tick.time * .5) % 1
       curve(p, t)
       circle.setAttribute('cx', p.x.toFixed(5))

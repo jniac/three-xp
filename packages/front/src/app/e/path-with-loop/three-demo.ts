@@ -10,8 +10,8 @@ import { SphereToSphereDemo } from './SphereToSphereDemo'
 export function ThreeDemo() {
   useGroup('ThreeDemo', async function* (group, three) {
     three.useOrbitControls({
-      position: [6, 4, 7],
-      target: [.4, 1.6, -.8],
+      position: [2, 4.5, 8],
+      target: [-1.2, 1.2, -.2],
     })
 
     group.add(new GridHelper(10, 10, '#5c4f7d', '#352945'))
