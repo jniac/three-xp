@@ -3,6 +3,7 @@ import { BufferGeometry, CapsuleGeometry, Color, DirectionalLight, DoubleSide, G
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
+import { setvertexColors } from 'some-utils-three/utils/geometry'
 import { computeTangentMatrixFromNormal } from 'some-utils-three/utils/matrix'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
@@ -10,7 +11,6 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { TickCallback, Ticker } from 'some-utils-ts/ticker'
 
 import { glsl_looping } from './looping'
-import { setvertexColors } from './utils'
 
 class InstanceMatrixHelper extends InstancedMesh {
   private static _geometry: BufferGeometry

@@ -1,12 +1,14 @@
 'use client'
+import { DoubleSide, Mesh, MeshPhysicalMaterial, Object3D, PlaneGeometry } from 'three'
+
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { ShaderForge } from 'some-utils-three/shader-forge'
+import { addTo } from 'some-utils-three/utils/parenting'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { TickCallback, Ticker } from 'some-utils-ts/ticker'
-import { DoubleSide, Mesh, MeshPhysicalMaterial, Object3D, PlaneGeometry } from 'three'
+
 import { glsl_looping } from './looping'
-import { addTo } from './utils'
 
 class Axes extends Mesh {
   constructor() {
