@@ -21,6 +21,15 @@ function ScatteredDemo() {
     plane.internal.mesh.material.map = texture
     plane.internal.mesh.material.mapAspect = texture.image.width / texture.image.height
 
+    const d0 = plane.getDistribution({ position: [-2, 0], size: [3, 2] })
+    const d1 = plane.getDistribution({ position: [2, 0], size: [2, 3] })
+    plane.drawDistribution(d0)
+    plane.drawDistribution(d1)
+
+    yield three.onTick(({ time }) => {
+      plane.lerpDistribute(d0, d1, Math.sin(time / 2) * .5 + .5)
+    })
+
   }, [])
   return null
 }
@@ -28,7 +37,7 @@ function ScatteredDemo() {
 function OrbitControls() {
   useThree(function* (three) {
     three.useOrbitControls({
-      position: [0, 0, 5],
+      position: [0, 0, 8],
       target: 0,
     })
   }, [])

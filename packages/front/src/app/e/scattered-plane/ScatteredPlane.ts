@@ -11,9 +11,8 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
 import { Vector2Like } from 'some-utils-ts/types'
 
-import { WireRect } from './WireRect'
-
-type DistributionProps = typeof Distribution.defaultProps
+import { solveVector2Declaration, Vector2Declaration } from 'some-utils-three/declaration'
+import { LineHelper } from './LineHelper'
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
   internal = {
@@ -79,27 +78,30 @@ class DistributionNode {
   ) { }
 }
 
+type DistributionProps = typeof Distribution.defaultProps
+
 class Distribution {
   static defaultProps = {
-    position: new Vector2(0, 0),
-    size: new Vector2(3, 2),
+    seed: <number | string>87654,
+    position: <Vector2Declaration>new Vector2(0, 0),
+    size: <Vector2Declaration>new Vector2(3, 2),
     scatterPadding: 0.1,
-    sizeOptions: [
+    sizeOptions: <[number, number][]>[
       [.5, 1],
       [1, 10],
       [2, 2],
       [3, 1],
-    ] as [number, number][],
+    ],
   }
 
   props: Readonly<DistributionProps>
   root: Space
   nodes: DistributionNode[]
 
-  constructor(scatteredPlane: ScatteredPlane, props: Partial<DistributionProps>, seed: number | string) {
+  constructor(scatteredPlane: ScatteredPlane, props: Partial<DistributionProps>) {
     this.props = { ...Distribution.defaultProps, ...props }
 
-    const { position, size, scatterPadding, sizeOptions } = this.props
+    const { position, size, scatterPadding, sizeOptions, seed } = this.props
     const { col, row } = scatteredPlane.props
 
     PRNG.seed(seed)
@@ -108,9 +110,11 @@ class Distribution {
     const colSizes = Array.from({ length: col }).map(sizePicker)
     const rowSizes = Array.from({ length: row }).map(sizePicker)
 
+    const { x: px, y: py } = solveVector2Declaration(position)
+    const { x: sx, y: sy } = solveVector2Declaration(size)
     const root = new Space(Direction.Horizontal)
-      .setSize(size.x, size.y)
-      .setOffset(position.x - size.x / 2, position.y - size.y / 2)
+      .setSize(sx, sy)
+      .setOffset(px - sx / 2, py - sy / 2)
 
     for (const colSize of colSizes) {
       const colSpace = new Space(Direction.Vertical)
@@ -129,12 +133,12 @@ class Distribution {
     const rootRect = root.rect
 
     const spaces = [...root.allLeaves({ includeSelf: false })]
+    const halfManhattanSize = (sx + sy) / 2
     const nodes = spaces.map(space => {
       const rect = space.rect.clone()
       const uvRect = rect.clone().relativeTo(rootRect)
       const { x, y } = rect.getCenter()
-      const manhattanDistance = Math.abs(x) + Math.abs(y)
-      const halfManhattanSize = (size.x + size.y) / 2
+      const manhattanDistance = Math.abs(x - px) + Math.abs(y - py)
       const scatterCoeff = inverseLerp(.5, 1, manhattanDistance / halfManhattanSize)
       rect.centerX += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
       rect.centerY += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
@@ -167,6 +171,7 @@ export class ScatteredPlane extends Object3D {
     count: number
     mesh: InstancedMesh<PlaneGeometry, ScatteredBasicMaterial>
     aRectUv: InstancedBufferAttribute
+    lineHelper: LineHelper
   }
 
   get count() { return this.internal.count }
@@ -185,13 +190,28 @@ export class ScatteredPlane extends Object3D {
     const aRectUv = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
     mesh.geometry.setAttribute('aRectUv', aRectUv)
 
-    this.internal = { count, mesh, aRectUv }
+    const lineHelper = new LineHelper()
+    addTo(lineHelper, this)
 
-    this.distribute()
+    this.internal = { count, mesh, aRectUv, lineHelper }
+
+    this.distribute(this.getDistribution())
   }
 
-  distribute(props: Partial<DistributionProps> = {}) {
-    const distribution = new Distribution(this, props, ScatteredPlane.name)
+  getDistribution(props: Partial<DistributionProps> = {}) {
+    return new Distribution(this, props)
+  }
+
+  drawDistribution(distribution: Distribution) {
+    const { position, size, scatterPadding } = distribution.props
+    const { x: px, y: py } = solveVector2Declaration(position)
+    const { x: sx, y: sy } = solveVector2Declaration(size)
+    this.internal.lineHelper
+      .drawRect([px, py, sx, sy])
+      .drawRect([px, py, sx + scatterPadding * 2, sy + scatterPadding * 2])
+  }
+
+  distribute(distribution: Distribution) {
     const { count, mesh, aRectUv } = this.internal
     for (let i = 0; i < count; i++) {
       const { rect, uvRect } = distribution.nodes[i]
@@ -200,12 +220,29 @@ export class ScatteredPlane extends Object3D {
         scale: rect.getSize(),
       }))
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
-      // mesh.setColorAt(i, makeColor(`hsl(${PRNG.between(240, 360)}, 100%, 50%)`))
     }
     mesh.material.setScatteredSize(distribution.root.rect.getSize())
+  }
 
-    const { size, scatterPadding } = distribution.props
-    addTo(new WireRect(size.x, size.y), this)
-    addTo(new WireRect(size.x + scatterPadding * 2, size.y + scatterPadding * 2), this)
+  lerpDistribute(distribution0: Distribution, distribution1: Distribution, t: number) {
+    const { count, mesh, aRectUv } = this.internal
+    const rect = new Rectangle()
+    const uvRect = new Rectangle()
+    for (let i = 0; i < count; i++) {
+      const node0 = distribution0.nodes[i]
+      const node1 = distribution1.nodes[i]
+      rect.lerpRectangles(node0.rect, node1.rect, t)
+      uvRect.lerpRectangles(node0.uvRect, node1.uvRect, t)
+      mesh.setMatrixAt(i, makeMatrix4({
+        position: rect.getCenter(),
+        scale: rect.getSize(),
+      }))
+      aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
+    }
+    const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, t)
+    mesh.material.setScatteredSize(rootRect.getSize())
+
+    mesh.instanceMatrix.needsUpdate = true
+    aRectUv.needsUpdate = true
   }
 }
