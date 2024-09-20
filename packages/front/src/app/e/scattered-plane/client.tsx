@@ -1,6 +1,6 @@
 'use client'
 
-import { Mesh } from 'three'
+import { Mesh, SRGBColorSpace } from 'three'
 
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -15,9 +15,12 @@ function ScatteredDemo() {
 
     addTo(new Mesh(new AxesGeometry(), new AutoLitMaterial()), group)
 
-    const texture = await three.load('/assets/images/saint-malo.jpg')
+    const texture = await three.load('/assets/images/DebugTexture.png')
+    texture.colorSpace = SRGBColorSpace
     const plane = addTo(new ScatteredPlane(), group)
     plane.internal.mesh.material.map = texture
+    plane.internal.mesh.material.mapAspect = texture.image.width / texture.image.height
+
   }, [])
   return null
 }
