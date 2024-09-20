@@ -10,3 +10,6 @@
 [submodule "packages/some-utils-react"]
 	path = packages/some-utils-react
 	url = https://github.com/jniac/some-utils-react.git
+[submodule "packages/some-three-editor"]
+	path = packages/some-three-editor
+	url = https://github.com/jniac/some-three-editor

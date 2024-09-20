@@ -15,6 +15,7 @@
     "react-dom": "^18",
     "react-katex": "^3.0.1",
     "react-syntax-highlighter": "^15.5.0",
+    "some-three-editor": "workspace:*",
     "some-utils-dom": "workspace:*",
     "some-utils-react": "workspace:*",
     "some-utils-three": "workspace:*",
