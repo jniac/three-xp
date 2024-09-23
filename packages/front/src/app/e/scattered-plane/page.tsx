@@ -1,5 +1,6 @@
 import { XpMetadata } from '@/types'
 
+import { ThreeXpHeader } from '@/components/three-xp-header'
 import { Client } from './client'
 
 export const metadata = new XpMetadata({
@@ -9,7 +10,9 @@ export const metadata = new XpMetadata({
 export default function ScatteredPlane() {
   return (
     <div className='ScatteredPlane page'>
-      <Client />
+      <ThreeXpHeader>
+        <Client />
+      </ThreeXpHeader>
     </div>
   )
 }
