@@ -37,10 +37,18 @@ function ScatteredDemo() {
     plane.drawDistribution(d1)
 
     group.userData.transition = 0
-    group.userData.transition_meta = 'Slider(0, 1)'
+    group.userData.transition_meta = 'Slider(0, 1, step: 0.01)'
 
-    yield three.onTick(({ time }) => {
-      plane.lerpDistribute(d0, d1, Math.sin(time / 2) * .5 + .5)
+    group.userData.foo = 0
+    group.userData.foo_meta = 'Slider(-2, 2, step: 0.25)'
+
+    group.userData.scale = 1
+    group.userData.scale_meta = 'Slider(-1, 1, pow: 10, step: .1)'
+
+    yield three.onTick(() => {
+      plane.lerpDistribute(d0, d1, group.userData.transition)
+      plane.rotation.z = group.userData.foo * Math.PI
+      plane.scale.setScalar(group.userData.scale)
     })
 
   }, [])

@@ -64,6 +64,38 @@ export function useGroup(
   return group
 }
 
+/**
+ * NOTE: Not tested!
+ */
+export function useThreeInstance<T>(
+  _class: new () => (T extends THREE.Object3D ? T : never),
+  effects?: (instance: T, three: ThreeWebglContext, state: UseEffectsState) => UseEffectsReturnable,
+  deps?: UseEffectsDeps,
+): T {
+  const instance = useMemo(() => new _class(), [_class])
+
+  useThree(async function* (three, state) {
+    three.scene.add(instance)
+    yield () => {
+      instance.clear()
+      instance.removeFromParent()
+    }
+
+    if (effects) {
+      const it = effects(instance, three, state)
+      if (it && typeof it.next === 'function') {
+        do {
+          const { value, done } = await it.next()
+          if (done) break
+          yield value
+        } while (state.mounted)
+      }
+    }
+  }, deps)
+
+  return instance
+}
+
 function ServerProofThreeProvider({ children, className }: HTMLAttributes<HTMLDivElement>) {
   const three = useMemo(() => new ThreeWebglContext(), [])
 
