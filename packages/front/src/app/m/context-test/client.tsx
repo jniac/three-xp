@@ -40,7 +40,7 @@ function MyScene() {
       three.scene.add(mesh)
     }
 
-    const texture = await three.loadRgbe('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
+    const texture = await three.loader.loadRgbe('https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr')
     texture.mapping = EquirectangularReflectionMapping
     const pmremGenerator = new PMREMGenerator(three.renderer)
     const env = pmremGenerator.fromEquirectangular(texture)

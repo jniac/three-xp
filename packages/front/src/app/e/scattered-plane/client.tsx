@@ -17,7 +17,7 @@ import { SkyMesh } from './SkyMesh'
 function ScatteredDemo() {
   const editor = useEditor()
 
-  useGroup(ScatteredDemo.name, async function* (group, three) {
+  useGroup('ScatteredDemo', async function* (group, three) {
 
     editor.metadata.get(group).set('hierarchyOpen', true)
     editor.sceneSelection.add('Select ScatteredDemo', group)
