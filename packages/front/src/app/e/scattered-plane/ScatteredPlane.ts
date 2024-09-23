@@ -159,13 +159,9 @@ class Distribution {
 
 type ScatteredPlaneProps = typeof ScatteredPlane.defaultProps
 
-function log(value: boolean) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    descriptor.enumerable = value
-  }
-}
-
 export class ScatteredPlane extends Object3D {
+  static displayName = 'ScatteredPlane'
+
   static defaultProps = {
     row: 20,
     col: 30,

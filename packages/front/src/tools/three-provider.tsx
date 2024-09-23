@@ -7,6 +7,7 @@ import { Group } from 'three'
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsReturnable, UseEffectsState } from 'some-utils-react/hooks/effects'
 import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
 
+import { config } from '@/config'
 import { useIsClient } from '@/utils/is-client'
 
 const reactThreeContext = createContext<ThreeWebglContext>(null!)
@@ -63,10 +64,14 @@ export function useGroup(
   return group
 }
 
-function Inner({ children, className }: HTMLAttributes<HTMLDivElement>) {
+function ServerProofThreeProvider({ children, className }: HTMLAttributes<HTMLDivElement>) {
   const three = useMemo(() => new ThreeWebglContext(), [])
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    // Set path for assets, it is very dependent on the environment
+    const path = config.development ? '/assets/' : '/three-xp/assets/'
+    three.loader.setPath(path)
+
     yield three.init(div)
     Object.assign(window, { three, THREE })
   }, [])
@@ -81,6 +86,6 @@ function Inner({ children, className }: HTMLAttributes<HTMLDivElement>) {
 }
 
 export function ThreeProvider(props: HTMLAttributes<HTMLDivElement>) {
-  return useIsClient() && <Inner {...props} />
+  return useIsClient() && <ServerProofThreeProvider {...props} />
 }
 
