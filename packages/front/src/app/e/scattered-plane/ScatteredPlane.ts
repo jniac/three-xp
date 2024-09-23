@@ -1,5 +1,6 @@
-import { InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector4 } from 'three'
+import { DoubleSide, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector4 } from 'three'
 
+import { fromVector2Declaration, Vector2Declaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { addTo } from 'some-utils-three/utils/parenting'
@@ -11,7 +12,6 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
 import { Vector2Like } from 'some-utils-ts/types'
 
-import { solveVector2Declaration, Vector2Declaration } from 'some-utils-three/declaration'
 import { LineHelper } from './LineHelper'
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
@@ -41,7 +41,9 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
   set scatteredSize(value) { this.setScatteredSize(value) }
 
   constructor() {
-    super()
+    super({
+      side: DoubleSide,
+    })
     this.onBeforeCompile = shader => ShaderForge.with(shader)
       .uniforms(this.internal.uniforms)
       .vertex.top(
@@ -110,8 +112,8 @@ class Distribution {
     const colSizes = Array.from({ length: col }).map(sizePicker)
     const rowSizes = Array.from({ length: row }).map(sizePicker)
 
-    const { x: px, y: py } = solveVector2Declaration(position)
-    const { x: sx, y: sy } = solveVector2Declaration(size)
+    const { x: px, y: py } = fromVector2Declaration(position)
+    const { x: sx, y: sy } = fromVector2Declaration(size)
     const root = new Space(Direction.Horizontal)
       .setSize(sx, sy)
       .setOffset(px - sx / 2, py - sy / 2)
@@ -157,6 +159,12 @@ class Distribution {
 
 type ScatteredPlaneProps = typeof ScatteredPlane.defaultProps
 
+function log(value: boolean) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    descriptor.enumerable = value
+  }
+}
+
 export class ScatteredPlane extends Object3D {
   static defaultProps = {
     row: 20,
@@ -175,6 +183,9 @@ export class ScatteredPlane extends Object3D {
   }
 
   get count() { return this.internal.count }
+
+  static transition_meta = 'Range(0, 1)'
+  transition = 0
 
   constructor(props: Partial<ScatteredPlaneProps> = {}) {
     super()
@@ -204,8 +215,8 @@ export class ScatteredPlane extends Object3D {
 
   drawDistribution(distribution: Distribution) {
     const { position, size, scatterPadding } = distribution.props
-    const { x: px, y: py } = solveVector2Declaration(position)
-    const { x: sx, y: sy } = solveVector2Declaration(size)
+    const { x: px, y: py } = fromVector2Declaration(position)
+    const { x: sx, y: sy } = fromVector2Declaration(size)
     this.internal.lineHelper
       .drawRect([px, py, sx, sy])
       .drawRect([px, py, sx + scatterPadding * 2, sy + scatterPadding * 2])
