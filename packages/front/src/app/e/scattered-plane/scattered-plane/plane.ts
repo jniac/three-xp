@@ -1,18 +1,17 @@
 import { DoubleSide, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector4 } from 'three'
 
-import { fromVector2Declaration, Vector2Declaration } from 'some-utils-three/declaration'
+import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { addTo } from 'some-utils-three/utils/parenting'
-import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
-import { inverseLerp } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
-import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
 import { Vector2Like } from 'some-utils-ts/types'
 
-import { LineHelper } from './LineHelper'
+import { LineHelper } from '../LineHelper'
+
+import { Distribution, DistributionProps } from './distribution'
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
   internal = {
@@ -71,92 +70,6 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
   }
 }
 
-class DistributionNode {
-  constructor(
-    public space: Space,
-    public rect: Rectangle,
-    public uvRect: Rectangle,
-    public scatterCoeff: number,
-  ) { }
-}
-
-type DistributionProps = typeof Distribution.defaultProps
-
-class Distribution {
-  static defaultProps = {
-    seed: <number | string>87654,
-    position: <Vector2Declaration>new Vector2(0, 0),
-    size: <Vector2Declaration>new Vector2(3, 2),
-    scatterPadding: 0.1,
-    sizeOptions: <[number, number][]>[
-      [.5, 1],
-      [1, 10],
-      [2, 2],
-      [3, 1],
-    ],
-  }
-
-  props: Readonly<DistributionProps>
-  root: Space
-  nodes: DistributionNode[]
-
-  constructor(scatteredPlane: ScatteredPlane, props: Partial<DistributionProps>) {
-    this.props = { ...Distribution.defaultProps, ...props }
-
-    const { position, size, scatterPadding, sizeOptions, seed } = this.props
-    const { col, row } = scatteredPlane.props
-
-    PRNG.seed(seed)
-
-    const sizePicker = PRNG.createPicker(sizeOptions)
-    const colSizes = Array.from({ length: col }).map(sizePicker)
-    const rowSizes = Array.from({ length: row }).map(sizePicker)
-
-    const { x: px, y: py } = fromVector2Declaration(position)
-    const { x: sx, y: sy } = fromVector2Declaration(size)
-    const root = new Space(Direction.Horizontal)
-      .setSize(sx, sy)
-      .setOffset(px - sx / 2, py - sy / 2)
-
-    for (const colSize of colSizes) {
-      const colSpace = new Space(Direction.Vertical)
-        .setSize(`${colSize}fr`)
-        .addTo(root)
-
-      for (const rowSize of rowSizes) {
-        new Space(Direction.Horizontal)
-          .setSize(`${rowSize}fr`)
-          .addTo(colSpace)
-      }
-    }
-
-    root.computeLayout()
-
-    const rootRect = root.rect
-
-    const spaces = [...root.allLeaves({ includeSelf: false })]
-    const halfManhattanSize = (sx + sy) / 2
-    const nodes = spaces.map(space => {
-      const rect = space.rect.clone()
-      const uvRect = rect.clone().relativeTo(rootRect)
-      const { x, y } = rect.getCenter()
-      const manhattanDistance = Math.abs(x - px) + Math.abs(y - py)
-      const scatterCoeff = inverseLerp(.5, 1, manhattanDistance / halfManhattanSize)
-      rect.centerX += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
-      rect.centerY += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
-      return {
-        space,
-        rect,
-        uvRect,
-        scatterCoeff,
-      }
-    })
-
-    this.root = root
-    this.nodes = nodes
-  }
-}
-
 type ScatteredPlaneProps = typeof ScatteredPlane.defaultProps
 
 export class ScatteredPlane extends Object3D {
@@ -169,12 +82,44 @@ export class ScatteredPlane extends Object3D {
     imageResizeMode: <'contain' | 'cover'>'cover',
   }
 
+  static createPlane(props: ScatteredPlaneProps) {
+    const { row, col } = props
+    const count = row * col
+
+    const geometry = new PlaneGeometry()
+    const aRectUv = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
+    geometry.setAttribute('aRectUv', aRectUv)
+
+    const material = new ScatteredBasicMaterial()
+    const mesh = new InstancedMesh(geometry, material, count)
+    mesh.name = 'plane'
+
+    return mesh
+  }
+
+  static createLines(props: ScatteredPlaneProps) {
+    const { row, col } = props
+    const count = row * col
+
+    const geometry = new PlaneGeometry()
+    const material = new MeshBasicMaterial({ color: 0x00ff00 })
+    const mesh = new InstancedMesh(geometry, material, count)
+
+    const aStartMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
+    const aEndMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
+    geometry.setAttribute('aStartMat', aStartMat)
+    geometry.setAttribute('aEndMat', aEndMat)
+
+    mesh.name = 'lines'
+
+    return mesh
+  }
+
   readonly props: Readonly<ScatteredPlaneProps>
 
   internal: {
     count: number
-    mesh: InstancedMesh<PlaneGeometry, ScatteredBasicMaterial>
-    aRectUv: InstancedBufferAttribute
+    plane: InstancedMesh<PlaneGeometry, ScatteredBasicMaterial>
     lineHelper: LineHelper
   }
 
@@ -187,20 +132,19 @@ export class ScatteredPlane extends Object3D {
     super()
     this.props = { ...ScatteredPlane.defaultProps, ...props }
 
-    const { row, col } = this.props
+    const { col, row } = this.props
     const count = row * col
-    const geometry = new PlaneGeometry()
-    const material = new ScatteredBasicMaterial()
-    const mesh = new InstancedMesh(geometry, material, count)
-    addTo(mesh, this)
 
-    const aRectUv = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
-    mesh.geometry.setAttribute('aRectUv', aRectUv)
+    const plane = ScatteredPlane.createPlane(this.props)
+    addTo(plane, this)
+
+    const lines = ScatteredPlane.createLines(this.props)
+    addTo(lines, this)
 
     const lineHelper = new LineHelper()
     addTo(lineHelper, this)
 
-    this.internal = { count, mesh, aRectUv, lineHelper }
+    this.internal = { count, plane, lineHelper }
 
     this.distribute(this.getDistribution())
   }
@@ -219,20 +163,22 @@ export class ScatteredPlane extends Object3D {
   }
 
   distribute(distribution: Distribution) {
-    const { count, mesh, aRectUv } = this.internal
+    const { count, plane } = this.internal
+    const { aRectUv } = plane.geometry.attributes
     for (let i = 0; i < count; i++) {
       const { rect, uvRect } = distribution.nodes[i]
-      mesh.setMatrixAt(i, makeMatrix4({
+      plane.setMatrixAt(i, makeMatrix4({
         position: rect.getCenter(),
         scale: rect.getSize(),
       }))
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
     }
-    mesh.material.setScatteredSize(distribution.root.rect.getSize())
+    plane.material.setScatteredSize(distribution.root.rect.getSize())
   }
 
   lerpDistribute(distribution0: Distribution, distribution1: Distribution, t: number) {
-    const { count, mesh, aRectUv } = this.internal
+    const { count, plane } = this.internal
+    const { aRectUv } = plane.geometry.attributes
     const rect = new Rectangle()
     const uvRect = new Rectangle()
     for (let i = 0; i < count; i++) {
@@ -240,16 +186,16 @@ export class ScatteredPlane extends Object3D {
       const node1 = distribution1.nodes[i]
       rect.lerpRectangles(node0.rect, node1.rect, t)
       uvRect.lerpRectangles(node0.uvRect, node1.uvRect, t)
-      mesh.setMatrixAt(i, makeMatrix4({
+      plane.setMatrixAt(i, makeMatrix4({
         position: rect.getCenter(),
         scale: rect.getSize(),
       }))
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
     }
     const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, t)
-    mesh.material.setScatteredSize(rootRect.getSize())
+    plane.material.setScatteredSize(rootRect.getSize())
 
-    mesh.instanceMatrix.needsUpdate = true
+    plane.instanceMatrix.needsUpdate = true
     aRectUv.needsUpdate = true
   }
 }

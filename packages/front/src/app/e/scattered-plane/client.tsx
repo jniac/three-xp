@@ -3,15 +3,17 @@
 import { ReactNode } from 'react'
 import { Mesh, SRGBColorSpace } from 'three'
 
-import { EditorProvider, useEditor } from 'some-three-editor/editor-provider'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { addTo } from 'some-utils-three/utils/parenting'
 
+import { hierarchyDeployAll } from 'some-three-editor/editor-context/actions'
+import { EditorProvider, useEditor } from 'some-three-editor/editor-provider'
+
 import { Leak } from '@/components/leak'
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 
-import { ScatteredPlane } from './ScatteredPlane'
+import { ScatteredPlane } from './scattered-plane'
 import { SkyMesh } from './SkyMesh'
 
 function ScatteredDemo() {
@@ -19,17 +21,14 @@ function ScatteredDemo() {
 
   useGroup('ScatteredDemo', async function* (group, three) {
 
-    editor.metadata.get(group).set('hierarchyOpen', true)
-    editor.sceneSelection.add('Select ScatteredDemo', group)
-
     addTo(new SkyMesh(), group)
     addTo(new Mesh(new AxesGeometry(), new AutoLitMaterial()), group)
 
     const texture = await three.loader.load('/images/DebugTexture.png')
     texture.colorSpace = SRGBColorSpace
     const plane = addTo(new ScatteredPlane(), group)
-    plane.internal.mesh.material.map = texture
-    plane.internal.mesh.material.mapAspect = texture.image.width / texture.image.height
+    plane.internal.plane.material.map = texture
+    plane.internal.plane.material.mapAspect = texture.image.width / texture.image.height
 
     const d0 = plane.getDistribution({ position: [-2, 0], size: [3, 2] })
     const d1 = plane.getDistribution({ position: [2, 0], size: [2, 3] })
@@ -50,6 +49,9 @@ function ScatteredDemo() {
       plane.rotation.z = group.userData.foo * Math.PI
       plane.scale.setScalar(group.userData.scale)
     })
+
+    hierarchyDeployAll(editor, group)
+    editor.sceneSelection.add('Select ScatteredDemo', group)
 
   }, [])
 
