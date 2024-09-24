@@ -1,3 +1,3 @@
 export * from './distribution'
-export * from './plane'
+export * from './scattered'
 

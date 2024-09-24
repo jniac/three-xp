@@ -158,6 +158,7 @@ export class SphereToSphereDemo extends Group {
 
     const uniforms = {
       uTime: Ticker.get('three').uTime,
+      uLength: { value: .1 },
       uRand: { value: PRNG.vector(new Vector4(), { min: 0, max: 1 }) },
       uWorldStartMatrix: { value: pointStart.matrix },
       uWorldEndMatrix: { value: pointEnd.matrix },
@@ -228,9 +229,8 @@ export class SphereToSphereDemo extends Group {
       start += vec3(rand11(start.xyz), rand11(start.yzx), rand11(start.zxy)) * 0.66;
       end += vec3(rand11(start.zyx), rand11(start.xzy), rand11(start.yxz)) * 0.33;
       
-      float len = 0.06; 
-      float dt = mix(-len, 1.0, fract(uTime * 0.33 + rand11(start) * 0.4));
-      float t = position.x * len + dt;
+      float dt = mix(-uLength, 1.0, fract(uTime * 0.33 + rand11(start) * 0.4));
+      float t = position.x * uLength + dt;
       t = clamp(t, 0.0, 1.0);
       float d = distance(start, end);
 
@@ -246,7 +246,7 @@ export class SphereToSphereDemo extends Group {
       vec3 up = normalize(mix(startMat[1].xyz, endMat[1].xyz, t));
       vec3 tangent = normalize(bezier3_tangent(p0, p1, p2, p3, t));
       
-      float shortT = (t - dt) / len;
+      float shortT = (t - dt) / uLength;
       float width = (position.y - 0.5)
         * easeInThenOut(t, 6.0)
         * easeInThenOut(shortT, 3.0)

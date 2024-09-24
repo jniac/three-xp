@@ -5,7 +5,7 @@ import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { PRNG } from 'some-utils-ts/random/prng'
-import { ScatteredPlane } from './plane'
+import { ScatteredPlane } from './scattered'
 
 export class DistributionNode {
   constructor(

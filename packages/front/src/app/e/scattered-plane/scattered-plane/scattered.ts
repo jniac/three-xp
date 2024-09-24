@@ -1,4 +1,4 @@
-import { DoubleSide, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector4 } from 'three'
+import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector3, Vector4 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
@@ -12,6 +12,19 @@ import { Vector2Like } from 'some-utils-ts/types'
 import { LineHelper } from '../LineHelper'
 
 import { Distribution, DistributionProps } from './distribution'
+import { ScatteredPlaneLines } from './lines'
+
+class LightSetup extends Object3D {
+  constructor() {
+    super()
+    const sky = new HemisphereLight('#ffffff', '#926969', 1)
+    this.add(sky)
+
+    const sun = new DirectionalLight('#ffffff', 2)
+    this.add(sun)
+    sun.position.set(2, 4, 1)
+  }
+}
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
   internal = {
@@ -70,7 +83,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
   }
 }
 
-type ScatteredPlaneProps = typeof ScatteredPlane.defaultProps
+export type ScatteredPlaneProps = typeof ScatteredPlane.defaultProps
 
 export class ScatteredPlane extends Object3D {
   static displayName = 'ScatteredPlane'
@@ -97,30 +110,14 @@ export class ScatteredPlane extends Object3D {
     return mesh
   }
 
-  static createLines(props: ScatteredPlaneProps) {
-    const { row, col } = props
-    const count = row * col
-
-    const geometry = new PlaneGeometry()
-    const material = new MeshBasicMaterial({ color: 0x00ff00 })
-    const mesh = new InstancedMesh(geometry, material, count)
-
-    const aStartMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
-    const aEndMat = new InstancedBufferAttribute(new Float32Array(count * 16), 16)
-    geometry.setAttribute('aStartMat', aStartMat)
-    geometry.setAttribute('aEndMat', aEndMat)
-
-    mesh.name = 'lines'
-
-    return mesh
-  }
-
   readonly props: Readonly<ScatteredPlaneProps>
 
   internal: {
     count: number
     plane: InstancedMesh<PlaneGeometry, ScatteredBasicMaterial>
+    lines: ScatteredPlaneLines
     lineHelper: LineHelper
+    lightSetup: LightSetup
   }
 
   get count() { return this.internal.count }
@@ -128,23 +125,27 @@ export class ScatteredPlane extends Object3D {
   static transition_meta = 'Range(0, 1)'
   transition = 0
 
-  constructor(props: Partial<ScatteredPlaneProps> = {}) {
+  constructor(incomingProps: Partial<ScatteredPlaneProps> = {}) {
     super()
-    this.props = { ...ScatteredPlane.defaultProps, ...props }
+    const props = { ...ScatteredPlane.defaultProps, ...incomingProps }
 
-    const { col, row } = this.props
+    const { col, row } = props
     const count = row * col
 
-    const plane = ScatteredPlane.createPlane(this.props)
+    const plane = ScatteredPlane.createPlane(props)
     addTo(plane, this)
 
-    const lines = ScatteredPlane.createLines(this.props)
+    const lines = new ScatteredPlaneLines(props)
     addTo(lines, this)
 
     const lineHelper = new LineHelper()
     addTo(lineHelper, this)
 
-    this.internal = { count, plane, lineHelper }
+    const lightSetup = new LightSetup()
+    addTo(lightSetup, this)
+
+    this.internal = { count, plane, lineHelper, lines, lightSetup }
+    this.props = props
 
     this.distribute(this.getDistribution())
   }
@@ -177,25 +178,38 @@ export class ScatteredPlane extends Object3D {
   }
 
   lerpDistribute(distribution0: Distribution, distribution1: Distribution, t: number) {
-    const { count, plane } = this.internal
+    const { count, plane, lines } = this.internal
     const { aRectUv } = plane.geometry.attributes
+
     const rect = new Rectangle()
     const uvRect = new Rectangle()
+    const v0 = new Vector3()
+    const v1 = new Vector3()
+
     for (let i = 0; i < count; i++) {
       const node0 = distribution0.nodes[i]
       const node1 = distribution1.nodes[i]
       rect.lerpRectangles(node0.rect, node1.rect, t)
       uvRect.lerpRectangles(node0.uvRect, node1.uvRect, t)
       plane.setMatrixAt(i, makeMatrix4({
-        position: rect.getCenter(),
-        scale: rect.getSize(),
+        position: rect.getCenter(v0),
+        scale: rect.getSize(v1),
       }))
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
+
+      makeMatrix4({ position: node0.rect.getCenter(v0) })
+        .toArray(lines.parts.aStartMat.array, i * 16)
+      makeMatrix4({ position: node1.rect.getCenter(v0) })
+        .toArray(lines.parts.aEndMat.array, i * 16)
     }
+
     const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, t)
     plane.material.setScatteredSize(rootRect.getSize())
 
     plane.instanceMatrix.needsUpdate = true
     aRectUv.needsUpdate = true
+
+    lines.parts.aStartMat.needsUpdate = true
+    lines.parts.aEndMat.needsUpdate = true
   }
 }
