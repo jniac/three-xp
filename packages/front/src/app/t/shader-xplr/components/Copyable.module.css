@@ -1,0 +1,24 @@
+.Copyable {
+  position: relative;
+  border-radius: .25em;
+  overflow: hidden;
+
+  transition: filter 0.2s ease-in-out;
+}
+
+.Copyable .Overlay {
+  visibility: hidden;
+  display: flex;
+  flex-direction: row;
+  gap: .5em;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.Copyable:hover {
+  filter: brightness(1.2);
+}
+
+.Copyable:hover .Overlay {
+  visibility: visible;
+}

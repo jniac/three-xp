@@ -85,13 +85,3 @@
   align-items: center;
   gap: .5em;
 }
-
-.OverlayContentWrapper .TitleBar button {
-  padding: .5em;
-  background-color: #fff1;
-  border-radius: .25em;
-}
-
-.OverlayContentWrapper .TitleBar button:hover {
-  background-color: #fff2;
-}

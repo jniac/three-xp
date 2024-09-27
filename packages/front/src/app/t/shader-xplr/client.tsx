@@ -14,12 +14,26 @@ import { useIsClient } from '@/utils/is-client'
 
 import IconCopySvg from '@/components/svg/icon-copy.svg'
 
+import { Copyable } from './components/Copyable'
+
+import { IconButton } from './components/IconButton'
+
 import style from './style.module.css'
 
 const shaderPrograms = [
   'vertexShader',
   'fragmentShader',
 ] as const
+
+function resolveShaderIncludes(shaderCode: string) {
+  return shaderCode.replace(/#include <(.*)>/g, (match, p1) => {
+    const chunk = ShaderChunk[p1 as keyof typeof ShaderChunk]
+    if (!chunk) {
+      throw new Error(`Shader chunk "${p1}" not found`)
+    }
+    return chunk
+  })
+}
 
 function parseFromHash() {
   let [libName, shaderProgram, chunkName] = window.location.hash.slice(1).split(',') as
@@ -45,6 +59,7 @@ function __Client() {
   const [libName, setLibName] = useState<keyof typeof ShaderLib>(initial.libName)
   const [shaderProgram, setShaderProgram] = useState<typeof shaderPrograms[number]>(initial.shaderProgram)
   const [[chunkName, rect], setChunk] = useState<[keyof typeof ShaderChunk | null, Rectangle]>([initial.chunkName, new Rectangle()])
+  const [showFinalProgram, setShowFinalProgram] = useState(false)
 
   window.location.hash = [libName, shaderProgram, chunkName].filter(v => !!v).join(',')
 
@@ -97,6 +112,12 @@ function __Client() {
     })
   }, [libName, shaderProgram])
 
+  let program = ShaderLib[libName][shaderProgram]
+
+  if (showFinalProgram) {
+    program = resolveShaderIncludes(program)
+  }
+
   const highlightRect = rect.area === 0 ? rect : rect.clone().applyPadding([2, 6], 'grow')
   return (
     <div ref={ref} className={makeClassName(style.ShaderXplr, 'absolute-through p-4 flex flex-col gap-4')}>
@@ -122,11 +143,21 @@ function __Client() {
               <option key={name}>{name}</option>
             ))}
           </select>
+
+          <div className='flex flex-row items-center gap-3 px-2 bg-[#fff1] rounded-[.25em]'>
+            <label htmlFor='showFinalProgram'>Show final program</label>
+            <input
+              type='checkbox'
+              id='showFinalProgram'
+              checked={showFinalProgram}
+              onChange={event => setShowFinalProgram(event.target.checked)}
+            />
+          </div>
         </div>
 
         <div className={style.BaseContentWrapper}>
           <SyntaxHighlighter language='cpp' style={atomOneDark}>
-            {ShaderLib[libName][shaderProgram]}
+            {program}
           </SyntaxHighlighter>
         </div>
       </div>
@@ -147,17 +178,19 @@ function __Client() {
             <div className={style.OverlayContentWrapper} style={{ background: atomOneDark.hljs.background }}>
               <div className={style.TitleBar}>
                 <h1>{chunkName}</h1>
-                <button
+                <IconButton
                   onClick={() => {
-                    navigator.clipboard.writeText(ShaderChunk[chunkName])
+                    navigator.clipboard.writeText(chunkName)
                   }}
                 >
                   <IconCopySvg />
-                </button>
+                </IconButton>
               </div>
-              <SyntaxHighlighter language='cpp' style={atomOneDark}>
-                {ShaderChunk[chunkName]}
-              </SyntaxHighlighter>
+              <Copyable>
+                <SyntaxHighlighter language='cpp' style={atomOneDark}>
+                  {ShaderChunk[chunkName]}
+                </SyntaxHighlighter>
+              </Copyable>
             </div>
           </div>
         )}
