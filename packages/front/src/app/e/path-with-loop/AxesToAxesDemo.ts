@@ -4,7 +4,7 @@ import { DoubleSide, Mesh, MeshPhysicalMaterial, Object3D, PlaneGeometry } from 
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { addTo } from 'some-utils-three/utils/parenting'
+import { addTo } from 'some-utils-three/utils/tree'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { TickCallback, Ticker } from 'some-utils-ts/ticker'
 

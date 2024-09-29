@@ -5,7 +5,7 @@ import { Mesh, SRGBColorSpace } from 'three'
 
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { addTo } from 'some-utils-three/utils/parenting'
+import { addTo } from 'some-utils-three/utils/tree'
 
 import { hierarchyDeployAll } from 'some-three-editor/editor-context/actions'
 import { EditorProvider, useEditor } from 'some-three-editor/editor-provider'

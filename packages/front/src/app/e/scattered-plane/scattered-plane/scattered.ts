@@ -3,7 +3,7 @@ import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
-import { addTo } from 'some-utils-three/utils/parenting'
+import { addTo } from 'some-utils-three/utils/tree'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Ticker } from 'some-utils-ts/ticker'
