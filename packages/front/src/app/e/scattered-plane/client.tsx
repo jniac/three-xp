@@ -38,6 +38,11 @@ function ScatteredDemo() {
     group.userData.transition = 0
     group.userData.transition_meta = 'Slider(0, 1, step: 0.01)'
 
+    group.userData.chunkScale = scattered.internal.plane.material.uniforms.uMainParams.value.x
+    group.userData.chunkScale_meta = `
+      Name(chunk.scale)
+      Slider(0, 1, step: any)
+    `
     group.userData.dispX = scattered.internal.plane.material.uniforms.uDispersion.value.x
     group.userData.dispX_meta = `
       Name(disp.x)
@@ -76,6 +81,8 @@ function ScatteredDemo() {
     yield three.onTick(tick => {
       scattered.lerpDistribute(d0, d1, group.userData.transition)
       // scattered.lerpDistribute(d0, d1, inverseLerp(.2, .8, tick.time / 4 % 1))
+      scattered.internal.plane.material.uniforms.uMainParams.value.x = group.userData.chunkScale
+
       scattered.internal.plane.material.uniforms.uDispersion.value.x = group.userData.dispX
       scattered.internal.plane.material.uniforms.uDispersion.value.y = group.userData.dispY
       scattered.internal.plane.material.uniforms.uDispersion.value.z = group.userData.dispZ

@@ -50,6 +50,10 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      */
     uDispersion: { value: new Vector4(0, -.6, .4, 0) },
     uLowDispersion: { value: new Vector4(0, -.6, .4, 0) },
+    /**
+     * - `x`: chunk scale
+     */
+    uMainParams: { value: new Vector4(1) },
     uCenter: { value: new Vector3() },
     /**
      * - `x`: aspect
@@ -113,7 +117,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           // Apply scale before instanceMatrix (shrinking).
           vec3 dispersed;
           dispersed.xy = -delta * lerp(uDispersion.y, uDispersion.z, time);
-          dispersed.z = lerp(0.2, 0.0, time);
+          dispersed.z = lerp(1.0, 0.0, time);
           dispersed *= uDispersion.x;
 
           return vec4(dispersed, size);
@@ -132,8 +136,8 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
             return vec4(0.0, 0.0, 0.0, 1.0);
           }
 
-          float periodScalarT = inverseLerp(0.4, 0.7, scatterRatio);
-          float period = lerp(1.0, 2.0, aRand.x) * lerp(60.0, 1.0, periodScalarT);
+          float periodScalarT = inverseLerp(0.1, 0.9, scatterRatio);
+          float period = lerp(2.0, 8.0, aRand.x) * lerp(60.0, 1.0, periodScalarT);
           float time = mod(uLowDispersionTime + period * aRand.z, period);
 
           float duration = 1.0;
@@ -157,12 +161,13 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
       .vertex.replace('project_vertex', /* glsl */`
         vec4 mvPosition = vec4(position, 1.0);
         delta = instanceMatrix[3].xy - uCenter.xy;
-        scatterRatio = clamp(1.5 * length(delta) / length(uScatteredInfo.xy), 0.0, 1.0);
+        scatterRatio = clamp(1.1 * length(delta) / (length(uScatteredInfo.xy) / 2.0), 0.0, 1.0);
 
         vec4 dispersion = computeDispersion();
         vec4 lowDispersion = computeLowDispersion();
 
-        mvPosition.xyz *= dispersion.w * lowDispersion.w;
+        float scale = clamp01(uMainParams.x * 5.0 - 4.0 * aRand.w);
+        mvPosition.xyz *= dispersion.w * lowDispersion.w * easeInOut3(scale);
 
         mvPosition = instanceMatrix * mvPosition;
         mvPosition.xyz += dispersion.xyz + lowDispersion.xyz;
@@ -299,6 +304,10 @@ export class ScatteredPlane extends Object3D {
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
     }
     plane.material.setScatteredSize(distribution.root.rect.getSize())
+
+    const rootRect = distribution.root.rect
+    plane.material.setScatteredSize(rootRect.getSize())
+    plane.material.uniforms.uCenter.value.copy(rootRect.getCenter())
   }
 
   lerpDistribute(distribution0: Distribution, distribution1: Distribution, t: number) {
