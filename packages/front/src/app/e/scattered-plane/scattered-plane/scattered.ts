@@ -1,6 +1,7 @@
 import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector3, Vector4 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
+import { LineHelper } from 'some-utils-three/helpers/line'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { addTo } from 'some-utils-three/utils/tree'
@@ -8,8 +9,6 @@ import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Ticker } from 'some-utils-ts/ticker'
 import { Vector2Like } from 'some-utils-ts/types'
-
-import { LineHelper } from '../LineHelper'
 
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { easeInOut2, easeInOut4 } from 'some-utils-ts/math/easings/basic'
@@ -156,8 +155,8 @@ export class ScatteredPlane extends Object3D {
     const { x: px, y: py } = fromVector2Declaration(position)
     const { x: sx, y: sy } = fromVector2Declaration(size)
     this.internal.lineHelper
-      .drawRect([px, py, sx, sy])
-      .drawRect([px, py, sx + scatterPadding * 2, sy + scatterPadding * 2])
+      .rectangle([px, py, sx, sy])
+      .rectangle([px, py, sx + scatterPadding * 2, sy + scatterPadding * 2])
   }
 
   distribute(distribution: Distribution) {
