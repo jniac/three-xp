@@ -58,7 +58,6 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      * - `w`: align-y
      */
     uMapInfo: { value: new Vector4(1, 1, .5, .5) },
-    // (width, height, _, _)
     /**
      * - `x`: width
      * - `y`: height
@@ -98,52 +97,75 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         attribute vec4 aRand;
       `)
       .vertex.top(/* glsl */`
+        vec2 delta;
+        float scatterRatio;
+
         vec4 computeDispersion() {
-          if (uDispersion.y == 0.0) {
+          if (uDispersion.x == 0.0) {
             return vec4(0.0, 0.0, 0.0, 1.0);
           }
-
-          vec3 transformed = position;
 
           float duration = lerp(8.0, 1.0, aRand.x * aRand.y * aRand.z);
           float time = mod(uDispersionTime + duration * aRand.x, duration) / duration;
           float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time);
+          size = mix(1.0, size, pow(uDispersion.x, 1.0 / 4.0));
 
           // Apply scale before instanceMatrix (shrinking).
-          transformed *= mix(1.0, size, pow(uDispersion.x, 1.0 / 4.0));
-
-          vec4 mvPosition = instanceMatrix * vec4(transformed, 1.0);
-
-          vec2 anchor = mvPosition.xy;
-          vec2 delta = instanceMatrix[3].xy - uCenter.xy;
           vec3 dispersed;
           dispersed.xy = -delta * lerp(uDispersion.y, uDispersion.z, time);
           dispersed.z = lerp(0.2, 0.0, time);
+          dispersed *= uDispersion.x;
 
-          return vec4(uDispersion.x * dispersed, lerp(1.0, size, uDispersion.x));
+          return vec4(dispersed, size);
         }
 
-        // vec4 computeLowDispersion() {
-        //   if (uLowDispersion.y == 0.0) {
-        //     return instanceMatrix * vec4(position, 1.0);
-        //   }
+        float getStartEffect(float time, float duration) {
+          return min(1.0, time / duration);
+        }
 
-        //   vec3 transformed = position;
+        float getEndEffect(float time, float timeMax, float duration) {
+          return max(0.0, time - (timeMax - duration)) / duration;
+        }
 
-        //   vec4 mvPosition = instanceMatrix * vec4(transformed, 1.0);
+        vec4 computeLowDispersion() {
+          if (uLowDispersion.x == 0.0) {
+            return vec4(0.0, 0.0, 0.0, 1.0);
+          }
 
-        //   return mvPosition;
-        // }
+          float periodScalarT = inverseLerp(0.4, 0.7, scatterRatio);
+          float period = lerp(1.0, 2.0, aRand.x) * lerp(60.0, 1.0, periodScalarT);
+          float time = mod(uLowDispersionTime + period * aRand.z, period);
+
+          float duration = 1.0;
+          float effectStart = min(1.0, time);
+          float effectEnd = getEndEffect(time, period, duration);
+
+          float size = getStartEffect(time, 0.3) * (1.0 - getEndEffect(time, period, 0.3));
+          size = pow(size, 1.0 / 4.0);
+          size = mix(1.0, size, pow(uLowDispersion.x, 1.0 / 4.0));
+
+          vec3 dispersed;
+
+          dispersed.xy = delta * 0.1;
+          dispersed.z = 0.2;
+          dispersed.xyz *= getEndEffect(time, period, 1.0);
+          dispersed *= uLowDispersion.x;
+
+          return vec4(dispersed, size);
+        }
       `)
       .vertex.replace('project_vertex', /* glsl */`
         vec4 mvPosition = vec4(position, 1.0);
+        delta = instanceMatrix[3].xy - uCenter.xy;
+        scatterRatio = clamp(1.5 * length(delta) / length(uScatteredInfo.xy), 0.0, 1.0);
 
         vec4 dispersion = computeDispersion();
+        vec4 lowDispersion = computeLowDispersion();
 
-        mvPosition.xyz *= dispersion.w;
+        mvPosition.xyz *= dispersion.w * lowDispersion.w;
 
         mvPosition = instanceMatrix * mvPosition;
-        mvPosition.xyz += dispersion.xyz;
+        mvPosition.xyz += dispersion.xyz + lowDispersion.xyz;
 
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;      
@@ -170,7 +192,11 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
   }
 
   update(deltaTime: number) {
-    this.uniforms.uDispersionTime.value += deltaTime * this.uniforms.uDispersion.value.x
+    this.uniforms.uDispersionTime.value +=
+      deltaTime * this.uniforms.uDispersion.value.x
+
+    this.uniforms.uLowDispersionTime.value +=
+      deltaTime * this.uniforms.uLowDispersion.value.x
   }
 }
 

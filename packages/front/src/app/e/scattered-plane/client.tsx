@@ -43,16 +43,30 @@ function ScatteredDemo() {
       Name(disp.x)
       Slider(0, 1, step: any)
     `
-
     group.userData.dispY = scattered.internal.plane.material.uniforms.uDispersion.value.y
     group.userData.dispY_meta = `
       Name(disp.y)
       Slider(-1, 1, step: any)
     `
-
     group.userData.dispZ = scattered.internal.plane.material.uniforms.uDispersion.value.z
     group.userData.dispZ_meta = `
       Name(disp.z)
+      Slider(-1, 1, step: any)
+    `
+
+    group.userData.lowDispX = scattered.internal.plane.material.uniforms.uLowDispersion.value.x
+    group.userData.lowDispX_meta = `
+      Name(low-disp.x)
+      Slider(0, 1, step: any)
+    `
+    group.userData.lowDispY = scattered.internal.plane.material.uniforms.uLowDispersion.value.y
+    group.userData.lowDispY_meta = `
+      Name(low-disp.y)
+      Slider(-1, 1, step: any)
+    `
+    group.userData.lowDispZ = scattered.internal.plane.material.uniforms.uLowDispersion.value.z
+    group.userData.lowDispZ_meta = `
+      Name(low-disp.z)
       Slider(-1, 1, step: any)
     `
 
@@ -65,6 +79,11 @@ function ScatteredDemo() {
       scattered.internal.plane.material.uniforms.uDispersion.value.x = group.userData.dispX
       scattered.internal.plane.material.uniforms.uDispersion.value.y = group.userData.dispY
       scattered.internal.plane.material.uniforms.uDispersion.value.z = group.userData.dispZ
+
+      scattered.internal.plane.material.uniforms.uLowDispersion.value.x = group.userData.lowDispX
+      scattered.internal.plane.material.uniforms.uLowDispersion.value.y = group.userData.lowDispY
+      scattered.internal.plane.material.uniforms.uLowDispersion.value.z = group.userData.lowDispZ
+
       scattered.scale.setScalar(group.userData.scale)
     })
 
