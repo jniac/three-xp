@@ -5,13 +5,16 @@ import { LineHelper } from 'some-utils-three/helpers/line'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { addTo } from 'some-utils-three/utils/tree'
+import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
-import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
-import { Ticker } from 'some-utils-ts/ticker'
-import { Vector2Like } from 'some-utils-ts/types'
-
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { easeInOut2, easeInOut4 } from 'some-utils-ts/math/easings/basic'
+import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
+import { PRNG } from 'some-utils-ts/random/prng'
+import { Tick } from 'some-utils-ts/ticker'
+import { Vector2Like } from 'some-utils-ts/types'
+
 import { Distribution, DistributionProps } from './distribution'
 
 class LightSetup extends Object3D {
@@ -27,27 +30,42 @@ class LightSetup extends Object3D {
 }
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
-  internal = {
-    uniforms: {
-      // (aspect, sizeMode, align-x, align-y)
-      uMapInfo: { value: new Vector4(1, 1, .5, .5) },
-      // (width, height, _, _)
-      uScatteredInfo: { value: new Vector4(1, 1, 0, 0) },
-      uTime: Ticker.get('three').uTime,
-    }
+  uniforms = {
+    uTime: { value: 0 },
+    /**
+     * `x`:  
+     * - 0: no dispersion
+     * - 1: full dispersion
+     * 
+     * `y`:
+     * "Out" position
+     * - -1: "full" out (double its position)
+     * - 0: no out
+     * 
+     * `z`:
+     * "Shrink"
+     * - 0: no shrink
+     * - 1: full shrink (collapse to center)
+     */
+    uDispersion: { value: new Vector4(0, -.6, .4, 0) },
+    uCenter: { value: new Vector3() },
+    // (aspect, sizeMode, align-x, align-y)
+    uMapInfo: { value: new Vector4(1, 1, .5, .5) },
+    // (width, height, _, _)
+    uScatteredInfo: { value: new Vector4(1, 1, 0, 0) },
   }
 
-  get mapAspect() { return this.internal.uniforms.uMapInfo.value.x }
-  set mapAspect(value) { this.internal.uniforms.uMapInfo.value.x = value }
+  get mapAspect() { return this.uniforms.uMapInfo.value.x }
+  set mapAspect(value) { this.uniforms.uMapInfo.value.x = value }
 
   getScatteredSize(out: Vector2Like = new Vector2()) {
-    out.x = this.internal.uniforms.uScatteredInfo.value.x
-    out.y = this.internal.uniforms.uScatteredInfo.value.y
+    out.x = this.uniforms.uScatteredInfo.value.x
+    out.y = this.uniforms.uScatteredInfo.value.y
     return out
   }
   setScatteredSize(value: Vector2Like) {
-    this.internal.uniforms.uScatteredInfo.value.x = value.x
-    this.internal.uniforms.uScatteredInfo.value.y = value.y
+    this.uniforms.uScatteredInfo.value.x = value.x
+    this.uniforms.uScatteredInfo.value.y = value.y
   }
   get scatteredSize() { return this.getScatteredSize() }
   set scatteredSize(value) { this.setScatteredSize(value) }
@@ -57,11 +75,35 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
       side: DoubleSide,
     })
     this.onBeforeCompile = shader => ShaderForge.with(shader)
-      .uniforms(this.internal.uniforms)
+      .uniforms(this.uniforms)
       .vertex.top(
+        glsl_utils,
+        glsl_easings,
         glsl_uv_size)
       .vertex.top(/* glsl */`
         attribute vec4 aRectUv;
+        attribute vec4 aRand;
+      `)
+      .vertex.replace('project_vertex', /* glsl */`
+        float duration = lerp(8.0, 1.0, aRand.x * aRand.y * aRand.z);
+        float time = mod(uTime + duration * aRand.x, duration) / duration;
+        float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time);
+        transformed *= mix(1.0, size, uDispersion.x);
+
+        vec4 mvPosition = vec4(transformed, 1.0);
+        mvPosition = instanceMatrix * mvPosition;
+        vec2 anchor = mvPosition.xy;
+
+        vec2 delta = instanceMatrix[3].xy - uCenter.xy;
+        float d = length(delta);
+        vec2 v = delta / d;
+        vec3 dispersed;
+        dispersed.xy = anchor + v * lerp(uDispersion.y, uDispersion.z, time) * -d;
+        dispersed.z = lerp(0.2, 0.0, time);
+
+        mvPosition.xyz = mix(mvPosition.xyz, dispersed, uDispersion.x);
+        mvPosition = modelViewMatrix * mvPosition;
+        gl_Position = projectionMatrix * mvPosition;      
       `)
       .vertex.replace('uv_vertex', /* glsl */`
         #if defined( USE_UV ) || defined( USE_ANISOTROPY )
@@ -80,6 +122,10 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           vMapUv = ( mapTransform * vec3( instanceUv, 1 ) ).xy;
         #endif
       `)
+  }
+
+  update(deltaTime: number) {
+    this.uniforms.uTime.value += deltaTime * this.uniforms.uDispersion.value.x
   }
 }
 
@@ -102,6 +148,13 @@ export class ScatteredPlane extends Object3D {
     const geometry = new PlaneGeometry()
     const aRectUv = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
     geometry.setAttribute('aRectUv', aRectUv)
+
+    const aRand = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
+    geometry.setAttribute('aRand', aRand)
+
+    for (let i = 0; i < count; i++) {
+      aRand.setXYZW(i, PRNG.random(), PRNG.random(), PRNG.random(), PRNG.random())
+    }
 
     const material = new ScatteredBasicMaterial()
     const mesh = new InstancedMesh(geometry, material, count)
@@ -146,6 +199,10 @@ export class ScatteredPlane extends Object3D {
     this.distribute(this.getDistribution())
   }
 
+  onTick(tick: Tick) {
+    this.internal.plane.material.update(tick.deltaTime)
+  }
+
   getDistribution(props: Partial<DistributionProps> = {}) {
     return new Distribution(this, props)
   }
@@ -179,6 +236,8 @@ export class ScatteredPlane extends Object3D {
 
     const rect = new Rectangle()
     const uvRect = new Rectangle()
+    const rootRect = new Rectangle()
+
     const v0 = new Vector3()
     const v1 = new Vector3()
 
@@ -204,8 +263,9 @@ export class ScatteredPlane extends Object3D {
     }
 
     const rootT = easeInOut2(inverseLerp(maxOffsetT, 1 - maxOffsetT, t))
-    const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, rootT)
+    rootRect.lerpRectangles(distribution0.root.rect, distribution1.root.rect, rootT)
     plane.material.setScatteredSize(rootRect.getSize())
+    plane.material.uniforms.uCenter.value.copy(rootRect.getCenter())
 
     plane.instanceMatrix.needsUpdate = true
     aRectUv.needsUpdate = true

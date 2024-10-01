@@ -38,8 +38,23 @@ function ScatteredDemo() {
     group.userData.transition = 0
     group.userData.transition_meta = 'Slider(0, 1, step: 0.01)'
 
-    group.userData.foo = 0
-    group.userData.foo_meta = 'Slider(-2, 2, step: 0.25)'
+    group.userData.dispX = scattered.internal.plane.material.uniforms.uDispersion.value.x
+    group.userData.dispX_meta = `
+      Name(disp.x)
+      Slider(0, 1, step: any)
+    `
+
+    group.userData.dispY = scattered.internal.plane.material.uniforms.uDispersion.value.y
+    group.userData.dispY_meta = `
+      Name(disp.y)
+      Slider(-1, 1, step: any)
+    `
+
+    group.userData.dispZ = scattered.internal.plane.material.uniforms.uDispersion.value.z
+    group.userData.dispZ_meta = `
+      Name(disp.z)
+      Slider(-1, 1, step: any)
+    `
 
     group.userData.scale = 1
     group.userData.scale_meta = 'Slider(-1, 1, pow: 10, step: .1)'
@@ -47,7 +62,9 @@ function ScatteredDemo() {
     yield three.onTick(tick => {
       scattered.lerpDistribute(d0, d1, group.userData.transition)
       // scattered.lerpDistribute(d0, d1, inverseLerp(.2, .8, tick.time / 4 % 1))
-      scattered.rotation.z = group.userData.foo * Math.PI
+      scattered.internal.plane.material.uniforms.uDispersion.value.x = group.userData.dispX
+      scattered.internal.plane.material.uniforms.uDispersion.value.y = group.userData.dispY
+      scattered.internal.plane.material.uniforms.uDispersion.value.z = group.userData.dispZ
       scattered.scale.setScalar(group.userData.scale)
     })
 
@@ -62,8 +79,8 @@ function ScatteredDemo() {
 function OrbitControls() {
   useThree(function* (three) {
     three.useOrbitControls({
-      position: [0, 0, 8],
-      target: 0,
+      position: [-2, 0, 8],
+      target: [-2, 0, 0],
     })
   }, [])
   return null
