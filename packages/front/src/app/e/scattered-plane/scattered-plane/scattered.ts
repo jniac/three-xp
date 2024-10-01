@@ -31,7 +31,8 @@ class LightSetup extends Object3D {
 
 class ScatteredBasicMaterial extends MeshBasicMaterial {
   uniforms = {
-    uTime: { value: 0 },
+    uDispersionTime: { value: 0 },
+    uLowDispersionTime: { value: 0 },
     /**
      * `x`:  
      * - 0: no dispersion
@@ -48,10 +49,22 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      * - 1: full shrink (collapse to center)
      */
     uDispersion: { value: new Vector4(0, -.6, .4, 0) },
+    uLowDispersion: { value: new Vector4(0, -.6, .4, 0) },
     uCenter: { value: new Vector3() },
-    // (aspect, sizeMode, align-x, align-y)
+    /**
+     * - `x`: aspect
+     * - `y`: sizeMode
+     * - `z`: align-x
+     * - `w`: align-y
+     */
     uMapInfo: { value: new Vector4(1, 1, .5, .5) },
     // (width, height, _, _)
+    /**
+     * - `x`: width
+     * - `y`: height
+     * - `z`: -
+     * - `w`: -
+     */
     uScatteredInfo: { value: new Vector4(1, 1, 0, 0) },
   }
 
@@ -84,27 +97,52 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         attribute vec4 aRectUv;
         attribute vec4 aRand;
       `)
+      .vertex.top(/* glsl */`
+        vec4 computeDispersion() {
+          if (uDispersion.y == 0.0) {
+            return instanceMatrix * vec4(position, 1.0);
+          }
+
+          vec3 transformed = position;
+
+          float duration = lerp(8.0, 1.0, aRand.x * aRand.y * aRand.z);
+          float time = mod(uDispersionTime + duration * aRand.x, duration) / duration;
+          float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time);
+
+          // Apply scale before instanceMatrix (shrinking).
+          transformed *= mix(1.0, size, pow(uDispersion.x, 1.0 / 4.0));
+
+          vec4 mvPosition = instanceMatrix * vec4(transformed, 1.0);
+
+          vec2 anchor = mvPosition.xy;
+          vec2 delta = instanceMatrix[3].xy - uCenter.xy;
+          vec3 dispersed;
+          dispersed.xy = anchor + -delta * lerp(uDispersion.y, uDispersion.z, time);
+          dispersed.z = lerp(0.2, 0.0, time);
+          mvPosition.xyz = mix(mvPosition.xyz, dispersed, uDispersion.x);
+
+          return mvPosition;
+        }
+
+        // vec4 computeLowDispersion() {
+        //   if (uLowDispersion.y == 0.0) {
+        //     return instanceMatrix * vec4(position, 1.0);
+        //   }
+
+        //   vec3 transformed = position;
+
+        //   vec4 mvPosition = instanceMatrix * vec4(transformed, 1.0);
+
+        //   return mvPosition;
+        // }
+      `)
       .vertex.replace('project_vertex', /* glsl */`
-        float duration = lerp(8.0, 1.0, aRand.x * aRand.y * aRand.z);
-        float time = mod(uTime + duration * aRand.x, duration) / duration;
-        float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time);
-        transformed *= mix(1.0, size, uDispersion.x);
-
-        vec4 mvPosition = vec4(transformed, 1.0);
-        mvPosition = instanceMatrix * mvPosition;
-        vec2 anchor = mvPosition.xy;
-
-        vec2 delta = instanceMatrix[3].xy - uCenter.xy;
-        float d = length(delta);
-        vec2 v = delta / d;
-        vec3 dispersed;
-        dispersed.xy = anchor + v * lerp(uDispersion.y, uDispersion.z, time) * -d;
-        dispersed.z = lerp(0.2, 0.0, time);
-
-        mvPosition.xyz = mix(mvPosition.xyz, dispersed, uDispersion.x);
+        vec4 mvPosition = computeDispersion();
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;      
       `)
+
+
       .vertex.replace('uv_vertex', /* glsl */`
         #if defined( USE_UV ) || defined( USE_ANISOTROPY )
           vUv = vec3( uv, 1 ).xy;
@@ -125,7 +163,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
   }
 
   update(deltaTime: number) {
-    this.uniforms.uTime.value += deltaTime * this.uniforms.uDispersion.value.x
+    this.uniforms.uDispersionTime.value += deltaTime * this.uniforms.uDispersion.value.x
   }
 }
 
