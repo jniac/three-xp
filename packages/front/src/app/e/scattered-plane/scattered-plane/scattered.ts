@@ -100,7 +100,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
       .vertex.top(/* glsl */`
         vec4 computeDispersion() {
           if (uDispersion.y == 0.0) {
-            return instanceMatrix * vec4(position, 1.0);
+            return vec4(0.0, 0.0, 0.0, 1.0);
           }
 
           vec3 transformed = position;
@@ -117,11 +117,10 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           vec2 anchor = mvPosition.xy;
           vec2 delta = instanceMatrix[3].xy - uCenter.xy;
           vec3 dispersed;
-          dispersed.xy = anchor + -delta * lerp(uDispersion.y, uDispersion.z, time);
+          dispersed.xy = -delta * lerp(uDispersion.y, uDispersion.z, time);
           dispersed.z = lerp(0.2, 0.0, time);
-          mvPosition.xyz = mix(mvPosition.xyz, dispersed, uDispersion.x);
 
-          return mvPosition;
+          return vec4(uDispersion.x * dispersed, lerp(1.0, size, uDispersion.x));
         }
 
         // vec4 computeLowDispersion() {
@@ -137,7 +136,15 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         // }
       `)
       .vertex.replace('project_vertex', /* glsl */`
-        vec4 mvPosition = computeDispersion();
+        vec4 mvPosition = vec4(position, 1.0);
+
+        vec4 dispersion = computeDispersion();
+
+        mvPosition.xyz *= dispersion.w;
+
+        mvPosition = instanceMatrix * mvPosition;
+        mvPosition.xyz += dispersion.xyz;
+
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;      
       `)
