@@ -26,14 +26,14 @@ function ScatteredDemo() {
 
     const texture = await three.loader.load('/images/DebugTexture.png')
     texture.colorSpace = SRGBColorSpace
-    const plane = addTo(new ScatteredPlane(), group)
-    plane.internal.plane.material.map = texture
-    plane.internal.plane.material.mapAspect = texture.image.width / texture.image.height
+    const scattered = addTo(new ScatteredPlane(), group)
+    scattered.internal.plane.material.map = texture
+    scattered.internal.plane.material.mapAspect = texture.image.width / texture.image.height
 
-    const d0 = plane.getDistribution({ position: [-2, 0], size: [3, 2] })
-    const d1 = plane.getDistribution({ position: [2, 0], size: [2, 3] })
-    plane.drawDistribution(d0)
-    plane.drawDistribution(d1)
+    const d0 = scattered.getDistribution({ seed: 4789, position: [-2, 0], size: [2, 3] })
+    const d1 = scattered.getDistribution({ seed: 3249, position: [2, 0], size: [2, 4] })
+    scattered.drawDistribution(d0)
+    scattered.drawDistribution(d1)
 
     group.userData.transition = 0
     group.userData.transition_meta = 'Slider(0, 1, step: 0.01)'
@@ -44,10 +44,11 @@ function ScatteredDemo() {
     group.userData.scale = 1
     group.userData.scale_meta = 'Slider(-1, 1, pow: 10, step: .1)'
 
-    yield three.onTick(() => {
-      plane.lerpDistribute(d0, d1, group.userData.transition)
-      plane.rotation.z = group.userData.foo * Math.PI
-      plane.scale.setScalar(group.userData.scale)
+    yield three.onTick(tick => {
+      scattered.lerpDistribute(d0, d1, group.userData.transition)
+      // scattered.lerpDistribute(d0, d1, inverseLerp(.2, .8, tick.time / 4 % 1))
+      scattered.rotation.z = group.userData.foo * Math.PI
+      scattered.scale.setScalar(group.userData.scale)
     })
 
     hierarchyDeployAll(editor, group)
@@ -82,11 +83,11 @@ export function EditorProviderWithThree({ children }: { children?: ReactNode }) 
 
 export function Client() {
   return (
-    <div className='absolute-through'>
+    <div className='layer thru'>
       <Leak />
       <ThreeProvider>
         <EditorProviderWithThree>
-          <div className='absolute-through px-3 py-2 flex flex-col gap-4'>
+          <div className='layer thru px-3 py-2 flex flex-col gap-4'>
             <h1 className='text-4xl'>ScatteredPlane</h1>
           </div>
           <OrbitControls />

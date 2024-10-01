@@ -11,8 +11,9 @@ import { Vector2Like } from 'some-utils-ts/types'
 
 import { LineHelper } from '../LineHelper'
 
+import { inverseLerp } from 'some-utils-ts/math/basic'
+import { easeInOut2, easeInOut4 } from 'some-utils-ts/math/easings/basic'
 import { Distribution, DistributionProps } from './distribution'
-import { ScatteredPlaneLines } from './lines'
 
 class LightSetup extends Object3D {
   constructor() {
@@ -115,7 +116,6 @@ export class ScatteredPlane extends Object3D {
   internal: {
     count: number
     plane: InstancedMesh<PlaneGeometry, ScatteredBasicMaterial>
-    lines: ScatteredPlaneLines
     lineHelper: LineHelper
     lightSetup: LightSetup
   }
@@ -135,16 +135,13 @@ export class ScatteredPlane extends Object3D {
     const plane = ScatteredPlane.createPlane(props)
     addTo(plane, this)
 
-    const lines = new ScatteredPlaneLines(props)
-    addTo(lines, this)
-
     const lineHelper = new LineHelper()
     addTo(lineHelper, this)
 
     const lightSetup = new LightSetup()
     addTo(lightSetup, this)
 
-    this.internal = { count, plane, lineHelper, lines, lightSetup }
+    this.internal = { count, plane, lineHelper, lightSetup }
     this.props = props
 
     this.distribute(this.getDistribution())
@@ -178,7 +175,7 @@ export class ScatteredPlane extends Object3D {
   }
 
   lerpDistribute(distribution0: Distribution, distribution1: Distribution, t: number) {
-    const { count, plane, lines } = this.internal
+    const { count, plane } = this.internal
     const { aRectUv } = plane.geometry.attributes
 
     const rect = new Rectangle()
@@ -186,30 +183,32 @@ export class ScatteredPlane extends Object3D {
     const v0 = new Vector3()
     const v1 = new Vector3()
 
+    const maxOffsetT = .3
     for (let i = 0; i < count; i++) {
       const node0 = distribution0.nodes[i]
       const node1 = distribution1.nodes[i]
-      rect.lerpRectangles(node0.rect, node1.rect, t)
-      uvRect.lerpRectangles(node0.uvRect, node1.uvRect, t)
+
+      const startT = maxOffsetT * (1 - node0.r0 * (node0.scatterCoeff + node1.r0 * .2))
+      const instanceFlatT = inverseLerp(startT, 1 - maxOffsetT + startT, t)
+      const instanceEaseT = easeInOut4(instanceFlatT)
+
+      rect.lerpRectangles(node0.rect, node1.rect, instanceEaseT)
+      uvRect.lerpRectangles(node0.uvRect, node1.uvRect, instanceEaseT)
       plane.setMatrixAt(i, makeMatrix4({
         position: rect.getCenter(v0),
         scale: rect.getSize(v1),
+        // rotationY: .3 * Math.sin(instanceFlatT * Math.PI) * (-1 + 2 * node0.r1),
+        rotationY: (node1.r0 < .5 ? 0 : 1) * instanceEaseT * Math.PI * 2,
+        rotationZ: .3 * Math.sin(instanceFlatT * Math.PI) * (-1 + 2 * node0.r0),
       }))
       aRectUv.setXYZW(i, uvRect.x, uvRect.y, uvRect.width, uvRect.height)
-
-      makeMatrix4({ position: node0.rect.getCenter(v0) })
-        .toArray(lines.parts.aStartMat.array, i * 16)
-      makeMatrix4({ position: node1.rect.getCenter(v0) })
-        .toArray(lines.parts.aEndMat.array, i * 16)
     }
 
-    const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, t)
+    const rootT = easeInOut2(inverseLerp(maxOffsetT, 1 - maxOffsetT, t))
+    const rootRect = new Rectangle().lerpRectangles(distribution0.root.rect, distribution1.root.rect, rootT)
     plane.material.setScatteredSize(rootRect.getSize())
 
     plane.instanceMatrix.needsUpdate = true
     aRectUv.needsUpdate = true
-
-    lines.parts.aStartMat.needsUpdate = true
-    lines.parts.aEndMat.needsUpdate = true
   }
 }

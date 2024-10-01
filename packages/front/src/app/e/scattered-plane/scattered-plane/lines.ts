@@ -1,6 +1,7 @@
 import { DoubleSide, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshPhysicalMaterial, PlaneGeometry, Vector4 } from 'three'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
+import { makeColor } from 'some-utils-three/utils/make'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { PRNG } from 'some-utils-ts/random/prng'
@@ -106,7 +107,7 @@ export class ScatteredPlaneLines extends InstancedMesh {
         start += vec3(rand11(start.xyz), rand11(start.yzx), rand11(start.zxy)) * 0.66;
         end += vec3(rand11(start.zyx), rand11(start.xzy), rand11(start.yxz)) * 0.33;
         
-        float dt = mix(-uLength, 1.0, fract(uTime * 0.33 + rand11(start) * 0.4));
+        float dt = mix(-uLength, 1.0, fract(uTime * 0.33 * 0.0 + rand11(start) * 0.4));
         float t = position.x * uLength + dt;
         t = clamp(t, 0.0, 1.0);
         float d = distance(start, end);
@@ -155,5 +156,9 @@ export class ScatteredPlaneLines extends InstancedMesh {
 
     this.name = 'lines'
     this.parts = { aStartMat, aEndMat }
+
+    for (let i = 0; i < count; i++) {
+      this.setColorAt(i, makeColor(PRNG.pick(['#ff0000', '#00ff00', '#0000ff'])))
+    }
   }
 }

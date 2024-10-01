@@ -8,6 +8,8 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { ScatteredPlane } from './scattered'
 
 export class DistributionNode {
+  r0 = PRNG.random()
+  r1 = PRNG.random()
   constructor(
     public space: Space,
     public rect: Rectangle,
@@ -80,12 +82,12 @@ export class Distribution {
       const scatterCoeff = inverseLerp(.5, 1, manhattanDistance / halfManhattanSize)
       rect.centerX += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
       rect.centerY += PRNG.between(-scatterPadding, scatterPadding) * scatterCoeff
-      return {
+      return new DistributionNode(
         space,
         rect,
         uvRect,
         scatterCoeff,
-      }
+      )
     })
 
     this.root = root
