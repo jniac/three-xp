@@ -13,8 +13,18 @@ import { EditorProvider, useEditor } from 'some-three-editor/editor-provider'
 import { Leak } from '@/components/leak'
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 
+import { makeColor } from 'some-utils-three/utils/make'
+import { PRNG } from 'some-utils-ts/random/prng'
 import { ScatteredPlane } from './scattered-plane'
 import { SkyMesh } from './SkyMesh'
+
+export const mainColors = {
+  // vividBlue: '#0046fe',
+  darkBlue: '#002c52',
+  orange: '#ff5c35',
+  white: '#ffffff',
+  lightGrey: '#c9cfd3',
+}
 
 function ScatteredDemo() {
   const editor = useEditor()
@@ -42,6 +52,13 @@ function ScatteredDemo() {
 
     group.userData.scale = 1
     group.userData.scale_meta = 'Slider(-1, 1, pow: 10, step: .1)'
+
+    group.userData.links = [scattered.internal.plane.material.userData]
+
+    const colorArray = Object.values(mainColors)
+    for (let i = 0, count = scattered.count; i < count; i++) {
+      scattered.internal.plane.setColorAt(i, makeColor(PRNG.pick(colorArray)))
+    }
 
     yield three.onTick(() => {
       scattered.lerpDistribute(d0, d1, group.userData.transition)

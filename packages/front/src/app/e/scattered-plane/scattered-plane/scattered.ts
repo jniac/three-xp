@@ -1,8 +1,8 @@
 import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, RepeatWrapping, Vector2, Vector3, Vector4 } from 'three'
 
-import { UnifiedLoader } from 'some-utils-three/contexts/utils/unified-loader'
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { LineHelper } from 'some-utils-three/helpers/line'
+import { UnifiedLoader } from 'some-utils-three/loaders/unified-loader'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { addTo } from 'some-utils-three/utils/tree'
@@ -64,8 +64,9 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
     uLowDispersion: { value: new Vector4(0, -.6, .4, 0) },
     /**
      * - `x`: chunk scale
+     * - `y`: image visibility
      */
-    uMainParams: { value: new Vector4(1) },
+    uMainParams: { value: new Vector4(1, 0) },
     uCenter: { value: new Vector3() },
     /**
      * - `x`: aspect
@@ -82,7 +83,8 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      */
     uScatteredInfo: { value: new Vector4(1, 1, 0, 0) },
     uNormalMap: {
-      value: UnifiedLoader.get('three')
+      value: UnifiedLoader
+        .get('three')
         .loadTexture('textures/rough_concrete_nor_gl_1k.jpg', texture => {
           texture.wrapS = texture.wrapT = RepeatWrapping
         }),
@@ -93,6 +95,12 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
     [
       'chunkScale', this.uniforms.uMainParams.value, 'x', `
         Name(chunk.scale)
+        Slider(0, 1, step: any)
+      `
+    ],
+    [
+      'imageVisibility', this.uniforms.uMainParams.value, 'y', `
+        Name(image.visibility)
         Slider(0, 1, step: any)
       `
     ],
@@ -148,13 +156,13 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
       side: DoubleSide,
     })
 
-    console.log(this.userData)
-    Object.assign(window, { material: this })
-
     this.onBeforeCompile = shader => ShaderForge.with(shader)
-      .uniforms(this.uniforms)
       .defines({
         USE_UV: '',
+      })
+      .uniforms(this.uniforms)
+      .varying({
+        vRand: 'vec4',
       })
       .vertex.top(
         glsl_utils,
@@ -179,7 +187,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           float cycleVisibility = time <= 1.0 ? 1.0 : easeInOut3(1.0 - inverseLerp(.8 * aRand.w + .1, .8 * aRand.w + .2, uDispersion.x));
           time = mod(time, 1.0);
           float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time) * cycleVisibility;
-          size = mix(1.0, size, pow(uDispersion.x, 1.0 / 4.0));
+          size = mix(1.0, size, pow(uDispersion.x, 1.0 / 2.0));
 
           // Apply scale before instanceMatrix (shrinking).
           vec3 dispersed;
@@ -233,7 +241,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         vec4 dispersion = computeDispersion();
         vec4 lowDispersion = computeLowDispersion();
 
-        float scale = clamp01(uMainParams.x * 5.0 - 4.0 * aRand.w);
+        float scale = clamp01(uMainParams.x * 3.0 - 2.0 * aRand.w);
         mvPosition.xyz *= dispersion.w * lowDispersion.w * easeInOut3(scale);
 
         mvPosition = instanceMatrix * mvPosition;
@@ -242,7 +250,6 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;      
       `)
-
 
       .vertex.replace('uv_vertex', /* glsl */`
         #if defined( USE_UV ) || defined( USE_ANISOTROPY )
@@ -263,10 +270,19 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
         #endif
       `)
 
-      .fragment.after('map_fragment', /* glsl */`
+      .vertex.mainAfterAll(/* glsl */`
+        vRand = aRand;
+      `)
+
+      .fragment.top(
+        glsl_utils,
+        glsl_easings)
+      .fragment.replace('color_fragment', /* glsl */`
         vec3 normal = texture2D(uNormalMap, vUv * 4.0).rgb;
         vec3 light = normalize(vec3(0.5, 2.5, 1.0));
-        diffuseColor.rgb *= mix(0.333, 1.0, dot(normal, light));
+        float colorAlteration = mix(0.333, 1.0, dot(normal, light));
+        float transition = inverseLerp(0.0, 0.2, uMainParams.y - 0.8 * vRand.w);
+        diffuseColor.rgb = mix(vColor * colorAlteration, diffuseColor.rgb, transition);
       `)
   }
 
