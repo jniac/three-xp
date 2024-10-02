@@ -1,5 +1,6 @@
-import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector2, Vector3, Vector4 } from 'three'
+import { DirectionalLight, DoubleSide, HemisphereLight, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry, RepeatWrapping, Vector2, Vector3, Vector4 } from 'three'
 
+import { UnifiedLoader } from 'some-utils-three/contexts/utils/unified-loader'
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { LineHelper } from 'some-utils-three/helpers/line'
 import { ShaderForge } from 'some-utils-three/shader-forge'
@@ -29,6 +30,23 @@ class LightSetup extends Object3D {
   }
 }
 
+function addProperties(target: object, properties: [name: string, scope: any, key: string, meta: string][]) {
+  for (const [name, scope, key, meta] of properties) {
+    Object.defineProperty(target, `${name}_meta`, {
+      enumerable: true,
+      value: meta,
+    })
+    Object.defineProperty(target, name, {
+      enumerable: true,
+      get() { return scope[key] },
+      set(value) {
+        scope[key] = value
+      },
+    })
+  }
+  return target
+}
+
 class ScatteredBasicMaterial extends MeshBasicMaterial {
   uniforms = {
     uDispersionTime: { value: 0 },
@@ -39,7 +57,10 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      * - `z`: "In" position [-1: double its position, 1: collapse to center]
      * - `w`: "Cycle Count" [1: (1:1) always visible, n: (1:n) visible 1 time in n]
      */
-    uDispersion: { value: new Vector4(1, -.6, .4, 4) },
+    uDispersion: { value: new Vector4(1, -.6, .4, 2) },
+    /**
+     * - `x`: [0: no dispersion, 1: full dispersion]
+     */
     uLowDispersion: { value: new Vector4(0, -.6, .4, 0) },
     /**
      * - `x`: chunk scale
@@ -60,7 +81,52 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
      * - `w`: -
      */
     uScatteredInfo: { value: new Vector4(1, 1, 0, 0) },
+    uNormalMap: {
+      value: UnifiedLoader.get('three')
+        .loadTexture('textures/rough_concrete_nor_gl_1k.jpg', texture => {
+          texture.wrapS = texture.wrapT = RepeatWrapping
+        }),
+    },
   }
+
+  userData = addProperties({}, [
+    [
+      'chunkScale', this.uniforms.uMainParams.value, 'x', `
+        Name(chunk.scale)
+        Slider(0, 1, step: any)
+      `
+    ],
+    [
+      'dispX', this.uniforms.uDispersion.value, 'x', `
+        Name(disp.x)
+        Slider(0, 1, step: any)
+      `
+    ],
+    [
+      'dispY', this.uniforms.uDispersion.value, 'y', `
+        Name(disp.y)
+        Slider(-1, 1, step: any)
+      `
+    ],
+    [
+      'dispZ', this.uniforms.uDispersion.value, 'z', `
+        Name(disp.z)
+        Slider(-1, 1, step: any)
+      `
+    ],
+    [
+      'dispW', this.uniforms.uDispersion.value, 'w', `
+        Name(disp.cycle)
+        Slider(1, 20, step: 1)
+      `
+    ],
+    [
+      'lowDispX', this.uniforms.uLowDispersion.value, 'x', `
+        Name(lowDisp.x)
+        Slider(0, 1, step: any)
+      `
+    ],
+  ])
 
   get mapAspect() { return this.uniforms.uMapInfo.value.x }
   set mapAspect(value) { this.uniforms.uMapInfo.value.x = value }
@@ -81,8 +147,15 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
     super({
       side: DoubleSide,
     })
+
+    console.log(this.userData)
+    Object.assign(window, { material: this })
+
     this.onBeforeCompile = shader => ShaderForge.with(shader)
       .uniforms(this.uniforms)
+      .defines({
+        USE_UV: '',
+      })
       .vertex.top(
         glsl_utils,
         glsl_easings,
@@ -174,6 +247,7 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
       .vertex.replace('uv_vertex', /* glsl */`
         #if defined( USE_UV ) || defined( USE_ANISOTROPY )
           vUv = vec3( uv, 1 ).xy;
+          vUv = aRectUv.xy + aRectUv.zw * vUv;
         #endif
         #ifdef USE_MAP
           vec2 instanceUv = aRectUv.xy + aRectUv.zw * MAP_UV;
@@ -188,9 +262,17 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           vMapUv = ( mapTransform * vec3( instanceUv, 1 ) ).xy;
         #endif
       `)
+
+      .fragment.after('map_fragment', /* glsl */`
+        vec3 normal = texture2D(uNormalMap, vUv * 4.0).rgb;
+        vec3 light = normalize(vec3(0.5, 2.5, 1.0));
+        diffuseColor.rgb *= mix(0.333, 1.0, dot(normal, light));
+      `)
   }
 
   update(deltaTime: number) {
+    deltaTime *= 0.33
+
     this.uniforms.uDispersionTime.value +=
       deltaTime * this.uniforms.uDispersion.value.x
 

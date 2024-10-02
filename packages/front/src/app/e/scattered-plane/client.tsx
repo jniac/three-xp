@@ -40,65 +40,11 @@ function ScatteredDemo() {
     group.userData.transition = 0
     group.userData.transition_meta = 'Slider(0, 1, step: 0.01)'
 
-    group.userData.chunkScale = scattered.internal.plane.material.uniforms.uMainParams.value.x
-    group.userData.chunkScale_meta = `
-      Name(chunk.scale)
-      Slider(0, 1, step: any)
-    `
-    group.userData.dispX = scattered.internal.plane.material.uniforms.uDispersion.value.x
-    group.userData.dispX_meta = `
-      Name(disp.x)
-      Slider(0, 1, step: any)
-    `
-    group.userData.dispY = scattered.internal.plane.material.uniforms.uDispersion.value.y
-    group.userData.dispY_meta = `
-      Name(disp.y)
-      Slider(-1, 1, step: any)
-    `
-    group.userData.dispZ = scattered.internal.plane.material.uniforms.uDispersion.value.z
-    group.userData.dispZ_meta = `
-      Name(disp.z)
-      Slider(-1, 1, step: any)
-    `
-    group.userData.dispW = scattered.internal.plane.material.uniforms.uDispersion.value.w
-    group.userData.dispW_meta = `
-      Name(disp.w)
-      Slider(1, 20, step: 1)
-    `
-
-    group.userData.lowDispX = scattered.internal.plane.material.uniforms.uLowDispersion.value.x
-    group.userData.lowDispX_meta = `
-      Name(low-disp.x)
-      Slider(0, 1, step: any)
-    `
-    group.userData.lowDispY = scattered.internal.plane.material.uniforms.uLowDispersion.value.y
-    group.userData.lowDispY_meta = `
-      Name(low-disp.y)
-      Slider(-1, 1, step: any)
-    `
-    group.userData.lowDispZ = scattered.internal.plane.material.uniforms.uLowDispersion.value.z
-    group.userData.lowDispZ_meta = `
-      Name(low-disp.z)
-      Slider(-1, 1, step: any)
-    `
-
     group.userData.scale = 1
     group.userData.scale_meta = 'Slider(-1, 1, pow: 10, step: .1)'
 
-    yield three.onTick(tick => {
+    yield three.onTick(() => {
       scattered.lerpDistribute(d0, d1, group.userData.transition)
-      // scattered.lerpDistribute(d0, d1, inverseLerp(.2, .8, tick.time / 4 % 1))
-      scattered.internal.plane.material.uniforms.uMainParams.value.x = group.userData.chunkScale
-
-      scattered.internal.plane.material.uniforms.uDispersion.value.x = group.userData.dispX
-      scattered.internal.plane.material.uniforms.uDispersion.value.y = group.userData.dispY
-      scattered.internal.plane.material.uniforms.uDispersion.value.z = group.userData.dispZ
-      scattered.internal.plane.material.uniforms.uDispersion.value.w = group.userData.dispW
-
-      scattered.internal.plane.material.uniforms.uLowDispersion.value.x = group.userData.lowDispX
-      scattered.internal.plane.material.uniforms.uLowDispersion.value.y = group.userData.lowDispY
-      scattered.internal.plane.material.uniforms.uLowDispersion.value.z = group.userData.lowDispZ
-
       scattered.scale.setScalar(group.userData.scale)
     })
 

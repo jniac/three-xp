@@ -104,7 +104,7 @@ function ServerProofThreeProvider({ children, className }: HTMLAttributes<HTMLDi
     const path = config.development ? '/assets/' : '/three-xp/assets/'
     three.loader.setPath(path)
 
-    yield three.init(div)
+    yield three.initialize(div)
     Object.assign(window, { three, THREE })
   }, [])
 
