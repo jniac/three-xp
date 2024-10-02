@@ -19,6 +19,8 @@ import { SkyMesh } from './SkyMesh'
 function ScatteredDemo() {
   const editor = useEditor()
 
+  editor.three.pipeline.basicPasses.outline.enabled = false
+
   useGroup('ScatteredDemo', async function* (group, three) {
 
     addTo(new SkyMesh(), group)
@@ -58,6 +60,11 @@ function ScatteredDemo() {
       Name(disp.z)
       Slider(-1, 1, step: any)
     `
+    group.userData.dispW = scattered.internal.plane.material.uniforms.uDispersion.value.w
+    group.userData.dispW_meta = `
+      Name(disp.w)
+      Slider(1, 20, step: 1)
+    `
 
     group.userData.lowDispX = scattered.internal.plane.material.uniforms.uLowDispersion.value.x
     group.userData.lowDispX_meta = `
@@ -86,6 +93,7 @@ function ScatteredDemo() {
       scattered.internal.plane.material.uniforms.uDispersion.value.x = group.userData.dispX
       scattered.internal.plane.material.uniforms.uDispersion.value.y = group.userData.dispY
       scattered.internal.plane.material.uniforms.uDispersion.value.z = group.userData.dispZ
+      scattered.internal.plane.material.uniforms.uDispersion.value.w = group.userData.dispW
 
       scattered.internal.plane.material.uniforms.uLowDispersion.value.x = group.userData.lowDispX
       scattered.internal.plane.material.uniforms.uLowDispersion.value.y = group.userData.lowDispY

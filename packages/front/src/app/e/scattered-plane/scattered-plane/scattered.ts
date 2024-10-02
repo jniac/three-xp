@@ -34,21 +34,12 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
     uDispersionTime: { value: 0 },
     uLowDispersionTime: { value: 0 },
     /**
-     * `x`:  
-     * - 0: no dispersion
-     * - 1: full dispersion
-     * 
-     * `y`:
-     * "Out" position
-     * - -1: "full" out (double its position)
-     * - 0: no out
-     * 
-     * `z`:
-     * "Shrink"
-     * - 0: no shrink
-     * - 1: full shrink (collapse to center)
+     * - `x`: [0: no dispersion, 1: full dispersion]
+     * - `y`: "Out" position [-1: double its position, 1: collapse to center]
+     * - `z`: "In" position [-1: double its position, 1: collapse to center]
+     * - `w`: "Cycle Count" [1: (1:1) always visible, n: (1:n) visible 1 time in n]
      */
-    uDispersion: { value: new Vector4(0, -.6, .4, 0) },
+    uDispersion: { value: new Vector4(1, -.6, .4, 4) },
     uLowDispersion: { value: new Vector4(0, -.6, .4, 0) },
     /**
      * - `x`: chunk scale
@@ -110,8 +101,11 @@ class ScatteredBasicMaterial extends MeshBasicMaterial {
           }
 
           float duration = lerp(8.0, 1.0, aRand.x * aRand.y * aRand.z);
-          float time = mod(uDispersionTime + duration * aRand.x, duration) / duration;
-          float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time);
+          float cycleCount = max(floor(uDispersion.w), 1.0);
+          float time = mod(uDispersionTime + duration * cycleCount * aRand.x, duration * cycleCount) / duration;
+          float cycleVisibility = time <= 1.0 ? 1.0 : easeInOut3(1.0 - inverseLerp(.8 * aRand.w + .1, .8 * aRand.w + .2, uDispersion.x));
+          time = mod(time, 1.0);
+          float size = easeInThenOut(time, 8.0) * lerp(2.0, 1.0, time * time) * cycleVisibility;
           size = mix(1.0, size, pow(uDispersion.x, 1.0 / 4.0));
 
           // Apply scale before instanceMatrix (shrinking).
