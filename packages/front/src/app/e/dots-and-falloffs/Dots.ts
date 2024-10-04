@@ -4,7 +4,7 @@ import { Vector2Declaration, fromVector2Declaration } from 'some-utils-three/dec
 import { CircleFalloff, ManhattanBox2Falloff } from 'some-utils-three/falloffs'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
-import { addTo } from 'some-utils-three/utils/tree'
+import { setup } from 'some-utils-three/utils/tree'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
@@ -85,8 +85,8 @@ export class Dots extends InstancedMesh {
 
   falloffsAreVisible = true
   falloffs = {
-    circle: addTo(new CircleFalloff(), this, { position: [-3, -2, 0] }),
-    box0: addTo(new ManhattanBox2Falloff({}), this, { position: [3, 2, 0] }),
+    circle: setup(new CircleFalloff(), { parent: this, position: [-3, -2, 0] }),
+    box0: setup(new ManhattanBox2Falloff({}), { parent: this, position: [3, 2, 0] }),
   }
 
   constructor(props?: Partial<typeof defaultProps>) {

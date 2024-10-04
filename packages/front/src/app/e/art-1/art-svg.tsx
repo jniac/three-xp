@@ -40,14 +40,14 @@ function CallToAction() {
         Animation
           .during({ target: 'CallToAction:Fade', duration: 1 })
           .onUpdate(({ progress }) => {
-            const alpha = Animation.easing('out3')(progress)
+            const alpha = Animation.ease('out3')(progress)
             g.setAttribute('opacity', alpha.toFixed(3))
           })
         Animation
           .during({ target: 'CallToAction:Scale', duration: 3 })
           .onUpdate(({ progress, complete }) => {
             progress = complete ? 1 : (progress * 2) % 1
-            const alpha = Animation.easing('out3')(progress)
+            const alpha = Animation.ease('out3')(progress)
             const opacity = Math.sin(alpha * Math.PI)
             circle.setAttribute('opacity', opacity.toFixed(3))
             circle.setAttribute('r', lerp(200, 300, alpha).toFixed(3))
@@ -56,7 +56,7 @@ function CallToAction() {
         Animation
           .during({ target: 'CallToAction:Fade', duration: .2 })
           .onUpdate(({ progress }) => {
-            const alpha = Animation.easing('inOut3')(progress)
+            const alpha = Animation.ease('inOut3')(progress)
             g.setAttribute('opacity', (1 - alpha).toFixed(3))
           })
       }
