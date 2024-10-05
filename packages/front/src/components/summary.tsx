@@ -15,7 +15,7 @@ export function SummaryPage(props: Props) {
   const { className, metadata, pages, children } = props
   return (
     <div className={makeClassName(className, 'page gap-1')}>
-      <h1 className='text-4xl'>{String(metadata.title)}</h1>
+      <h1 className='text-3xl mb-4'>{String(metadata.title)}</h1>
       {Object.entries(pages).map(([key, value]) => (
         <div key={key}>
           <span>
