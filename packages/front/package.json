@@ -11,8 +11,8 @@
     "@svgr/webpack": "^8.1.0",
     "katex": "^0.16.11",
     "next": "14.2.9",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-katex": "^3.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "some-three-editor": "workspace:*",
@@ -23,16 +23,16 @@
     "three": "^0.168.0"
   },
   "devDependencies": {
-    "@types/node": "^20.16.5",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "^20.16.11",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
     "@types/react-katex": "^3.0.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/three": "^0.168.0",
-    "eslint": "^8",
+    "eslint": "^8.57.1",
     "eslint-config-next": "14.2.8",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
   }
 }
