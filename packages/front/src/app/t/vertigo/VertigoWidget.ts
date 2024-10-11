@@ -1,11 +1,10 @@
-import { BufferAttribute, BufferGeometry, Color, ConeGeometry, Group, LatheGeometry, Mesh, ShaderMaterial, Vector2, Vector3 } from 'three'
+import { calculateExponentialDecay } from 'some-utils-ts/math/misc/exponential-decay'
+import { BoxGeometry, BufferAttribute, BufferGeometry, Camera, Color, ColorRepresentation, ConeGeometry, Group, LatheGeometry, Mesh, Raycaster, ShaderMaterial, Vector2, Vector3 } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
-import { setup } from 'some-utils-three/utils/tree'
-
-enum Parts {
-  CORE = 0,
+enum Part {
+  BOX = 0,
   POSITIVE_X,
   NEGATIVE_X,
   POSITIVE_Y,
@@ -15,19 +14,26 @@ enum Parts {
 }
 
 const vertexShader = /* glsl */ `
+uniform vec3 uColors[7];
+uniform float uOpacity[7];
+uniform vec3 uHoverColor;
+uniform float uHoverOpacity[7];
+
 attribute float aPartId;
 
 varying vec3 vWorldNormal;
 varying vec3 vPosition;
 varying vec3 vColor;
-
-uniform vec3 uColors[7];
+varying float vOpacity;
+varying float vHoverOpacity;
 
 void main() {
   vWorldNormal = mat3(modelMatrix) * normal;
   vPosition = position;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   vColor = uColors[int(aPartId)];
+  vOpacity = uOpacity[int(aPartId)];
+  vHoverOpacity = uHoverOpacity[int(aPartId)];
 }
 `
 
@@ -35,9 +41,12 @@ const fragmentShader = /* glsl */ `
 varying vec3 vWorldNormal;
 varying vec3 vPosition;
 varying vec3 vColor;
+varying float vOpacity;
+varying float vHoverOpacity;
 
 uniform vec3 uSunPosition;
 uniform float uLuminosity;
+uniform vec3 uHoverColor;
 
 float clamp01(float x) {
   return x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
@@ -51,32 +60,17 @@ void main() {
   vec3 lightDirection = normalize(uSunPosition);
   float light = dot(vWorldNormal, lightDirection) * 0.5 + 0.5;
   light = pow(light, 2.0);
-  light = mix(uLuminosity, 1.0, light);
+  
+  float minLuminosity = max(pow(vHoverOpacity, 1.0 / 3.0) * 0.85, uLuminosity);
+  light = mix(minLuminosity, 1.0, light);
 
   vec3 color = vColor;
-  // color = mix(vec3(1.0), color, inverseLerp(.2, .8, vPosition.x));
-  gl_FragColor = vec4(color * light, 1.0);
+  color = mix(color, uHoverColor, vHoverOpacity);
+  gl_FragColor = vec4(color * light, vOpacity);
 }
 `
 
-const colorWhite = new Color('white')
-const colorX = new Color('#eb1640')
-const colorY = new Color('#00ffb7')
-const colorZ = new Color('#3b80e7')
-
-const uniforms = {
-  uSunPosition: { value: new Vector3(0.5, 0.7, 0.3) },
-  uLuminosity: { value: .75 },
-  uColors: { value: [colorWhite, colorX, colorWhite, colorY, colorWhite, colorZ, colorWhite] },
-}
-
-const material = new ShaderMaterial({
-  uniforms,
-  vertexShader,
-  fragmentShader,
-})
-
-function assignPartId(geometry: BufferGeometry, partId: Parts) {
+function assignPartId(geometry: BufferGeometry, partId: Part) {
   const aPartId = new BufferAttribute(new Int8Array(geometry.attributes.position.count).fill(partId), 1)
   geometry.setAttribute('aPartId', aPartId)
 }
@@ -93,40 +87,177 @@ function createHandleGeometry(radialSubdivisions: number, capSubdivisions: numbe
   })
   const cap = new LatheGeometry(capPoints, radialSubdivisions).rotateZ(Math.PI).translate(0, r * h / 2 + y, 0)
 
-  return mergeGeometries([cone, cap])
+  return mergeGeometries([cone, cap], false)
 }
+
+function createGeometries(lod = <'high' | 'low'>'low') {
+  const box = lod === 'high'
+    ? mergeVertices(new RoundedBoxGeometry(.3, .3, .3, 4, .05))
+    : new BoxGeometry(.3, .3, .3)
+  assignPartId(box, Part.BOX)
+  const handlePY = lod === 'high'
+    ? createHandleGeometry(32, 8)
+    : createHandleGeometry(6, 2)
+  assignPartId(handlePY, Part.POSITIVE_Y)
+  const handleNY = handlePY.clone().rotateX(Math.PI)
+  assignPartId(handleNY, Part.NEGATIVE_Y)
+  const handlePX = handlePY.clone().rotateZ(-Math.PI / 2)
+  assignPartId(handlePX, Part.POSITIVE_X)
+  const handleNX = handlePY.clone().rotateZ(Math.PI / 2)
+  assignPartId(handleNX, Part.NEGATIVE_X)
+  const handlePZ = handlePY.clone().rotateX(Math.PI / 2)
+  assignPartId(handlePZ, Part.POSITIVE_Z)
+  const handleNZ = handlePY.clone().rotateX(-Math.PI / 2)
+  assignPartId(handleNZ, Part.NEGATIVE_Z)
+
+  return [box, handlePX, handleNX, handlePY, handleNY, handlePZ, handleNZ]
+}
+
+function createSingleGeometry(...args: Parameters<typeof createGeometries>) {
+  const geometries = createGeometries(...args)
+  return mergeGeometries(geometries, true)
+}
+
+const defaultMaterialProps = {
+  defaultColor: <ColorRepresentation>'white',
+  xColor: <ColorRepresentation>'#eb1640',
+  yColor: <ColorRepresentation>'#00ffb7',
+  zColor: <ColorRepresentation>'#3b80e7',
+  hoverColor: <ColorRepresentation>'#fffc47',
+}
+
+function createMaterial(props?: Partial<typeof defaultMaterialProps>) {
+  const { defaultColor, xColor, yColor, zColor, hoverColor } = { ...defaultMaterialProps, ...props }
+  const _defaultColor = new Color(defaultColor)
+  const _xColor = new Color(xColor)
+  const _yColor = new Color(yColor)
+  const _zColor = new Color(zColor)
+  const _hoverColor = new Color(hoverColor)
+
+  const uniforms = {
+    uSunPosition: { value: new Vector3(0.5, 0.7, 0.3) },
+    uLuminosity: { value: .66 },
+    uColors: { value: [_defaultColor, _xColor, _defaultColor, _yColor, _defaultColor, _zColor, _defaultColor] },
+    uHoverColor: { value: _hoverColor },
+    uOpacity: { value: [1, 1, 1, 1, 1, 1, 1] },
+    uHoverOpacity: { value: [0, 0, 0, 0, 0, 0, 0] },
+  }
+
+  return new ShaderMaterial({
+    uniforms,
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    depthWrite: false,
+  })
+}
+
+type VertigoWidgetMaterial = ReturnType<typeof createMaterial>
+
+const raycaster = new Raycaster()
 
 export class VertigoWidget extends Group {
-  constructor() {
+  internal: {
+    material: VertigoWidgetMaterial
+    meshes: Mesh<BufferGeometry, VertigoWidgetMaterial>[]
+    lowMesh: Mesh<BufferGeometry, VertigoWidgetMaterial>
+    hovered: Part | null
+  }
+
+  constructor(props?: { material?: Partial<typeof defaultMaterialProps> }) {
     super()
 
-    const core = new RoundedBoxGeometry(.3, .3, .3, 4, .05)
+    const material = createMaterial(props?.material)
 
-    assignPartId(core, Parts.CORE)
-    setup(new Mesh(core, material), { parent: this })
+    const meshes = createGeometries('high').map((geometry, index) => {
+      const mesh = new Mesh(geometry, material)
+      mesh.name = `vertigo-widget-mesh-${index}`
+      this.add(mesh)
+      return mesh
+    })
 
-    const handlePY = createHandleGeometry(32, 8)
-    assignPartId(handlePY, Parts.POSITIVE_Y)
-    setup(new Mesh(handlePY, material), { parent: this })
+    const lowMesh = new Mesh(createSingleGeometry('low'), material)
+    lowMesh.name = 'vertigo-widget-low-mesh'
+    lowMesh.visible = false
+    this.add(lowMesh)
 
-    const handleNY = handlePY.clone().rotateX(Math.PI)
-    assignPartId(handleNY, Parts.NEGATIVE_Y)
-    setup(new Mesh(handleNY, material), { parent: this })
+    this.internal = { material, meshes, lowMesh, hovered: null }
+  }
 
-    const handlePX = handlePY.clone().rotateZ(-Math.PI / 2)
-    assignPartId(handlePX, Parts.POSITIVE_X)
-    setup(new Mesh(handlePX, material), { parent: this })
+  getCurrentHovered() {
+    return this.internal.hovered
+  }
 
-    const handleNX = handlePY.clone().rotateZ(Math.PI / 2)
-    assignPartId(handleNX, Parts.NEGATIVE_X)
-    setup(new Mesh(handleNX, material), { parent: this })
+  widgetUpdate(ndcPointer: Vector2, camera: Camera, deltaTime = 1 / 60) {
+    const { lowMesh, material } = this.internal
 
-    const handlePZ = handlePY.clone().rotateX(Math.PI / 2)
-    assignPartId(handlePZ, Parts.POSITIVE_Z)
-    setup(new Mesh(handlePZ, material), { parent: this })
+    const cameraForward = new Vector3()
+    camera.getWorldDirection(cameraForward)
 
-    const handleNZ = handlePY.clone().rotateX(-Math.PI / 2)
-    assignPartId(handleNZ, Parts.NEGATIVE_Z)
-    setup(new Mesh(handleNZ, material), { parent: this })
+    const me = this.matrixWorld.elements
+    const vectorX = new Vector3(me[0], me[1], me[2])
+    const vectorY = new Vector3(me[4], me[5], me[6])
+    const vectorZ = new Vector3(me[8], me[9], me[10])
+
+    {
+      const values = material.uniforms.uOpacity.value as number[]
+      const absDotX = Math.abs(cameraForward.dot(vectorX))
+      const absDotY = Math.abs(cameraForward.dot(vectorY))
+      const absDotZ = Math.abs(cameraForward.dot(vectorZ))
+      const xOpacity = absDotX < .98 ? 1.05 : -.05
+      const yOpacity = absDotY < .98 ? 1.05 : -.05
+      const zOpacity = absDotZ < .98 ? 1.05 : -.05
+      const decay = .0001
+      values[Part.POSITIVE_X] =
+        values[Part.NEGATIVE_X] = calculateExponentialDecay(values[Part.POSITIVE_X], xOpacity, decay, deltaTime)
+      values[Part.POSITIVE_Y] =
+        values[Part.NEGATIVE_Y] = calculateExponentialDecay(values[Part.POSITIVE_Y], yOpacity, decay, deltaTime)
+      values[Part.POSITIVE_Z] =
+        values[Part.NEGATIVE_Z] = calculateExponentialDecay(values[Part.POSITIVE_Z], zOpacity, decay, deltaTime)
+    }
+
+    {
+      const values = material.uniforms.uHoverOpacity.value as number[]
+      const decay = .0001
+      const boxHover = this.internal.hovered === Part.BOX ? 1 : 0
+      const posXHover = this.internal.hovered === Part.POSITIVE_X ? 1 : 0
+      const negXHover = this.internal.hovered === Part.NEGATIVE_X ? 1 : 0
+      const posYHover = this.internal.hovered === Part.POSITIVE_Y ? 1 : 0
+      const negYHover = this.internal.hovered === Part.NEGATIVE_Y ? 1 : 0
+      const posZHover = this.internal.hovered === Part.POSITIVE_Z ? 1 : 0
+      const negZHover = this.internal.hovered === Part.NEGATIVE_Z ? 1 : 0
+      values[Part.BOX] = calculateExponentialDecay(values[Part.BOX], boxHover, decay, deltaTime)
+      values[Part.POSITIVE_X] = calculateExponentialDecay(values[Part.POSITIVE_X], posXHover, decay, deltaTime)
+      values[Part.NEGATIVE_X] = calculateExponentialDecay(values[Part.NEGATIVE_X], negXHover, decay, deltaTime)
+      values[Part.POSITIVE_Y] = calculateExponentialDecay(values[Part.POSITIVE_Y], posYHover, decay, deltaTime)
+      values[Part.NEGATIVE_Y] = calculateExponentialDecay(values[Part.NEGATIVE_Y], negYHover, decay, deltaTime)
+      values[Part.POSITIVE_Z] = calculateExponentialDecay(values[Part.POSITIVE_Z], posZHover, decay, deltaTime)
+      values[Part.NEGATIVE_Z] = calculateExponentialDecay(values[Part.NEGATIVE_Z], negZHover, decay, deltaTime)
+    }
+
+    raycaster.setFromCamera(ndcPointer, camera)
+    const intersections = raycaster
+      .intersectObject(lowMesh, true)
+
+    const [first] = intersections
+      .map(intersection => {
+        const firstVertexIndex = intersection.faceIndex! * 3
+        return lowMesh.geometry.groups.findIndex(g => g.start <= firstVertexIndex && firstVertexIndex < g.start + g.count) as Part
+      })
+      .filter(part => {
+        return material.uniforms.uOpacity.value[part] > .5
+      })
+
+    const hoveredNew = first ?? null
+    if (this.internal.hovered !== hoveredNew) {
+      if (hoveredNew !== null) {
+      }
+    }
+    this.internal.hovered = first ?? null
   }
 }
+
+export {
+  Part as VertigoWidgetPart
+}
+
