@@ -2,7 +2,7 @@ import { XpMetadata } from '@/types'
 import { Client } from './client'
 
 export const metadata = new XpMetadata({
-  slug: 'vertigo-widget',
+  slug: 'vertigo',
 })
 
 export default function VertigoWidgetPage() {
