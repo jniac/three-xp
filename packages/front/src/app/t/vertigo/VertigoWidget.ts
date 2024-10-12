@@ -157,11 +157,19 @@ type VertigoWidgetMaterial = ReturnType<typeof createMaterial>
 const raycaster = new Raycaster()
 
 export class VertigoWidget extends Group {
-  internal: {
+  parts: {
     material: VertigoWidgetMaterial
     meshes: Mesh<BufferGeometry, VertigoWidgetMaterial>[]
     lowMesh: Mesh<BufferGeometry, VertigoWidgetMaterial>
-    hovered: Part | null
+  }
+
+  internal = {
+    pointerPosition: new Vector2(),
+    pointerDownPosition: new Vector2(),
+    pointerDown: false,
+    dragging: false,
+    hovered: <Part | null>null,
+    pressed: <Part | null>null,
   }
 
   constructor(props?: { material?: Partial<typeof defaultMaterialProps> }) {
@@ -181,15 +189,23 @@ export class VertigoWidget extends Group {
     lowMesh.visible = false
     this.add(lowMesh)
 
-    this.internal = { material, meshes, lowMesh, hovered: null }
+    this.parts = {
+      material,
+      meshes,
+      lowMesh,
+    }
   }
 
-  getCurrentHovered() {
+  getHovered() {
     return this.internal.hovered
   }
 
-  widgetUpdate(ndcPointer: Vector2, camera: Camera, deltaTime = 1 / 60) {
-    const { lowMesh, material } = this.internal
+  getPressed() {
+    return this.internal.pressed
+  }
+
+  widgetUpdate(ndcPointer: Vector2, pointerDown: boolean, camera: Camera, deltaTime = 1 / 60) {
+    const { lowMesh, material } = this.parts
 
     const cameraForward = new Vector3()
     camera.getWorldDirection(cameraForward)
@@ -248,12 +264,34 @@ export class VertigoWidget extends Group {
         return material.uniforms.uOpacity.value[part] > .5
       })
 
-    const hoveredNew = first ?? null
+    // Press:
+    if (pointerDown && this.internal.pointerDown === false) {
+      this.internal.pointerDown = true
+      this.internal.pointerDownPosition.copy(ndcPointer)
+      this.internal.pressed = first ?? null
+    }
+
+    // Drag:
+    if (pointerDown && this.internal.dragging === false) {
+      const dragThreshold = .01
+      if (this.internal.pointerDownPosition.distanceTo(ndcPointer) > dragThreshold) {
+        this.internal.dragging = true
+      }
+    }
+
+    // Release:
+    if (pointerDown === false && this.internal.pointerDown) {
+      this.internal.pointerDown = false
+      this.internal.dragging = false
+      this.internal.pressed = null
+    }
+
+    const hoveredNew = this.internal.dragging ? null : first ?? null
     if (this.internal.hovered !== hoveredNew) {
       if (hoveredNew !== null) {
       }
     }
-    this.internal.hovered = first ?? null
+    this.internal.hovered = hoveredNew
   }
 }
 

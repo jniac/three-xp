@@ -51,11 +51,12 @@ export function Client() {
     handleAnyUserInteraction(ticker.requestActivation)
 
     const ndcPointer = new Vector2()
+    let pointerDown = false
     yield ticker.onTick(tick => {
       tick.propagate(scene)
 
-      scene.parts.widget.widgetUpdate(ndcPointer, camera)
-      if (scene.parts.widget.getCurrentHovered() !== null) {
+      scene.parts.widget.widgetUpdate(ndcPointer, pointerDown, camera)
+      if (scene.parts.widget.getHovered() !== null) {
         document.body.style.cursor = 'pointer'
       } else {
         document.body.style.removeProperty('cursor')
@@ -88,8 +89,14 @@ export function Client() {
         const { x, y } = info.relativeLocalPosition
         ndcPointer.set(x * 2 - 1, 1 - y * 2)
       },
-      onTap: info => {
-        const hovered = scene.parts.widget.getCurrentHovered()
+      onDown: () => {
+        pointerDown = true
+      },
+      onUp: () => {
+        pointerDown = false
+      },
+      onTap: () => {
+        const hovered = scene.parts.widget.getPressed()
         switch (hovered) {
           case VertigoWidgetPart.BOX: {
             vertigoControls.actions.togglePerspective()
