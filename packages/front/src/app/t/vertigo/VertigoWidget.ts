@@ -79,7 +79,7 @@ function createHandleGeometry(radialSubdivisions: number, capSubdivisions: numbe
   const r = .2
   const h = 3
   const y = .53
-  const cone = new ConeGeometry(r, r * 3, radialSubdivisions, 1, true).rotateZ(Math.PI).translate(0, y, 0)
+  const cone = new ConeGeometry(r, r * 3, radialSubdivisions, 4, true).rotateZ(Math.PI).translate(0, y, 0)
 
   const capPoints = Array.from({ length: capSubdivisions }, (_, i) => {
     const t = i / (capSubdivisions - 1)

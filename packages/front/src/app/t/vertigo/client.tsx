@@ -13,6 +13,7 @@ import { Ticker } from 'some-utils-ts/ticker'
 
 import { VertigoScene } from './VertigoScene'
 import { VertigoWidgetPart } from './VertigoWidget'
+import { VertigoWidgetPlane } from './VertigoWidgetPlane'
 
 import s from './vertigo.module.css'
 
@@ -49,6 +50,10 @@ export function Client() {
 
     const ticker = Ticker.get('three')
     handleAnyUserInteraction(ticker.requestActivation)
+
+    const plane = new VertigoWidgetPlane()
+    scene.add(plane)
+    yield* plane.initialize(renderer, vertigoControls)
 
     const ndcPointer = new Vector2()
     let pointerDown = false
@@ -96,8 +101,7 @@ export function Client() {
         pointerDown = false
       },
       onTap: () => {
-        const hovered = scene.parts.widget.getPressed()
-        switch (hovered) {
+        switch (scene.parts.widget.getPressed()) {
           case VertigoWidgetPart.BOX: {
             vertigoControls.actions.togglePerspective()
             break
@@ -137,11 +141,11 @@ export function Client() {
   }, [])
 
   return (
-    <div ref={ref} className={`${s.VertigoWidgetClient} layer thru p-4`}>
-      <div className='layer thru p-4'>
-        <h1>Vertigo-widget</h1>
+    <div ref={ref} className={`${s.VertigoWidgetClient} layer thru`}>
+      <div className='layer thru p-4 flex flex-col gap-4'>
+        <h1 className='self-start'>Vertigo-widget</h1>
 
-        <div className='flex flex-row gap-1'>
+        <div className='thru flex flex-row gap-1'>
           <button
             className='px-2 py-1 border border-white rounded'
             onClick={() => core.toOrthographic()}>
