@@ -13,6 +13,7 @@ export default function ToolsPage() {
   return (
     <SummaryPage
       className='ToolsPage'
+      path='t'
       metadata={metadata}
       pages={{
         shaderXplr,

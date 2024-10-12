@@ -12,9 +12,11 @@ const learning = {
 export const metadata: Metadata = {
   title: 'Three.js learning',
 }
+
 export default function LPage() {
   return (
     <SummaryPage
+      path='l'
       className='LPage'
       metadata={metadata}
       pages={learning}

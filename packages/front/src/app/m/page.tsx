@@ -12,6 +12,7 @@ export default function MiscellaneousPage() {
   return (
     <SummaryPage
       className='MiscellaneousPage'
+      path='m'
       metadata={metadata}
       pages={{
         contextTest,

@@ -9,17 +9,18 @@ import { XpMetadata } from '@/types'
 type Props = HTMLAttributes<HTMLDivElement> & {
   metadata: Metadata
   pages: Record<string, { metadata: XpMetadata }>
+  path: string
 }
 
 export function SummaryPage(props: Props) {
-  const { className, metadata, pages, children } = props
+  const { className, metadata, pages, children, path } = props
   return (
     <div className={makeClassName(className, 'page gap-1')}>
       <h1 className='text-3xl mb-4'>{String(metadata.title)}</h1>
       {Object.entries(pages).map(([key, value]) => (
         <div key={key}>
           <span>
-            <Link href={`t/${value.metadata.slug}`}>
+            <Link href={`${path}/${value.metadata.slug}`}>
               {value.metadata.title.toString()}
             </Link>
           </span>
