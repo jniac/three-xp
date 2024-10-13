@@ -75,11 +75,11 @@ function assignPartId(geometry: BufferGeometry, partId: Part) {
   geometry.setAttribute('aPartId', aPartId)
 }
 
-function createHandleGeometry(radialSubdivisions: number, capSubdivisions: number) {
+function createHandleGeometry(radialSubdivisions: number, capSubdivisions: number, heightSubdivisions: number) {
   const r = .2
   const h = 3
   const y = .53
-  const cone = new ConeGeometry(r, r * 3, radialSubdivisions, 4, true).rotateZ(Math.PI).translate(0, y, 0)
+  const cone = new ConeGeometry(r, r * 3, radialSubdivisions, heightSubdivisions, true).rotateZ(Math.PI).translate(0, y, 0)
 
   const capPoints = Array.from({ length: capSubdivisions }, (_, i) => {
     const t = i / (capSubdivisions - 1)
@@ -96,8 +96,8 @@ function createGeometries(lod = <'high' | 'low'>'low') {
     : new BoxGeometry(.3, .3, .3)
   assignPartId(box, Part.BOX)
   const handlePY = lod === 'high'
-    ? createHandleGeometry(32, 8)
-    : createHandleGeometry(6, 2)
+    ? createHandleGeometry(32, 8, 5)
+    : createHandleGeometry(6, 2, 1)
   assignPartId(handlePY, Part.POSITIVE_Y)
   const handleNY = handlePY.clone().rotateX(Math.PI)
   assignPartId(handleNY, Part.NEGATIVE_Y)
@@ -148,7 +148,6 @@ function createMaterial(props?: Partial<typeof defaultMaterialProps>) {
     vertexShader,
     fragmentShader,
     transparent: true,
-    depthWrite: false,
   })
 }
 
@@ -160,6 +159,7 @@ export class VertigoWidget extends Group {
   parts: {
     material: VertigoWidgetMaterial
     meshes: Mesh<BufferGeometry, VertigoWidgetMaterial>[]
+    /** A low-poly mesh for raycasting. */
     lowMesh: Mesh<BufferGeometry, VertigoWidgetMaterial>
   }
 
@@ -184,7 +184,8 @@ export class VertigoWidget extends Group {
       return mesh
     })
 
-    const lowMesh = new Mesh(createSingleGeometry('low'), material)
+    const lowMesh = new Mesh(createSingleGeometry('low'), createMaterial(props?.material))
+    lowMesh.material.transparent = false
     lowMesh.name = 'vertigo-widget-low-mesh'
     lowMesh.visible = false
     this.add(lowMesh)

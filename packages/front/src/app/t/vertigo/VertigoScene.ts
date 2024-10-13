@@ -21,6 +21,9 @@ class Thing extends Group {
 
     return {
       rings,
+      ringX,
+      ringY,
+      ringZ,
       torusKnot: setup(new Mesh(new TorusKnotGeometry(3, .1, 512, 64), new AutoLitMaterial({ luminosity: .8 })), { parent: this, name: 'torus-knot' }),
     }
   })()

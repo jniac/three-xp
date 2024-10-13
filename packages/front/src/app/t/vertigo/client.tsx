@@ -1,29 +1,55 @@
 'use client'
 
+import yaml from 'js-yaml'
 import { useMemo } from 'react'
-import { PerspectiveCamera, Vector2, WebGLRenderer } from 'three'
+import { PerspectiveCamera, Vector2, Vector3, WebGLRenderer } from 'three'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { handleSize } from 'some-utils-dom/handle/size'
 import { useEffects } from 'some-utils-react/hooks/effects'
+import { Vertigo } from 'some-utils-three/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { Animation } from 'some-utils-ts/animation'
-import { Ticker } from 'some-utils-ts/ticker'
+import { onTick, Ticker } from 'some-utils-ts/ticker'
 
 import { VertigoScene } from './VertigoScene'
 import { VertigoWidgetPart } from './VertigoWidget'
 import { VertigoWidgetPlane } from './VertigoWidgetPlane'
 
+import { formatNumber } from 'some-utils-ts/string/number'
+
 import s from './vertigo.module.css'
+
+function VertigSerializedView({ vertigo }: { vertigo: Vertigo }) {
+  const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    yield onTick('three', { timeInterval: 1 / 6 }, () => {
+      div.querySelector('pre')!.textContent =
+        yaml.dump(vertigo.toDeclaration(), { flowLevel: 1 })
+          .replace(/-?\d+\.\d+/g, m => formatNumber(Number.parseFloat(m), { maxDigits: 6 }))
+    })
+  }, [])
+  return (
+    <div
+      ref={ref}
+      className={`self-start p-4 border border-white rounded text-xs ${s.BgBlur}`}
+      style={{ minWidth: '24rem' }}
+    >
+      <pre></pre>
+    </div>
+  )
+}
 
 export function Client() {
   const core = useMemo(() => ({
-    toOrthographic: () => { },
-    toPerspective: () => { },
+    vertigoControls: new VertigoControls(),
   }), [])
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    const { vertigoControls } = core
+
+    console.log(formatNumber(123456789))
+
     const renderer = new WebGLRenderer({ antialias: true })
     renderer.outputColorSpace = 'srgb'
     div.prepend(renderer.domElement)
@@ -39,10 +65,6 @@ export function Client() {
 
     const camera = new PerspectiveCamera(75, 1, .1, 1000)
     camera.position.z = 5
-
-    const vertigoControls = new VertigoControls({
-      perspective: 1,
-    })
 
     yield vertigoControls.initialize(renderer.domElement)
 
@@ -70,24 +92,6 @@ export function Client() {
 
       renderer.render(scene, camera)
     })
-
-    core.toOrthographic = () => {
-      Animation.tween({
-        target: vertigoControls.vertigo,
-        duration: 1,
-        ease: 'inOut2',
-        to: { perspective: 0 },
-      })
-    }
-
-    core.toPerspective = () => {
-      Animation.tween({
-        target: vertigoControls.vertigo,
-        duration: 1,
-        ease: 'inOut2',
-        to: { perspective: 1 },
-      })
-    }
 
     yield handlePointer(renderer.domElement, {
       onChange: info => {
@@ -140,24 +144,83 @@ export function Client() {
     }
   }, [])
 
+  const { vertigoControls } = core
   return (
     <div ref={ref} className={`${s.VertigoWidgetClient} layer thru`}>
       <div className='layer thru p-4 flex flex-col gap-4'>
         <h1 className='self-start'>Vertigo-widget</h1>
 
-        <div className='thru flex flex-row gap-1'>
+        <div className='thru flex flex-col items-start gap-1'>
           <button
-            className='px-2 py-1 border border-white rounded'
-            onClick={() => core.toOrthographic()}>
+            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+            onClick={() => {
+              Animation.tween({
+                target: vertigoControls.vertigo,
+                duration: 1,
+                ease: 'inOut2',
+                to: { perspective: 0 },
+              })
+            }}>
             ortho
           </button>
 
           <button
-            className='px-2 py-1 border border-white rounded'
-            onClick={() => core.toPerspective()}>
-            pers
+            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+            onClick={() => {
+              Animation.tween({
+                target: vertigoControls.vertigo,
+                duration: 1,
+                ease: 'inOut2',
+                to: { perspective: 1 },
+              })
+            }}>
+            pers:1
+          </button>
+
+          <button
+            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+            onClick={() => {
+              Animation.tween({
+                target: vertigoControls.vertigo,
+                duration: 1,
+                ease: 'inOut2',
+                to: { perspective: 1.5 },
+              })
+            }}>
+            pers:1.5
+          </button>
+
+          <button
+            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+            onClick={() => {
+              Animation.tween({
+                target: vertigoControls.vertigo,
+                duration: 1,
+                ease: 'inOut2',
+                to: { zoom: 1 },
+              })
+            }}>
+            zoom:1
+          </button>
+
+          <button
+            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+            onClick={() => {
+              Animation.tween({
+                target: vertigoControls.vertigo,
+                duration: .75,
+                ease: 'inOut2',
+                to: { focus: new Vector3() },
+              })
+            }}>
+            focus:(0,0,0)
           </button>
         </div>
+
+        <div className='Space flex-1 pointer-events-none' />
+
+        <VertigSerializedView
+          vertigo={vertigoControls.vertigo} />
       </div>
     </div>
   )
