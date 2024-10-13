@@ -297,6 +297,7 @@ export class VertigoWidget extends Group {
 }
 
 export {
+  defaultMaterialProps as defaultVertigoWidgetMaterialProps,
   Part as VertigoWidgetPart
 }
 

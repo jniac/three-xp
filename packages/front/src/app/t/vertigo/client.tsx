@@ -2,7 +2,8 @@
 
 import yaml from 'js-yaml'
 import { useMemo } from 'react'
-import { PerspectiveCamera, Vector2, Vector3, WebGLRenderer } from 'three'
+import { Euler, Group, Mesh, PerspectiveCamera, TorusKnotGeometry, Vector2, Vector3, WebGLRenderer } from 'three'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
@@ -10,14 +11,18 @@ import { handleSize } from 'some-utils-dom/handle/size'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Vertigo } from 'some-utils-three/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
+import { VertigoHelper } from 'some-utils-three/camera/vertigo/helper'
+import { EulerDeclaration } from 'some-utils-three/declaration'
+import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { setup } from 'some-utils-three/utils/tree'
 import { Animation } from 'some-utils-ts/animation'
-import { onTick, Ticker } from 'some-utils-ts/ticker'
+import { PRNG } from 'some-utils-ts/random/prng'
+import { formatNumber } from 'some-utils-ts/string/number'
+import { onTick, Tick, Ticker } from 'some-utils-ts/ticker'
 
 import { VertigoScene } from './VertigoScene'
-import { VertigoWidgetPart } from './VertigoWidget'
+import { defaultVertigoWidgetMaterialProps, VertigoWidgetPart } from './VertigoWidget'
 import { VertigoWidgetPlane } from './VertigoWidgetPlane'
-
-import { formatNumber } from 'some-utils-ts/string/number'
 
 import s from './vertigo.module.css'
 
@@ -40,15 +45,100 @@ function VertigSerializedView({ vertigo }: { vertigo: Vertigo }) {
   )
 }
 
+class SceneA extends Group {
+  parts = {
+    knot: setup(
+      new Mesh(
+        new TorusKnotGeometry(1, .5, 256, 32),
+        new AutoLitMaterial()
+      ), { parent: this }),
+    knot2: setup(
+      new Mesh(
+        new TorusKnotGeometry(1.37, .05, 256, 32),
+        new AutoLitMaterial({ color: defaultVertigoWidgetMaterialProps.xColor })
+      ), { parent: this }),
+    cubes: Array.from({ length: 20 }, (_, i) => {
+      const x = PRNG.between(-3, 3)
+      const y = PRNG.between(-1.5, 1.5)
+      const z = PRNG.between(-3, 3)
+      const rotation = [
+        `${PRNG.between(0, 360)}deg`,
+        `${PRNG.between(0, 360)}deg`,
+        `${PRNG.between(0, 360)}deg`,
+      ] as EulerDeclaration
+      const scaleScalar = PRNG.between(.5, 1)
+      const cube = setup(
+        new Mesh(
+          new RoundedBoxGeometry(1),
+          new AutoLitMaterial({ color: PRNG.pick(Object.values(defaultVertigoWidgetMaterialProps)) })
+        ), { parent: this, x, y, z, rotation, scaleScalar })
+      cube
+      const angularVelocity = new Euler(PRNG.between(-1, 1), PRNG.between(-1, 1), PRNG.between(-1, 1))
+      cube.userData = { angularVelocity }
+      return cube
+    }),
+  }
+
+  onTick(tick: Tick) {
+    for (const cube of this.parts.cubes) {
+      const { angularVelocity } = cube.userData
+      cube.rotation.x += angularVelocity.x * tick.deltaTime
+      cube.rotation.y += angularVelocity.y * tick.deltaTime
+      cube.rotation.z += angularVelocity.z * tick.deltaTime
+    }
+  }
+}
+
 export function Client() {
-  const core = useMemo(() => ({
-    vertigoControls: new VertigoControls(),
-  }), [])
+  const core = useMemo(() => {
+    const main = new Vertigo({
+      size: [4.2, 4.2],
+    })
+    const a0 = new Vertigo({
+      perspective: 0,
+      focus: [-10, 3, 0],
+      size: [6, 3],
+      rotation: [0, '45deg', 0],
+    })
+    const a1 = a0.clone().set({
+      perspective: 1,
+      size: a0.size.clone().multiplyScalar(1.2),
+    })
+    const a2 = a0.clone().set({
+      perspective: 1,
+      size: a0.size.clone().multiplyScalar(1.5),
+      rotation: [0, '-15deg', '-25deg'],
+    })
+    const back = new Vertigo({
+      perspective: 1,
+      focus: [-4.5, 1.8, 10],
+      size: [12, 9],
+      rotation: ['-3deg', '1deg', '12deg'],
+    })
+    const back2 = new Vertigo({
+      perspective: 1,
+      focus: [-4.5, 1.8, 14],
+      size: back.size.clone().multiplyScalar(1.5),
+      rotation: ['-3deg', '1deg', '0deg'],
+    })
+    const vertigos = {
+      main,
+      a0,
+      a1,
+      a2,
+      back,
+      back2,
+    }
+    const vertigoControls = new VertigoControls(vertigos.main)
+
+    return {
+      vertigos,
+      vertigoControls,
+    }
+  }, [])
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const { vertigoControls } = core
-
-    console.log(formatNumber(123456789))
 
     const renderer = new WebGLRenderer({ antialias: true })
     renderer.outputColorSpace = 'srgb'
@@ -138,6 +228,15 @@ export function Client() {
       },
     })
 
+    for (const vertigo of Object.values(core.vertigos)) {
+      setup(new VertigoHelper(vertigo), scene)
+    }
+
+    const someScene = new SceneA()
+    scene.add(someScene)
+    someScene.position.copy(core.vertigos.a0.focus)
+    someScene.rotation.copy(core.vertigos.a0.rotation)
+
     yield () => {
       renderer.dispose()
       div.removeChild(renderer.domElement)
@@ -212,9 +311,30 @@ export function Client() {
                 ease: 'inOut2',
                 to: { focus: new Vector3() },
               })
-            }}>
+            }}
+          >
             focus:(0,0,0)
           </button>
+        </div>
+
+        <div className='thru flex flex-col gap-1 items-start'>
+          {Object.entries(core.vertigos).map(([name, vertigo]) => (
+            <button
+              key={name}
+              className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+              onClick={() => {
+                const start = core.vertigoControls.vertigo.clone()
+                Animation
+                  .during(1)
+                  .onUpdate(({ progress }) => {
+                    const alpha = Animation.ease('inOut3')(progress)
+                    core.vertigoControls.vertigo.lerpVertigos(start, vertigo, alpha)
+                  })
+              }}
+            >
+              {name}
+            </button>
+          ))}
         </div>
 
         <div className='Space flex-1 pointer-events-none' />
