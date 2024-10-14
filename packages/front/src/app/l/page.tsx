@@ -1,12 +1,15 @@
 import { Metadata } from 'next'
 
 import { SummaryPage } from '@/components/summary'
+
 import * as depthOffset from './depth-offset/page'
+import * as occludedLines from './occluded-lines/page'
 import * as webgpu from './webgpu/page'
 
 const learning = {
   depthOffset,
   webgpu,
+  occludedLines,
 }
 
 export const metadata: Metadata = {

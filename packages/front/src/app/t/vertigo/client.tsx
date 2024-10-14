@@ -121,6 +121,17 @@ export function Client() {
       size: back.size.clone().multiplyScalar(1.5),
       rotation: ['-3deg', '1deg', '0deg'],
     })
+    const zoom = new Vertigo({
+      focus: [6, -4, 0],
+      size: [4, 4],
+      zoom: .25,
+    })
+    const revert = new Vertigo({
+      rotation: ['12.6deg', '145.3deg', '0deg'],
+      focus: [-5, -.5, 3.6],
+      size: [12, 12],
+      fov: '60deg',
+    })
     const vertigos = {
       main,
       a0,
@@ -128,6 +139,8 @@ export function Client() {
       a2,
       back,
       back2,
+      zoom,
+      revert
     }
     const vertigoControls = new VertigoControls(vertigos.main)
 
@@ -186,7 +199,7 @@ export function Client() {
     yield handlePointer(renderer.domElement, {
       onChange: info => {
         const { x, y } = info.relativeLocalPosition
-        ndcPointer.set(x * 2 - 1, 1 - y * 2)
+        ndcPointer.set(x * 2 - 1, (y * 2 - 1) * -1)
       },
       onDown: () => {
         pointerDown = true
@@ -195,7 +208,11 @@ export function Client() {
         pointerDown = false
       },
       onTap: () => {
-        switch (scene.parts.widget.getPressed()) {
+        const pressed = scene.parts.widget.getPressed()
+        if (pressed !== null) {
+          vertigoControls.actions.focus([0, 0, 0])
+        }
+        switch (pressed) {
           case VertigoWidgetPart.BOX: {
             vertigoControls.actions.togglePerspective()
             break
@@ -246,95 +263,110 @@ export function Client() {
   const { vertigoControls } = core
   return (
     <div ref={ref} className={`${s.VertigoWidgetClient} layer thru`}>
-      <div className='layer thru p-4 flex flex-col gap-4'>
-        <h1 className='self-start'>Vertigo-widget</h1>
+      <div className='layer thru p-4 flex flex-col gap-4 items-start'>
 
-        <div className='thru flex flex-col items-start gap-1'>
-          <button
-            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
-            onClick={() => {
-              Animation.tween({
-                target: vertigoControls.vertigo,
-                duration: 1,
-                ease: 'inOut2',
-                to: { perspective: 0 },
-              })
-            }}>
-            ortho
-          </button>
+        <h1 className='text-2xl self-start'>Vertigo-widget</h1>
 
-          <button
-            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
-            onClick={() => {
-              Animation.tween({
-                target: vertigoControls.vertigo,
-                duration: 1,
-                ease: 'inOut2',
-                to: { perspective: 1 },
-              })
-            }}>
-            pers:1
-          </button>
-
-          <button
-            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
-            onClick={() => {
-              Animation.tween({
-                target: vertigoControls.vertigo,
-                duration: 1,
-                ease: 'inOut2',
-                to: { perspective: 1.5 },
-              })
-            }}>
-            pers:1.5
-          </button>
-
-          <button
-            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
-            onClick={() => {
-              Animation.tween({
-                target: vertigoControls.vertigo,
-                duration: 1,
-                ease: 'inOut2',
-                to: { zoom: 1 },
-              })
-            }}>
-            zoom:1
-          </button>
-
-          <button
-            className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
-            onClick={() => {
-              Animation.tween({
-                target: vertigoControls.vertigo,
-                duration: .75,
-                ease: 'inOut2',
-                to: { focus: new Vector3() },
-              })
-            }}
-          >
-            focus:(0,0,0)
-          </button>
-        </div>
-
-        <div className='thru flex flex-col gap-1 items-start'>
-          {Object.entries(core.vertigos).map(([name, vertigo]) => (
+        <div
+          className={`${s.BgBlur} thru flex flex-col gap-1 items-start p-1 border border-white rounded`}
+          style={{ width: 'min(200px, 30%)' }}
+        >
+          <h2>Actions:</h2>
+          <div className='thru flex flex-row flex-wrap items-start gap-1'>
             <button
-              key={name}
               className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
               onClick={() => {
-                const start = core.vertigoControls.vertigo.clone()
-                Animation
-                  .during(1)
-                  .onUpdate(({ progress }) => {
-                    const alpha = Animation.ease('inOut3')(progress)
-                    core.vertigoControls.vertigo.lerpVertigos(start, vertigo, alpha)
-                  })
+                Animation.tween({
+                  target: vertigoControls.vertigo,
+                  duration: 1,
+                  ease: 'inOut2',
+                  to: { perspective: 0 },
+                })
+              }}>
+              ortho
+            </button>
+
+            <button
+              className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+              onClick={() => {
+                Animation.tween({
+                  target: vertigoControls.vertigo,
+                  duration: 1,
+                  ease: 'inOut2',
+                  to: { perspective: 1 },
+                })
+              }}>
+              pers:1
+            </button>
+
+            <button
+              className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+              onClick={() => {
+                Animation.tween({
+                  target: vertigoControls.vertigo,
+                  duration: 1,
+                  ease: 'inOut2',
+                  to: { perspective: 1.5 },
+                })
+              }}>
+              pers:1.5
+            </button>
+
+            <button
+              className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+              onClick={() => {
+                Animation.tween({
+                  target: vertigoControls.vertigo,
+                  duration: 1,
+                  ease: 'inOut2',
+                  to: { zoom: 1 },
+                })
+              }}>
+              zoom:1
+            </button>
+
+            <button
+              className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+              onClick={() => {
+                Animation.tween({
+                  target: vertigoControls.vertigo,
+                  duration: .75,
+                  ease: 'inOut2',
+                  to: { focus: new Vector3() },
+                })
               }}
             >
-              {name}
+              focus:(0,0,0)
             </button>
-          ))}
+          </div>
+        </div>
+
+        <div
+          className={`${s.BgBlur} thru flex flex-col gap-1 items-start p-1 border border-white rounded`}
+          style={{ width: 'min(200px, 30%)' }}
+        >
+          <h2>
+            Presets:
+          </h2>
+          <div className='flex flex-row gap-1 flex-wrap'>
+            {Object.entries(core.vertigos).map(([name, vertigo]) => (
+              <button
+                key={name}
+                className={`${s.BgBlur} px-2 py-1 border border-white rounded hover:bg-[#fff2]`}
+                onClick={() => {
+                  const start = core.vertigoControls.vertigo.clone()
+                  Animation
+                    .during(1)
+                    .onUpdate(({ progress }) => {
+                      const alpha = Animation.ease('inOut3')(progress)
+                      core.vertigoControls.vertigo.lerpVertigos(start, vertigo, alpha)
+                    })
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className='Space flex-1 pointer-events-none' />

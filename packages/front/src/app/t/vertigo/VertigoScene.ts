@@ -41,7 +41,7 @@ export class VertigoScene extends Scene {
     // Objects:
     thing: setup(new Thing(), { parent: this }),
     // gridY: setup(new SimpleGridHelper(), { parent: this, rotationX: '90deg' }),
-    gridZ: setup(new SimpleGridHelper(), { parent: this }),
+    gridZ: setup(new SimpleGridHelper({ step: .5 }), { parent: this }),
 
     // Widget:
     widget: setup(new VertigoWidget(), { parent: this }),
