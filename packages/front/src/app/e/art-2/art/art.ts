@@ -1,6 +1,6 @@
 import { BackSide, BufferGeometry, Color, CylinderGeometry, EquirectangularReflectionMapping, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Object3D, PMREMGenerator, Vector3 } from 'three'
 
-import { UseEffectsState } from 'some-utils-react/hooks/effects'
+import { UseEffectsEffect } from 'some-utils-react/hooks/effects'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { calculateVFOV } from 'some-utils-three/utils/camera'
 import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
@@ -114,7 +114,7 @@ function* setup(three: Three): Generator<Destroyable, Group> {
   return group
 }
 
-export function* art(three: Three, state: UseEffectsState) {
+export function* art(three: Three, state: UseEffectsEffect) {
   const group = yield* setup(three)
 
   if (state.renderCount === 1) {
