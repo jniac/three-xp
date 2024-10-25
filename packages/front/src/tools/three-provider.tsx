@@ -101,8 +101,7 @@ function ServerProofThreeProvider({ children, className }: HTMLAttributes<HTMLDi
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     // Set path for assets, it is very dependent on the environment
-    const path = config.development ? '/assets/' : '/three-xp/assets/'
-    three.loader.setPath(path)
+    three.loader.setPath(config.assetsPath)
 
     yield three.initialize(div)
     Object.assign(window, { three, THREE })

@@ -13,6 +13,7 @@ import { EditorProvider, useEditor } from 'some-three-editor/editor-provider'
 import { Leak } from '@/components/leak'
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 
+import { config } from '@/config'
 import { makeColor } from 'some-utils-three/utils/make'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { ScatteredPlane } from './scattered-plane'
@@ -85,6 +86,8 @@ function OrbitControls() {
 
 export function EditorProviderWithThree({ children }: { children?: ReactNode }) {
   const three = useThree()
+  // Set path for assets, it is very dependent on the environment
+  three.loader.setPath(config.assetsPath)
   return (
     <EditorProvider
       three={three}
