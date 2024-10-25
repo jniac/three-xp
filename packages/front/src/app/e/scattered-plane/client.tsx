@@ -36,7 +36,7 @@ function ScatteredDemo() {
     addTo(new SkyMesh(), group)
     addTo(new Mesh(new AxesGeometry(), new AutoLitMaterial()), group)
 
-    const texture = await three.loader.load('/images/DebugTexture.png')
+    const texture = await three.loader.load('/assets/textures/DebugTexture.png')
     texture.colorSpace = SRGBColorSpace
     const scattered = addTo(new ScatteredPlane(), group)
     scattered.internal.plane.material.map = texture
