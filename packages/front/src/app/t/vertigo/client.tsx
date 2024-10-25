@@ -97,7 +97,7 @@ export function Client() {
     const a0 = new Vertigo({
       perspective: 0,
       focus: [-10, 3, 0],
-      size: [6, 3],
+      size: [8, 4],
       rotation: [0, '45deg', 0],
     })
     const a1 = a0.clone().set({

@@ -1,77 +1,89 @@
 'use client'
 
-import { DoubleSide, Group, IcosahedronGeometry, InstancedBufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry, TorusKnotGeometry } from 'three'
+import { BufferGeometry, Color, IcosahedronGeometry, Material, Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from 'three'
 
-import { ThreeAndEditorProvider, useThree } from 'some-three-editor/editor-provider'
+import { ThreeAndEditorProvider, useEditor, useThree } from 'some-three-editor/editor-provider'
+import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { ShaderForge } from 'some-utils-three/shader-forge'
-import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
-import { loop2 } from 'some-utils-ts/iteration/loop'
-import { PRNG } from 'some-utils-ts/random/prng'
+import { onTick } from 'some-utils-ts/ticker'
 
-class DepthOffsetTest extends Group {
+class LineA extends Mesh<BufferGeometry, AutoLitMaterial> {
   constructor() {
-    super()
+    super(new PlaneGeometry(4, .2), new AutoLitMaterial({ color: '#ff9900' }))
+  }
+}
 
-    {
-      setup(new Mesh(
-        new IcosahedronGeometry(1, 12),
-        new AutoLitMaterial(),
-      ), this)
-
-      setup(new Mesh(
-        new TorusKnotGeometry(2, .1, 256, 16),
-        new AutoLitMaterial({ color: 'red' }),
-      ), this)
-    }
-
-    const col = 5
-    const row = 5
-    const count = col * row
-    const aRand = new InstancedBufferAttribute(new Float32Array(count * 4), 4)
-
-    const geometry = new PlaneGeometry()
-    geometry.setAttribute('aRand', aRand)
-    const material = new MeshBasicMaterial({ side: DoubleSide })
-    material.onBeforeCompile = shader => ShaderForge.with(shader)
-      .vertex.top(/* glsl */`
-        attribute vec4 aRand;
-      `)
-      .vertex.after('project_vertex', /* glsl */`
-        gl_Position.z += aRand.x * .1;
-      `)
-
-    const mesh = setup(new InstancedMesh(geometry, material, count), this)
-
-    PRNG.reset()
-    const colors = Array.from({ length: count }, () => PRNG.random() * 0xffffff)
-    for (const it of loop2(col, row)) {
-      const x = (it.tx - .5) * (col - 1)
-      const y = (it.ty - .5) * (row - 1)
-      const z = (it.tx + it.ty) * .4
-      mesh.setMatrixAt(it.i, makeMatrix4({ x, y, z, scaleScalar: 1.25 }))
-      mesh.setColorAt(it.i, makeColor(PRNG.pick(colors)))
-      aRand.setXYZW(it.i, PRNG.random(), PRNG.random(), PRNG.random(), PRNG.random())
-    }
+class LineB extends Mesh<BufferGeometry, Material> {
+  constructor() {
+    const vertexShader = /* glsl */ `
+      varying vec3 vWorldNormal;
+      
+      void main() {
+        vWorldNormal = mat3(modelMatrix) * normal;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        gl_Position.z += -0.01;
+      }
+    `
+    const fragmentShader = /* glsl */ `
+      varying vec3 vWorldNormal;
+      varying vec3 vColor;
+      
+      uniform vec3 uSunPosition;
+      uniform vec3 uColor;
+      uniform float uLuminosity;
+      
+      void main() {
+        vec3 lightDirection = normalize(uSunPosition);
+        float light = dot(vWorldNormal, lightDirection) * 0.5 + 0.5;
+        light = pow(light, 2.0);
+        light = mix(uLuminosity, 1.0, light);
+        gl_FragColor = vec4(uColor * light, 1.0);
+      }
+    `
+    const material = new ShaderMaterial({
+      uniforms: {
+        uColor: { value: new Color('#ff9900') },
+        uSunPosition: { value: new Vector3(0.5, 0.7, 0.3) },
+        uLuminosity: { value: .5 },
+      },
+      vertexShader,
+      fragmentShader,
+    })
+    super(new PlaneGeometry(4, .2), material)
   }
 }
 
 function Scene() {
+  useEditor(function* (editor) {
+    editor.useOrbitControls = false
+    const vertigoControls = new VertigoControls({
+      size: [8, 8],
+    })
+    vertigoControls.initialize(editor.three.renderer.domElement)
+    yield onTick('three', tick => {
+      vertigoControls.update(editor.three.camera, editor.three.aspect)
+    })
+  })
+
   useThree(function* (three) {
-    const sphere = setup(
+    three.scene.background = new Color('#6699cc')
+    setup(
       new Mesh(
         new IcosahedronGeometry(1, 4),
         new AutoLitMaterial({ color: 'red' }),
       ), three.scene)
 
-    const lines = setup(new LineHelper(), three.scene)
-    lines
+    setup(new LineHelper(), three.scene)
       .box({ size: 2 })
       .draw()
-    lines
       .showOccludedLines()
+
+    setup(new LineA(), { parent: three.scene, position: [0, .5, 0] })
+    setup(new LineB(), { parent: three.scene, position: [0, -.5, 0] })
+
+    yield () => three.scene.clear()
   }, [])
 
   return null
