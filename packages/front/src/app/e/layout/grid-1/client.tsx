@@ -19,19 +19,28 @@ export function Client() {
     canvas.style.height = `${height}px`
     const ctx = canvas.getContext('2d')!
 
-    const root = new Space(Direction.Horizontal)
-      .setSize(width, height)
-      .setSpacing(10)
+    const root = new Space({
+      direction: Direction.Horizontal,
+      size: [width, height],
+      spacing: 10,
+    })
       .add(
-        new Space(Direction.Vertical)
-          .setSize('1sh', '1sh')
-          .setSpacing(10),
-        new Space(Direction.Vertical)
-          .setSize('2sh')
-          .setSpacing(10),
-        new Space(Direction.Vertical)
-          .setSize('1sh', '1sh')
-          .setSpacing(10)
+        new Space({
+          direction: Direction.Vertical,
+          size: '1sh',
+          spacing: 10,
+        })
+          .populate(8),
+        new Space({
+          direction: Direction.Vertical,
+          size: '2sh',
+          spacing: 10,
+        }),
+        new Space({
+          direction: Direction.Vertical,
+          size: '1sh',
+          spacing: 10,
+        })
           .add(
             new Space()
               .setSize('40'),
@@ -43,12 +52,9 @@ export function Client() {
               .setSize('1sh')
               .setSpacing(10)
               .add(
-                new Space(Direction.Vertical)
-                  .setSize('1sh'),
-                new Space(Direction.Vertical)
-                  .setSize('1sh'),
-                new Space(Direction.Vertical)
-                  .setSize('1sh'),
+                new Space({ direction: 'vertical', size: '1sh' }),
+                new Space({ direction: 'vertical', size: '1sh' }),
+                new Space({ direction: 'vertical', size: '1sh' }),
               ),
             new Space()
               .setSize('40'),
@@ -56,7 +62,7 @@ export function Client() {
         new Space()
           .setPositioning('detached')
           .setUserData({ skipPaint: true })
-          .setPadding(10)
+          .setPadding(20)
           .setSize('1rel')
           .add(
             new Space()
@@ -66,18 +72,37 @@ export function Client() {
           ),
       )
 
+    root.get(1)!.add(
+      new Space({
+        positioning: Positioning.Detached,
+        offset: ['1rel', '0'],
+        size: [400, 75],
+        spacing: 10,
+      })
+        .populate(3),
+    )
+
     root.computeLayout()
 
     function paint() {
       root.computeLayout()
       PRNG.seed(14271)
       ctx.clearRect(0, 0, width * pixelRatio, height * pixelRatio)
-      for (const space of root.allDescendants({ includeSelf: false })) {
-        if (space.userData.skipPaint) continue
+      const computeZIndex = (space: Space) => {
+        let score = 0
+        for (const parent of space.allAncestors({ includeSelf: true })) {
+          score += parent.positioning === Positioning.Detached ? 100 : 1
+        }
+        return score
+      }
+      const spaces = [...root.allDescendants({ includeSelf: false })]
+        .filter(space => !space.userData.skipPaint)
+        .sort((a, b) => computeZIndex(a) - computeZIndex(b))
+      for (const space of spaces) {
         const rect = space.rect.clone().multiplyScalar(pixelRatio)
         ctx.lineWidth = 2 * pixelRatio
         ctx.strokeStyle = PRNG.pick(['#ffcc00', '#cc00ff', '#00ffcc', '#00ccff', '#ffccff'])
-        ctx.fillStyle = 'rgba(0, 0, 0, .75)'
+        ctx.fillStyle = 'rgba(0, 0, 0, .5)'
         ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
         ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
       }
@@ -99,6 +124,8 @@ export function Client() {
         &quot;Detached&quot; space demo.
         <br />
         &quot;Detached&quot; spaces are not included in the layout computation.
+        <br />
+        Similar to &quot;absolute&quot; positioning in CSS.
       </p>
     </div>
   )
