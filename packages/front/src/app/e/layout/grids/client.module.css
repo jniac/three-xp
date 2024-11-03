@@ -1,0 +1,23 @@
+.Client code {
+  position: relative;
+  font-size: .9em;
+  padding: .25em;
+}
+
+.Client code::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  border-radius: .25em;
+  opacity: .1;
+}
+
+.Client code::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: currentColor solid 1px;
+  border-radius: .25em;
+  opacity: .2;
+}
