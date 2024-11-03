@@ -2,11 +2,11 @@
 import { useMemo } from 'react'
 
 import { useEffects } from 'some-utils-react/hooks/effects'
+import { useObservableValue } from 'some-utils-react/hooks/observables'
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { ObservableNumber } from 'some-utils-ts/observables'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { useObservableValue } from 'some-utils-react/hooks/observables'
 import { CanvasContext } from '../canvas-context'
 import { colors } from '../colors'
 
@@ -100,7 +100,7 @@ export function AspectAlignDemo() {
 
   return (
     <div ref={ref} className='flex flex-col justify-center gap-4' style={{ flex: '0 0 800px' }}>
-      <canvas style={{ border: 'solid 2px #fff1' }} onClick={next} />
+      <canvas style={{ border: 'solid 2px #fff1', cursor: 'pointer' }} onClick={next} />
       <div className='text-center'>
         <div>
           <button

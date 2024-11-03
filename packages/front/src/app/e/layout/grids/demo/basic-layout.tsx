@@ -2,8 +2,8 @@
 
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
-import { colors } from '../colors'
 
+import { colors } from '../colors'
 
 export function BasicLayoutDemo() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
@@ -24,19 +24,19 @@ export function BasicLayoutDemo() {
         direction: Direction.Vertical,
         size: ['.25rel', '1rel'],
         spacing: 10,
-        userData: { color: colors.paleGreen },
+        userData: { color: colors.vibrantBlue },
       }),
       new Space({
         direction: Direction.Vertical,
         size: ['.25rel', '1rel'],
         spacing: 10,
-        userData: { color: colors.paleGreen },
+        userData: { color: colors.vibrantBlue },
       }),
       new Space({
         direction: Direction.Vertical,
         size: ['.25rel', '1rel'],
         spacing: 10,
-        userData: { color: colors.paleGreen },
+        userData: { color: colors.vibrantBlue },
       })
     )
 
@@ -47,6 +47,7 @@ export function BasicLayoutDemo() {
         new Space({
           size: `${i + 1}fr`,
           spacing: 10,
+          userData: { color: colors.paleGreen },
         })
       )
     }
