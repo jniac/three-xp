@@ -1,5 +1,5 @@
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
+import { TransformProps, applyTransform } from 'some-utils-three/utils/transform'
 import { glsl_web_colors } from 'some-utils-ts/glsl/colors/web_colors'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'

@@ -1,7 +1,7 @@
 import { DoubleSide, FrontSide, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, Side, TorusGeometry } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
-import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
+import { TransformProps, applyTransform } from 'some-utils-three/utils/transform'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 
 import { colors } from './colors'

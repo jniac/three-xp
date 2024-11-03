@@ -135,7 +135,7 @@ export function PositioningDemo() {
       <canvas style={{ border: 'solid 2px #fff1' }} />
       <div className='text-center'>
         <p>
-          When positioning is set to <code style={{ color: colors.yellow }}>detached</code>, spaces are not affected by their parent's size.
+          When positioning is set to <code style={{ color: colors.yellow }}>detached</code>, spaces are not affected by their parent&apos;s size.
         </p>
       </div>
     </div>

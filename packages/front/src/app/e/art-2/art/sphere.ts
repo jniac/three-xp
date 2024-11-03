@@ -1,7 +1,7 @@
 import { BufferGeometry, Color, ColorRepresentation, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, Object3D, Vector3 } from 'three'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
-import { TransformProps, applyTransform } from 'some-utils-three/utils/tranform'
+import { TransformProps, applyTransform } from 'some-utils-three/utils/transform'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'

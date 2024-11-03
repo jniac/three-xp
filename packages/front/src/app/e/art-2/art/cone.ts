@@ -1,6 +1,6 @@
 import { ConeGeometry, Mesh, MeshBasicMaterial, MeshPhysicalMaterial } from 'three'
 
-import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
+import { applyTransform, TransformProps } from 'some-utils-three/utils/transform'
 
 import { colors } from './colors'
 

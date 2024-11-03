@@ -3,7 +3,7 @@ import { BackSide, BufferGeometry, Color, CylinderGeometry, EquirectangularRefle
 import { UseEffectsEffect } from 'some-utils-react/hooks/effects'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { calculateVFOV } from 'some-utils-three/utils/camera'
-import { applyTransform, TransformProps } from 'some-utils-three/utils/tranform'
+import { applyTransform, TransformProps } from 'some-utils-three/utils/transform'
 import { glsl_color_adjust } from 'some-utils-ts/glsl/color-adjust'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { range } from 'some-utils-ts/iteration/range'
