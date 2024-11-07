@@ -4,7 +4,10 @@ export default function Home() {
   return (
     <div className='w-screen h-screen flex flex-col justify-center items-center'>
       <Link href='e'>
-        Three.js experiments
+        /e<span style={{ opacity: .33 }}>xperiments</span>
+      </Link>
+      <Link href='t'>
+        /t<span style={{ opacity: .33 }}>ools</span>
       </Link>
 
       <footer className='fixed w-screen bottom-0 p-4 flex flex-row justify-end'>

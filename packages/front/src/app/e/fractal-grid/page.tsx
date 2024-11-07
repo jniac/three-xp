@@ -3,12 +3,12 @@ import { XpMetadata } from '@/types'
 import { Main } from './main'
 
 export const metadata = new XpMetadata({
-  slug: 'dots-and-falloffs',
+  slug: 'fractal-grid',
 })
 
-export default function DotsAndFalloffs() {
+export default function FractalGridPage() {
   return (
-    <div className='DotsAndFalloffs page'>
+    <div className='FractalGridPage page'>
       <Main />
     </div>
   )
