@@ -1,0 +1,11 @@
+.FlexibleLayout, .FlexibleLayout * {
+  pointer-events: none;
+}
+
+.FlexibleLayout .Container {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  border: solid 1px #fff;
+  pointer-events: all;
+}
