@@ -89,7 +89,7 @@ export class Earth extends Group {
   constructor() {
     super()
 
-    const texture = textureLoader.load('/assets/images/blank-world-map-alt.png')
+    const texture = textureLoader.load('images/blank-world-map-alt.png')
 
     const { uniforms } = this
 

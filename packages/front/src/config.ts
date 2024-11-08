@@ -9,4 +9,5 @@ const assetsPath = development
 export const config = {
   development,
   assetsPath,
+  assets: (url = '') => `${assetsPath}${url}`,
 }

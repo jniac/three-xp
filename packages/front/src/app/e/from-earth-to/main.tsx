@@ -118,8 +118,8 @@ function Stage() {
 function Settings() {
   useThree(function* (three) {
     leak(three)
-    textureLoader.setPath(config.assetsPath)
-    console.log(`Assets path: ${config.assetsPath}`)
+    textureLoader.setPath(config.assets())
+    console.log(`Assets config.assetsPath: ${config.assets()}`)
   }, [])
   return null
 }
@@ -134,7 +134,7 @@ export function Main() {
       </ThreeProvider>
 
       <header className='absolute thru w-full top-0 p-8'>
-        <img width={100} src='/assets/images/acme-logo.png' alt='' />
+        <img width={100} src={config.assets('images/acme-logo.png')} alt='' />
       </header>
 
       <footer className='absolute thru w-full bottom-0 p-12 flex flex-row justify-center'>

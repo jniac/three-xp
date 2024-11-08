@@ -1,13 +1,12 @@
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, DataTexture, FloatType, Group, NearestFilter, Points, PointsMaterial, RGBAFormat, TextureLoader, UVMapping, Vector2 } from 'three'
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, DataTexture, FloatType, Group, NearestFilter, Points, PointsMaterial, RGBAFormat, UVMapping, Vector2 } from 'three'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { Ticker } from 'some-utils-ts/ticker'
 
+import { textureLoader } from '../textureLoader'
 import { SimplifiedNurbsCurve } from './simplified-nurbs-curve'
-
-const textureLoader = new TextureLoader()
 
 export class ContributionsPoints extends Group {
   constructor(curves: SimplifiedNurbsCurve[], { pointsPerCurve = 80, curveSubdivisions = 256 } = {}) {
@@ -88,9 +87,9 @@ export class ContributionsPoints extends Group {
       uCurveRandom: { value: curves.map(() => PRNG.random()) },
       uMaskMaps: {
         value: [
-          textureLoader.load('/assets/textures/rounded-square.png'),
-          textureLoader.load('/assets/textures/rounded-plus.png'),
-          textureLoader.load('/assets/textures/rounded-rhomb.png'),
+          textureLoader.load('textures/rounded-square.png'),
+          textureLoader.load('textures/rounded-plus.png'),
+          textureLoader.load('textures/rounded-rhomb.png'),
         ]
       }
     }
