@@ -1,5 +1,5 @@
-import { Leak } from '@/components/leak'
 import { XpMetadata } from '@/types'
+import { Leak } from '@/utils/leak'
 
 import { Art } from './art'
 
