@@ -1,41 +1,21 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 
-import { BoxGeometry, Camera, Group, Mesh, Raycaster, Vector2 } from 'three'
+import { Camera, Raycaster, Vector2 } from 'three'
 
 import { ThreeProvider, useThree } from 'some-three-editor/editor-provider'
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { config } from '@/config'
 import { leak } from '@/utils/leak'
-import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
-import { handlePointer } from 'some-utils-dom/handle/pointer'
+
 import { Leak } from './leak'
 import { Poc1Scene } from './scene'
 import { textureLoader } from './textureLoader'
-
-class Cubes extends Group {
-  constructor({ count = 12 } = {}) {
-    super()
-
-    PRNG.reset()
-    for (let i = 0; i < count; i++) {
-      const cube = new Mesh(
-        new BoxGeometry(1, 1, 1),
-        new AutoLitMaterial({ color: PRNG.int(0, 0xffffff) }),
-      )
-      cube.position.x = i
-      cube.rotation.x = PRNG.between(0, Math.PI * 2)
-      cube.rotation.y = PRNG.between(0, Math.PI * 2)
-      cube.rotation.z = PRNG.between(0, Math.PI * 2)
-      this.add(cube)
-    }
-  }
-}
 
 class Pointer {
   screen = {
@@ -89,7 +69,7 @@ class Pointer {
   }
 }
 
-function Poc1() {
+function Stage() {
   useThree(function* (three) {
     const poc1 = new Poc1Scene()
     three.scene.add(poc1)
@@ -139,6 +119,7 @@ function Settings() {
   useThree(function* (three) {
     leak(three)
     textureLoader.setPath(config.assetsPath)
+    console.log(`Assets path: ${config.assetsPath}`)
   }, [])
   return null
 }
@@ -149,7 +130,7 @@ export function Main() {
       <ThreeProvider>
         <Settings />
         <Leak />
-        <Poc1 />
+        <Stage />
       </ThreeProvider>
 
       <header className='absolute thru w-full top-0 p-8'>

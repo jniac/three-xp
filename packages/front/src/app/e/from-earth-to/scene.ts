@@ -24,9 +24,4 @@ export class Poc1Scene extends Group {
     // contributions: setup(new Contributions(), this),
     // nurbsDemo: setup(new NurbsDemo(), this),
   }
-
-  constructor() {
-    super()
-    console.log('Poc1Scene!')
-  }
 }
