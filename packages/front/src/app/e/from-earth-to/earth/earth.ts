@@ -12,7 +12,7 @@ import { Vector3Like } from 'some-utils-ts/types'
 
 import spots from './spots.json'
 
-import { textureLoader } from '../scene'
+import { textureLoader } from '../textureLoader'
 import { bindUserData, fromSpherical } from '../utils'
 import { AnimatedCurve } from './animated-curve'
 import { ContributionsPoints } from './contribution-points'

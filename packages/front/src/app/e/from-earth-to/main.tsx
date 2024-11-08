@@ -10,10 +10,13 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 import { Destroyable } from 'some-utils-ts/types'
 
+import { config } from '@/config'
+import { leak } from '@/utils/leak'
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { Leak } from './leak'
 import { Poc1Scene } from './scene'
+import { textureLoader } from './textureLoader'
 
 class Cubes extends Group {
   constructor({ count = 12 } = {}) {
@@ -132,10 +135,19 @@ function Poc1() {
   return null
 }
 
+function Settings() {
+  useThree(function* (three) {
+    leak(three)
+    textureLoader.setPath(config.assetsPath)
+  }, [])
+  return null
+}
+
 export function Main() {
   return (
     <div className='layer thru'>
       <ThreeProvider>
+        <Settings />
         <Leak />
         <Poc1 />
       </ThreeProvider>
