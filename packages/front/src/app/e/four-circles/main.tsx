@@ -2,39 +2,12 @@
 
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { setup } from 'some-utils-three/utils/tree'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
+import { ThreeProvider, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
-import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
-import { CirclePlane } from './circle-plane'
-
-function Stage() {
-  useGroup('four-circles', function* (group) {
-    setup(new SkyMesh(), group)
-
-    const d = 2.1
-    setup(new CirclePlane, {
-      parent: group,
-      position: [d, d, 0],
-    })
-    setup(new CirclePlane, {
-      parent: group,
-      position: [d, -d, 0],
-    })
-    setup(new CirclePlane, {
-      parent: group,
-      position: [-d, -d, 0],
-    })
-    setup(new CirclePlane, {
-      parent: group,
-      position: [-d, d, 0],
-    })
-  }, [])
-  return null
-}
+import { Stage } from './art/stage'
 
 function Controller() {
   useThree(function* (three) {
