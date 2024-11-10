@@ -7,6 +7,7 @@ import { onTick } from 'some-utils-ts/ticker'
 import { ThreeProvider, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { Stage } from './art/stage'
 
 function Controller() {
@@ -21,6 +22,11 @@ function Controller() {
       const { aspect, camera } = three
       controls.update(camera, aspect, tick.deltaTime)
     })
+    yield handleKeyboard([
+      [{ code: 'Space', modifiers: 'shift' }, () => {
+        document.body.requestFullscreen()
+      }],
+    ])
   }, [])
   return null
 }

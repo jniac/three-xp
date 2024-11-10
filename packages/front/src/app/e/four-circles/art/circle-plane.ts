@@ -9,17 +9,18 @@ import { Ticker } from 'some-utils-ts/ticker'
 const planeGeometry = new PlaneGeometry(4, 4)
 const sphereGeometry = new IcosahedronGeometry(1, 12)
 
-const colors = [
-  '#95c3fb',
-  '#fcff99',
-  '#0a1521',
-].map(c => new Color(c))
-
 export class CirclePlane extends Group {
   parts = (() => {
+    const colors = [
+      '#95c3fb',
+      '#fcff99',
+      '#0a1521',
+    ].map(c => new Color(c))
+
     const material = new MeshBasicMaterial()
     const uniforms = {
       uTime: Ticker.get('three').uTime,
+      uTimeCycleOffset: { value: 0 },
       uColors: { value: colors },
     }
     material.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -27,6 +28,12 @@ export class CirclePlane extends Group {
       .defines({
         USE_UV: '',
       })
+      .varying({
+        vWorldPosition2: 'vec3',
+      })
+      .vertex.mainAfterAll(/* glsl */ `
+        vWorldPosition2 = (modelMatrix * vec4(position, 1.0)).xyz;
+      `)
       .fragment.top(
         glsl_sdf2d,
         glsl_stegu_snoise,
@@ -39,27 +46,37 @@ export class CirclePlane extends Group {
         vec2 point() {
           return (vUv - 0.5) * 2.0;
         }
+        float noisy() {
+          return fnoise(vec3(vWorldPosition2.xy * 0.5, uTime * 0.01), 8, 0.8);
+        }
+        float time() {
+          return uTime * 0.05 + uTimeCycleOffset * 1.0;
+        }
         float noisyBox() {
-          float n = fractalNoise(point() * 2.0, 6, 0.9);
-          return sdBox(point(), vec2(radius())) + n * 0.2 * sin01(uTime * 0.5);
+          return sdBox(point(), vec2(radius())) + noisy() * 0.1 * sin01(time());
         }
         float noisyCircle() {
-          float n = fractalNoise(point() * 2.0, 6, 0.9);
-          return length(point()) - radius() + n * 0.2 * sin01(uTime * 0.5);
+          return length(point()) - radius() + noisy() * 0.3 * sin01(time());
         }
       `)
       .fragment.after('color_fragment', /* glsl */ `
         float d = sdBox(point(), vec2(radius()));
-        float d2 = sin01(uTime * 0.5);
+        float d2 = sin01(time());
         d2 *= 0.1;
-        // vec3 color = mix(uColors[0], uColors[1], smoothstep(-d2, d2, d));
         vec3 color = mix(uColors[0], uColors[1], smoothstep(0.001, 0.0, noisyBox()));
-        color = mix(color, uColors[2], smoothstep(0.001, 0.0, noisyCircle()));
+
+        float nc = noisyCircle();
+        vec3 circleColor = mix(uColors[1], uColors[2], nc + 1.0);
+        color = mix(color, circleColor, smoothstep(0.001, 0.0, nc));
         diffuseColor.rgb = color;
       `)
     const plane = new Mesh(planeGeometry, material)
     this.add(plane)
 
-    return { plane }
+    return {
+      plane,
+      planeUniforms: uniforms,
+      colors,
+    }
   })()
 }

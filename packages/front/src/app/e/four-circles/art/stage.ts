@@ -13,18 +13,34 @@ export function Stage() {
     setup(new CirclePlane, {
       parent: group,
       position: [d, d, 0],
+    }, circle => {
+      circle.parts.planeUniforms.uTimeCycleOffset.value = 0
+      circle.parts.colors[1].set('#fcff99')
+      circle.parts.colors[2].set('#170551')
     })
     setup(new CirclePlane, {
       parent: group,
       position: [d, -d, 0],
+    }, circle => {
+      circle.parts.planeUniforms.uTimeCycleOffset.value = .25
+      circle.parts.colors[1].set('#18188c')
+      circle.parts.colors[2].set('#72d9ab')
     })
     setup(new CirclePlane, {
       parent: group,
       position: [-d, -d, 0],
+    }, circle => {
+      circle.parts.planeUniforms.uTimeCycleOffset.value = .5
+      circle.parts.colors[1].set('#f3a3b3')
+      circle.parts.colors[2].set('#15093e')
     })
     setup(new CirclePlane, {
       parent: group,
       position: [-d, d, 0],
+    }, circle => {
+      circle.parts.planeUniforms.uTimeCycleOffset.value = .75
+      circle.parts.colors[1].set('#3b3426')
+      circle.parts.colors[2].set('#de2566')
     })
   }, [])
   return null
