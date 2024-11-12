@@ -47,9 +47,9 @@ class DepthOffsetTest extends Group {
     PRNG.reset()
     const colors = Array.from({ length: count }, () => PRNG.random() * 0xffffff)
     for (const it of loop2(col, row)) {
-      const x = (it.tx - .5) * (col - 1)
-      const y = (it.ty - .5) * (row - 1)
-      const z = (it.tx + it.ty) * .4
+      const x = (it.px - .5) * (col - 1)
+      const y = (it.py - .5) * (row - 1)
+      const z = (it.px + it.py) * .4
       mesh.setMatrixAt(it.i, makeMatrix4({ x, y, z, scaleScalar: 1.25 }))
       mesh.setColorAt(it.i, makeColor(PRNG.pick(colors)))
       aRand.setXYZW(it.i, PRNG.random(), PRNG.random(), PRNG.random(), PRNG.random())

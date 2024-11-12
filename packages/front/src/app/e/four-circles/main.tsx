@@ -2,7 +2,7 @@
 
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { onTick } from 'some-utils-ts/ticker'
+import { onTick, Ticker } from 'some-utils-ts/ticker'
 
 import { ThreeProvider, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
@@ -18,6 +18,8 @@ function Controller() {
       perspective: 0,
     })
     yield controls.initialize(three.renderer.domElement)
+    const ticker = Ticker.get('three')
+    ticker.set({ minActiveDuration: 60 })
     yield onTick('three', tick => {
       const { aspect, camera } = three
       controls.update(camera, aspect, tick.deltaTime)
