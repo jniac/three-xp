@@ -14,10 +14,10 @@ class Dial extends Group {
   parts = (() => {
     const lines = setup(new BigLines(), this)
     lines.position.z = 1
-    lines.thickness = 0.0125
+    lines.thickness = .025
     lines.parts.lines.material.color.set('#fcff99')
-    const rect1 = new Rectangle(0, 0).applyPadding(4 + .2, "grow")
-    const rect2 = new Rectangle(0, 0).applyPadding(4 + .4, "grow")
+    const rect1 = new Rectangle(0, 0).applyPadding(4.1 + .05, "grow")
+    const rect2 = new Rectangle(0, 0).applyPadding(4.2 + .05, "grow")
     for (const { t } of loop(60)) {
       const angle = (t + 0 / 60) * Math.PI * 2
       const x = Math.cos(angle)
