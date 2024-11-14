@@ -1,14 +1,15 @@
 'use client'
-
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
+import { PassType } from 'some-utils-three/contexts/webgl'
+import { setup } from 'some-utils-three/utils/tree'
 import { onTick, Ticker } from 'some-utils-ts/ticker'
 
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
-import { setup } from 'some-utils-three/utils/tree'
 import { Stage } from './stage'
 
 function Controller() {
@@ -30,6 +31,18 @@ function Controller() {
         document.body.requestFullscreen()
       }],
     ])
+
+    const aoPass = new GTAOPass(three.scene, three.camera)
+    aoPass.updatePdMaterial({
+      lumaPhi: 10,
+      depthPhi: 2,
+      normalPhi: 3,
+      radius: 100,
+      radiusExponent: 2,
+      rings: 2,
+      samples: 16,
+    })
+    three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
   }, [])
   return null
 }

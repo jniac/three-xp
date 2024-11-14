@@ -80,8 +80,6 @@ export class Stage extends Group {
         x: 0,
         z: -SIZE,
       })
-
-      console.log(chunk.getVoxelState(0, 2, 4).getUint8(0))
     }
 
     {
