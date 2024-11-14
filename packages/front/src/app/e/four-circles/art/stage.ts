@@ -14,12 +14,13 @@ class Dial extends Group {
   parts = (() => {
     const lines = setup(new BigLines(), this)
     lines.position.z = 1
-    lines.thickness = .025
-    lines.parts.lines.material.color.set('#fcff99')
+    lines.thickness = .0125
+    lines.parts.lines.material.color.set('#15093e')
+    lines.parts.lines.material.color.set('#95c3fb')
     const rect1 = new Rectangle(0, 0).applyPadding(4.1 + .05, "grow")
-    const rect2 = new Rectangle(0, 0).applyPadding(4.2 + .05, "grow")
+    const rect2 = new Rectangle(0, 0).applyPadding(6.2 + .05, "grow")
     for (const { t } of loop(60)) {
-      const angle = (t + 0 / 60) * Math.PI * 2
+      const angle = (t + .5 / 60) * Math.PI * 2
       const x = Math.cos(angle)
       const y = Math.sin(angle)
       const p1 = rect1.raycast(0, 0, x, y).getPointMin()
@@ -38,7 +39,7 @@ export function Stage() {
   useGroup('four-circles', function* (group) {
     setup(new SkyMesh({ color: '#e1dff1' }), group)
 
-    // setup(group, { rotationZ: '45deg' })
+    setup(group, { rotationZ: '45deg' })
 
     setup(new Dial(), {
       parent: group,
@@ -83,7 +84,8 @@ export function Stage() {
       position: [0, 0, -1],
     }, circle => {
       circle.parts.planeUniforms.uTimeCycleOffset.value = .75
-      circle.parts.colors[1].set('#fcff99')
+      circle.parts.colors[0].set('#e1dff1')
+      circle.parts.colors[1].set('#95c3fb')
       circle.parts.colors[2].set('#170551')
     })
   }, [])

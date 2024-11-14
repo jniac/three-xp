@@ -14,7 +14,7 @@ function Controller() {
   useThree(function* (three) {
     leak({ three })
     const controls = new VertigoControls({
-      size: 10,
+      size: 12.2,
       perspective: 0,
     })
     yield controls.initialize(three.renderer.domElement)
