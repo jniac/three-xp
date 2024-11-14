@@ -20,7 +20,14 @@ export function SummaryPage(props: Props) {
       {Object.entries(pages).map(([key, value]) => (
         <div key={key}>
           <span>
-            <Link href={`${path}/${value.metadata.slug}`}>
+            <Link
+              href={`${path}/${value.metadata.slug}`}
+              className='hover:underline hover:text-[#e08ac6]'
+              style={{
+                opacity: value.metadata.status === 'done' ? 1 : 0.5,
+                fontStyle: value.metadata.status === 'done' ? 'normal' : 'italic',
+              }}
+            >
               {value.metadata.title.toString()}
             </Link>
           </span>

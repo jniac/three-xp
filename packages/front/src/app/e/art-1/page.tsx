@@ -4,8 +4,8 @@ import { Leak } from '@/utils/leak'
 import { Art } from './art'
 
 export const metadata = new XpMetadata({
-  title: 'art-1',
   slug: 'art-1',
+  status: 'done',
   description: `
     # Color Dancing (Art Experiment 1)
   `,

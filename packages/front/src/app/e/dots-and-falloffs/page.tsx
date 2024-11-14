@@ -4,6 +4,7 @@ import { Main } from './main'
 
 export const metadata = new XpMetadata({
   slug: 'dots-and-falloffs',
+  status: 'done',
 })
 
 export default function DotsAndFalloffs() {

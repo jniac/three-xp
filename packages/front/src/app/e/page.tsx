@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
+
+import { SummaryPage } from '@/components/summary'
 
 import * as aoTransparent from './ao-transparent/page'
 import * as art1 from './art-1/page'
@@ -31,16 +32,11 @@ export const metadata: Metadata = {
 
 export default function ExperimentsPage() {
   return (
-    <div className='page'>
-      {Object.entries(experiments).map(([key, value]) => (
-        <div key={key}>
-          <span>
-            <Link href={`e/${value.metadata.slug}`} className='hover:underline hover:text-[#e08ac6]'>
-              {value.metadata.title?.toString()}
-            </Link>
-          </span>
-        </div>
-      ))}
-    </div>
+    <SummaryPage
+      className='ExperimentsPage'
+      path='e'
+      metadata={metadata}
+      pages={experiments}
+    />
   )
 }

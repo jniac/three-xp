@@ -3,8 +3,8 @@ import { XpMetadata } from '@/types'
 import { Main } from './main'
 
 export const metadata = new XpMetadata({
-  title: 'ao-transparent',
   slug: 'ao-transparent',
+  status: 'done',
   description: 'Ambient Occlusion and Transparent together',
 })
 

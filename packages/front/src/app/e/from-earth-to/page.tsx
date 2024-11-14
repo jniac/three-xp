@@ -4,6 +4,7 @@ import { Main } from './main'
 
 export const metadata = new XpMetadata({
   slug: 'from-earth-to',
+  status: 'done',
 })
 
 export default function FromEarthToPage() {

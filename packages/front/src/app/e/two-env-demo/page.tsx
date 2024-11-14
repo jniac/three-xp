@@ -6,8 +6,8 @@ import { Demo } from './demo'
 import styles from './styles.module.css'
 
 export const metadata = new XpMetadata({
-  title: 'two-env-demo',
   slug: 'two-env-demo',
+  status: 'done',
   description: `
     # Demo of two environments map blending
   `,
