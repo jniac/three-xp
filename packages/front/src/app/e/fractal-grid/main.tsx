@@ -2,13 +2,17 @@
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { onTick } from 'some-utils-ts/ticker'
+
+import { leak } from '@/utils/leak'
+
 import { FractalGrid } from './fractal-grid'
 import { ThreeProvider, useThree } from './three-provider'
 
 function Controller() {
   useThree(function* (three) {
+    leak({ three })
     const controls = new VertigoControls({
-      size: 6,
+      size: 24,
     })
     yield controls.initialize(three.renderer.domElement)
     yield onTick('three', tick => {
