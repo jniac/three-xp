@@ -124,18 +124,18 @@ class VoxelGridChunk extends Mesh {
     fromVector2Declaration(value, this._gridCoords)
     const { x, y } = this._gridCoords
 
-    const scalar = .5 ** y
-    this.scale.setScalar(scalar)
+    const p = .5 ** y
+    const q = p * .5 // .5 ** (y + 1)
 
-    let px = x * CHUNK_SCALE * CHUNK_COL * (.5 ** y)
-    let py = 0
-    let pz = x * CHUNK_SCALE * CHUNK_COL * (.5 ** y)
-    for (let i = Math.min(0, y); i < Math.max(0, y); i++) {
-      py += -CHUNK_SCALE * CHUNK_ROW * (.5 ** (i + 1)) * (i < 0 ? -1 : 1)
-      pz += CHUNK_SCALE * CHUNK_ROW * (.5 ** i) * (i < 0 ? -1 : 1)
-    }
+    const px = x * CHUNK_COL * p
+    const py = 2 * -CHUNK_ROW * (1 - q)
+    const pz = x * CHUNK_COL * p
+      + 2 * CHUNK_ROW * (1 - p)
 
-    this.position.set(px, py, pz)
+    this.scale.setScalar(p)
+    this.position
+      .set(px, py, pz)
+      .multiplyScalar(CHUNK_SCALE)
   }
 }
 
