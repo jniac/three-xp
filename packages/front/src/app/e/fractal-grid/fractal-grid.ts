@@ -83,7 +83,6 @@ class VoxelGridChunk extends Mesh {
     const chunk = new Chunk(128, 1)
 
     const p = new Vector3()
-    const q = new Vector3()
 
     const cube = (p: Vector3, size: number) => {
       for (const v of loop3(size, size, size)) {
@@ -96,23 +95,14 @@ class VoxelGridChunk extends Mesh {
 
     for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
       p.set(x, y, x + CHUNK_ROW - 1 - y)
-      q.x = BLOCK_SIZE * p.x
-      q.y = BLOCK_SIZE * (p.y + .5)
-      q.z = BLOCK_SIZE * p.z
-      cube(q, BLOCK_SIZE)
+        .multiplyScalar(BLOCK_SIZE)
+      cube(p, BLOCK_SIZE)
     }
 
-    const BS2 = BLOCK_SIZE / 2
-    for (let x = 0; x < CHUNK_COL; x++) {
-      p.set(x, 0, x + CHUNK_ROW - 1)
-      q.x = p.x * BLOCK_SIZE
-      q.y = p.y * BLOCK_SIZE
-      q.z = (p.z + 1) * BLOCK_SIZE
-      cube(q, BS2)
-      q.x += BS2
-      cube(q, BS2)
-      q.z += BS2
-      cube(q, BS2)
+    for (let x = 0; x < CHUNK_COL; x += 2) {
+      p.set(x + 1, CHUNK_ROW - 1, x)
+        .multiplyScalar(BLOCK_SIZE)
+      cube(p, BLOCK_SIZE)
     }
 
     const s = CHUNK_SCALE / BLOCK_SIZE
@@ -141,8 +131,8 @@ class VoxelGridChunk extends Mesh {
     let py = 0
     let pz = x * CHUNK_SCALE * CHUNK_COL * (.5 ** y)
     for (let i = Math.min(0, y); i < Math.max(0, y); i++) {
-      py += -CHUNK_SCALE * (CHUNK_ROW + .5) * (.5 ** (i + 1)) * (i < 0 ? -1 : 1)
-      pz += CHUNK_SCALE * (CHUNK_ROW + .5) * (.5 ** i) * (i < 0 ? -1 : 1)
+      py += -CHUNK_SCALE * CHUNK_ROW * (.5 ** (i + 1)) * (i < 0 ? -1 : 1)
+      pz += CHUNK_SCALE * CHUNK_ROW * (.5 ** i) * (i < 0 ? -1 : 1)
     }
 
     this.position.set(px, py, pz)
