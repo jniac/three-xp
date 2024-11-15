@@ -28,7 +28,7 @@ function Settings() {
       lumaPhi: 10,
       depthPhi: 2,
       normalPhi: 3,
-      radius: 1,
+      radius: 2,
       radiusExponent: 2,
       rings: 2,
       samples: 24,

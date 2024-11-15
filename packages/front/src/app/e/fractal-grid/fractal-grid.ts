@@ -1,14 +1,18 @@
-import { ColorRepresentation, Mesh, MeshBasicMaterial, PlaneGeometry, TorusKnotGeometry, Vector3 } from 'three'
+/* eslint-disable prefer-const */
+import { ColorRepresentation, Mesh, MeshBasicMaterial, PlaneGeometry, TorusKnotGeometry, Vector2, Vector3 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
+import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setvertexColors } from 'some-utils-three/utils/geometry'
 import { setup } from 'some-utils-three/utils/tree'
+import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
 
-import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
+import { PRNG } from 'some-utils-ts/random/prng'
 import { useGroup } from './three-provider'
 
 const blockSize = 4
@@ -53,16 +57,30 @@ class BasicGrid extends Mesh {
   }
 }
 
+const CHUNK_COL = 8
+const CHUNK_ROW = 4
+const CHUNK_SCALE = .5
 const BLOCK_SIZE = 4
 
-class VoxelGrid extends Mesh {
+class VoxelGridChunk extends Mesh {
+  _gridCoords: Vector2 = new Vector2()
+
+  siblings = {
+    ne: <VoxelGridChunk | null>null,
+    n: <VoxelGridChunk | null>null,
+    nw: <VoxelGridChunk | null>null,
+    w: <VoxelGridChunk | null>null,
+    sw: <VoxelGridChunk | null>null,
+    s1: <VoxelGridChunk | null>null,
+    s2: <VoxelGridChunk | null>null,
+    se: <VoxelGridChunk | null>null,
+    e: <VoxelGridChunk | null>null,
+  }
+
   constructor({
-    scale = 1,
-    col = 4,
-    row = 4,
-    color = <ColorRepresentation>'#fff',
+    color = <ColorRepresentation>(0xffffff * PRNG.random()),
   } = {}) {
-    const chunk = new Chunk(48, 1)
+    const chunk = new Chunk(128, 1)
 
     const p = new Vector3()
     const q = new Vector3()
@@ -76,35 +94,58 @@ class VoxelGrid extends Mesh {
       }
     }
 
-    for (const { x, y } of loop2(col, row)) {
-      p.set(x, y, x + col - y)
-      q.x = p.x * BLOCK_SIZE
-      q.y = p.y * BLOCK_SIZE + BLOCK_SIZE / 2
-      q.z = p.z * BLOCK_SIZE
+    for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
+      p.set(x, y, x + CHUNK_ROW - 1 - y)
+      q.x = BLOCK_SIZE * p.x
+      q.y = BLOCK_SIZE * (p.y + .5)
+      q.z = BLOCK_SIZE * p.z
       cube(q, BLOCK_SIZE)
     }
 
-    for (let x = 0; x < col; x++) {
-      p.set(x, 0, x + col)
+    const BS2 = BLOCK_SIZE / 2
+    for (let x = 0; x < CHUNK_COL; x++) {
+      p.set(x, 0, x + CHUNK_ROW - 1)
       q.x = p.x * BLOCK_SIZE
       q.y = p.y * BLOCK_SIZE
       q.z = (p.z + 1) * BLOCK_SIZE
-      cube(q, 2)
-      q.x += 2
-      cube(q, 2)
-      q.z += 2
-      cube(q, 2)
+      cube(q, BS2)
+      q.x += BS2
+      cube(q, BS2)
+      q.z += BS2
+      cube(q, BS2)
     }
 
-    const scaleScalar = scale / 2 / BLOCK_SIZE
+    const s = CHUNK_SCALE / BLOCK_SIZE
     const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
-      .scale(scaleScalar, scaleScalar, scaleScalar)
+      .scale(s, s, s)
 
     const material = new AutoLitMaterial({ color: '#fff' })
 
     super(geometry, material)
 
     setvertexColors(this.geometry, color)
+  }
+
+  get gridCoords() {
+    return this._gridCoords
+  }
+
+  setGridCoords(value: Vector2Declaration) {
+    fromVector2Declaration(value, this._gridCoords)
+    const { x, y } = this._gridCoords
+
+    const scalar = .5 ** y
+    this.scale.setScalar(scalar)
+
+    let px = x * CHUNK_SCALE * CHUNK_COL * (.5 ** y)
+    let py = 0
+    let pz = x * CHUNK_SCALE * CHUNK_COL * (.5 ** y)
+    for (let i = Math.min(0, y); i < Math.max(0, y); i++) {
+      py += -CHUNK_SCALE * (CHUNK_ROW + .5) * (.5 ** (i + 1)) * (i < 0 ? -1 : 1)
+      pz += CHUNK_SCALE * (CHUNK_ROW + .5) * (.5 ** i) * (i < 0 ? -1 : 1)
+    }
+
+    this.position.set(px, py, pz)
   }
 }
 
@@ -114,31 +155,26 @@ export function FractalGrid() {
       new TorusKnotGeometry(2.5, .025, 512, 32),
       new AutoLitMaterial({ color: '#0cf' })), group).visible = false
 
-    // setup(new BasicGrid(), group)
-    // setup(new BasicGrid({ color: 'red' }), { parent: group, x: blockSize * 3 * Math.SQRT2 })
-    const p1 = setup(new VoxelGrid({}), group)
-    const p2 = setup(new VoxelGrid({
-      scale: .5,
-      color: '#f5e532'
-    }), {
-      parent: group,
-      y: -(BLOCK_SIZE + .5) / 4,
-      z: (BLOCK_SIZE + 1) / 2,
-    })
-    const p3 = setup(new VoxelGrid({
-      scale: .25,
-      color: '#3532f5'
-    }), {
-      parent: group,
-      y: -(BLOCK_SIZE + .5) / 4 - (BLOCK_SIZE + .5) / 4 / 2,
-      z: (BLOCK_SIZE + 1) / 2 + (BLOCK_SIZE + 1) / 2 / 2,
-    })
+    const create = (x: number, y: number) => {
+      const chunk = setup(new VoxelGridChunk(), group)
+      chunk.setGridCoords([x, y])
+      return chunk
+    }
 
-    setvertexColors(p1.geometry, '#f5327d', 0, 10560 / 4)
+    PRNG.reset()
+    create(0, -1)
+    create(0, 0)
+    create(1, 0)
+    create(0, 1)
+    create(1, 1)
+    create(0, 2)
+    create(1, 2)
+    create(2, 2)
+    create(3, 2)
 
     setup(new SkyMesh({ color: '#110512' }), group)
 
-    setup(new Mesh(new AxesGeometry(), new MeshBasicMaterial({ vertexColors: true })), group).visible = false
+    setup(new Mesh(new AxesGeometry(), new MeshBasicMaterial({ vertexColors: true })), group)
 
   }, [])
 
