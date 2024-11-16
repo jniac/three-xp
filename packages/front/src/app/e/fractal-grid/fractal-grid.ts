@@ -1,18 +1,21 @@
 /* eslint-disable prefer-const */
-import { ColorRepresentation, Mesh, MeshBasicMaterial, PlaneGeometry, TorusKnotGeometry, Vector2, Vector3 } from 'three'
+import { ColorRepresentation, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, PlaneGeometry, TorusKnotGeometry, Vector2, Vector3 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
+import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setvertexColors } from 'some-utils-three/utils/geometry'
+import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
-
 import { PRNG } from 'some-utils-ts/random/prng'
+import { onTick } from 'some-utils-ts/ticker'
+
 import { useGroup } from './three-provider'
 
 const blockSize = 4
@@ -57,10 +60,12 @@ class BasicGrid extends Mesh {
   }
 }
 
-const CHUNK_COL = 8
+const CHUNK_COL = 6
 const CHUNK_ROW = 4
 const CHUNK_SCALE = .5
 const BLOCK_SIZE = 4
+// const CHUNK_GEOM_OFFSET = new Vector3(-CHUNK_COL * CHUNK_SCALE * .5, -CHUNK_ROW * CHUNK_SCALE / 2, -(CHUNK_COL - 1) * CHUNK_SCALE)
+const CHUNK_GEOM_OFFSET = new Vector3()
 
 class VoxelGridChunk extends Mesh {
   _gridCoords: Vector2 = new Vector2()
@@ -108,12 +113,51 @@ class VoxelGridChunk extends Mesh {
     const s = CHUNK_SCALE / BLOCK_SIZE
     const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
       .scale(s, s, s)
+      .translate(CHUNK_GEOM_OFFSET.x, CHUNK_GEOM_OFFSET.y, CHUNK_GEOM_OFFSET.z)
 
     const material = new AutoLitMaterial({ color: '#fff' })
 
     super(geometry, material)
 
     setvertexColors(this.geometry, color)
+    this.createDots()
+  }
+
+  getCornersCoords(out = [new Vector3(), new Vector3(), new Vector3(), new Vector3()] as const) {
+    out[0].set(0, 0, CHUNK_ROW).multiplyScalar(CHUNK_SCALE).add(CHUNK_GEOM_OFFSET)
+    out[1].set(0, CHUNK_ROW, 0).multiplyScalar(CHUNK_SCALE).add(CHUNK_GEOM_OFFSET)
+    out[2].set(CHUNK_COL, 0, CHUNK_ROW + CHUNK_COL - 1).multiplyScalar(CHUNK_SCALE).add(CHUNK_GEOM_OFFSET)
+    out[3].set(CHUNK_COL, CHUNK_ROW, CHUNK_COL).multiplyScalar(CHUNK_SCALE).add(CHUNK_GEOM_OFFSET)
+    return out
+  }
+
+  dots: InstancedMesh | null = null
+  createDots() {
+    const dots = new InstancedMesh(
+      new IcosahedronGeometry(.1, 8),
+      new AutoLitMaterial(),
+      4)
+    setup(dots, this)
+    for (const [index, position] of this.getCornersCoords().entries()) {
+      dots.setMatrixAt(index, makeMatrix4({ position }))
+      dots.setColorAt(index, makeColor('#ffffff'))
+    }
+    this.dots = dots
+    return this
+  }
+
+  updateDots(scope: Scope) {
+    if (!this.dots) {
+      this.createDots()
+    }
+    const dots = this.dots!
+    for (const [index, corner] of this.getCornersCoords().entries()) {
+      dots.setMatrixAt(index, makeMatrix4({ position: corner }))
+      const color = scope.isWithin(corner) ? '#00ffa6' : '#ff0000'
+      dots.setColorAt(index, makeColor(color))
+    }
+    dots.instanceMatrix.needsUpdate = true
+    dots.instanceColor!.needsUpdate = true
   }
 
   get gridCoords() {
@@ -128,7 +172,7 @@ class VoxelGridChunk extends Mesh {
     const q = p * .5 // .5 ** (y + 1)
 
     const px = x * CHUNK_COL * p
-    const py = 2 * -CHUNK_ROW * (1 - q)
+    const py = CHUNK_ROW * (2 * q - 1)
     const pz = x * CHUNK_COL * p
       + 2 * CHUNK_ROW * (1 - p)
 
@@ -139,8 +183,63 @@ class VoxelGridChunk extends Mesh {
   }
 }
 
+class Scope extends Group {
+  parts = (() => {
+    const axes = setup(new Mesh(new AxesGeometry(), new AutoLitMaterial({ vertexColors: true })), this)
+    const lines = setup(new LineHelper(), this)
+    return { axes, lines }
+  })()
+
+  state = {
+    width: 4,
+    height: 4,
+  }
+
+  uvw: [Vector3, Vector3, Vector3]
+  matrixWorldInverse = new Matrix4()
+
+  constructor() {
+    super()
+
+    this.matrixAutoUpdate = false
+
+    const u = new Vector3(1, 0, 1).normalize()
+    const v = new Vector3(0, 1, -1).normalize()
+    const w = new Vector3().crossVectors(u, v).normalize()
+
+    this.uvw = [u, v, w]
+
+    v.crossVectors(w, u).normalize()
+    this.matrix.makeBasis(u, v, w)
+    this.matrix.setPosition(new Vector3(0, 0, 4))
+    this.matrixWorld.copy(this.matrix)
+    this.matrixWorldInverse.copy(this.matrix).invert()
+  }
+
+  updateScope({ aspect = 1, width = 5 } = {}) {
+    const height = width / aspect
+    this.parts.lines
+      .clear()
+      .circle({ radius: 1 })
+      .rectangle([-width / 2, -height / 2, width, height])
+      .draw()
+
+    this.parts.lines.geometry.computeBoundingSphere()
+
+    this.state.width = width
+    this.state.height = height
+  }
+
+  isWithin(point: Vector3) {
+    const { x, y } = point.clone().applyMatrix4(this.matrixWorldInverse)
+    const { width, height } = this.state
+    return x >= -width / 2 && x <= width / 2
+      && y >= -height / 2 && y <= height / 2
+  }
+}
+
 export function FractalGrid() {
-  useGroup('fractal-grid', function* (group) {
+  useGroup('fractal-grid', function* (group, three) {
     setup(new Mesh(
       new TorusKnotGeometry(2.5, .025, 512, 32),
       new AutoLitMaterial({ color: '#0cf' })), group).visible = false
@@ -152,19 +251,20 @@ export function FractalGrid() {
     }
 
     PRNG.reset()
-    create(0, -1)
-    create(0, 0)
-    create(1, 0)
+    const chunk = create(0, 0)
+    Object.assign(window, { chunk })
     create(0, 1)
-    create(1, 1)
-    create(0, 2)
-    create(1, 2)
-    create(2, 2)
-    create(3, 2)
 
     setup(new SkyMesh({ color: '#110512' }), group)
 
-    setup(new Mesh(new AxesGeometry(), new MeshBasicMaterial({ vertexColors: true })), group)
+    const scope = setup(new Scope(), group)
+
+    yield onTick('three', () => {
+      scope.updateScope({ aspect: three.aspect })
+      chunk.updateDots(scope)
+    })
+
+    // setup(new Mesh(new AxesGeometry(), new MeshBasicMaterial({ vertexColors: true })), group)
 
   }, [])
 
