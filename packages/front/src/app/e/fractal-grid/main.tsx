@@ -3,22 +3,14 @@
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { PassType } from 'some-utils-three/contexts/webgl'
-import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
 
-import { CameraHandler } from './camera-handler'
 import { FractalGrid } from './fractal-grid'
 import { ThreeProvider, useThree } from './three-provider'
 
 function Settings() {
   useThree(function* (three) {
-    const cameraHandler = new CameraHandler()
-      .initialize(three.camera, three.renderer.domElement)
-    yield onTick('three', tick => {
-      cameraHandler.onTick(tick, three.aspect)
-    })
-
     const aoPass = new GTAOPass(three.scene, three.camera)
     aoPass.updatePdMaterial({
       lumaPhi: 10,
@@ -31,7 +23,7 @@ function Settings() {
     })
     yield three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
 
-    leak({ three, cameraHandler })
+    leak({ three })
   }, [])
   return null
 }

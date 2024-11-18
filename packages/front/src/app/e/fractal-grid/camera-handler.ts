@@ -1,14 +1,93 @@
-import { PerspectiveCamera } from 'three'
+import { PerspectiveCamera, Vector2 } from 'three'
 
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { fromAngleDeclaration } from 'some-utils-ts/declaration'
 import { DestroyableInstance } from 'some-utils-ts/misc/destroy'
-import { Tick } from 'some-utils-ts/ticker'
+import { onTick, Tick } from 'some-utils-ts/ticker'
+import { worldTangentVectors } from './voxel/math'
 import { Scope } from './voxel/scope'
+import { World } from './voxel/world'
 
 enum CameraHandlerMode {
   Free,
   Scope
+}
+
+class ScopeCameraHandler {
+  position = new Vector2()
+
+  private _destroyables = new DestroyableInstance()
+
+  element!: HTMLElement
+
+  vertigoControls = new VertigoControls({
+    perspective: .5,
+  })
+
+  initialize(element: HTMLElement): this {
+    this.element = element
+    return this
+  }
+
+  private *doStart(element: HTMLElement = this.element ?? document.body) {
+    yield handlePointer(element, {
+      onDrag: info => {
+        this.position.x += info.delta.x * .01
+        this.position.y += -info.delta.y * .01
+      },
+    })
+
+    yield onTick('three', tick => {
+      const world = World.current()
+      const scope = Scope.current()
+
+      const y = this.position.y
+      world.chunkGroup.position
+        .set(0, 0, 0)
+        .addScaledVector(worldTangentVectors.v, y)
+
+      const zoom = 2 ** (y / 4)
+      scope.scale.setScalar(1 / zoom)
+      this.vertigoControls.vertigo.set({ zoom })
+      this.vertigoControls.dampedVertigo.set({ zoom })
+    })
+  }
+
+  _started = false
+
+  start(...args: Parameters<typeof this.doStart>) {
+    if (this._started)
+      return
+
+    this._destroyables.collect(this.doStart(...args))
+
+    this._started = true
+  }
+
+  stop() {
+    if (!this._started)
+      return
+
+    this._destroyables.destroy()
+
+    this._started = false
+  }
+
+  toggle(start = !this._started) {
+    if (start) {
+      this.start()
+    } else {
+      this.stop()
+    }
+  }
+
+  destroy = () => {
+    this._destroyables.destroy()
+  }
+
+  update(camera: PerspectiveCamera, aspect: number, deltaTime: number) {
+    this.vertigoControls.update(camera, aspect, deltaTime)
+  }
 }
 
 export class CameraHandler {
@@ -17,9 +96,7 @@ export class CameraHandler {
 
   camera!: PerspectiveCamera
 
-  private _destroyables = new DestroyableInstance();
-
-  private _mode = CameraHandlerMode.Free;
+  private _mode = CameraHandlerMode.Free
   get mode() { return this._mode }
   set mode(value: CameraHandlerMode) { this.setMode(value) }
 
@@ -28,9 +105,7 @@ export class CameraHandler {
     perspective: 1,
   })
 
-  scopeVertigoControls = new VertigoControls({
-    perspective: .5,
-  })
+  scopeCameraHandler = new ScopeCameraHandler()
 
   constructor() {
     CameraHandler.instances.push(this)
@@ -38,6 +113,8 @@ export class CameraHandler {
 
   destroy = () => {
     this.freeVertigoControls.destroy()
+    this.scopeCameraHandler.destroy()
+
     const index = CameraHandler.instances.indexOf(this)
     if (index === -1) throw new Error(`CameraHandler instance not found`)
     CameraHandler.instances.splice(index, 1)
@@ -45,7 +122,13 @@ export class CameraHandler {
 
   initialize(camera: PerspectiveCamera, element: HTMLElement): this {
     this.camera = camera
-    this.freeVertigoControls.start(element)
+    this.freeVertigoControls.initialize(element).toggle(this._mode === CameraHandlerMode.Free)
+    this.scopeCameraHandler.initialize(element).toggle(this._mode === CameraHandlerMode.Scope)
+
+    const props = Scope.current().toVertigoProps()
+    this.scopeCameraHandler.vertigoControls.vertigo.set(props)
+    this.scopeCameraHandler.vertigoControls.dampedVertigo.set(props)
+
     return this
   }
 
@@ -56,29 +139,17 @@ export class CameraHandler {
 
     this._mode = value
     this.freeVertigoControls.toggle(value === CameraHandlerMode.Free)
+    this.scopeCameraHandler.toggle(value === CameraHandlerMode.Scope)
 
-    function toScope() {
-      const scope = Scope.current()
-
-      const [handler] = CameraHandler.instances
-      const { width, height } = scope.state
-
-      handler.mode = CameraHandler.Mode.Scope
-      handler.scopeVertigoControls.dampedVertigo.copy(handler.freeVertigoControls.dampedVertigo)
-
-      const rotation = scope.rotation.clone()
-      rotation.x += fromAngleDeclaration('20deg')
-      handler.scopeVertigoControls.vertigo.set({
-        size: [width, height],
-        focus: scope.position,
-        rotation: rotation,
-      })
+    const toScope = () => {
+      this.mode = CameraHandler.Mode.Scope
+      this.scopeCameraHandler.vertigoControls.dampedVertigo.copy(this.freeVertigoControls.dampedVertigo)
+      this.scopeCameraHandler.vertigoControls.vertigo.set(Scope.current().toVertigoProps())
     }
 
-    function toFree() {
-      const [handler] = CameraHandler.instances
-      handler.mode = CameraHandler.Mode.Free
-      handler.freeVertigoControls.dampedVertigo.copy(handler.scopeVertigoControls.dampedVertigo)
+    const toFree = () => {
+      this.mode = CameraHandler.Mode.Free
+      this.freeVertigoControls.dampedVertigo.copy(this.scopeCameraHandler.vertigoControls.dampedVertigo)
     }
 
     switch (value) {
@@ -100,7 +171,7 @@ export class CameraHandler {
         break
       }
       case CameraHandlerMode.Scope: {
-        this.scopeVertigoControls.update(this.camera, aspect, tick.deltaTime)
+        this.scopeCameraHandler.update(this.camera, aspect, tick.deltaTime)
         break
       }
     }

@@ -1,13 +1,15 @@
 /* eslint-disable prefer-const */
 import { Group, Matrix4, Mesh, Vector3 } from 'three'
 
-import { Vertigo } from 'some-utils-three/camera/vertigo'
+import { Vertigo, VertigoProps } from 'some-utils-three/camera/vertigo'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 
+import { fromAngleDeclaration } from 'some-utils-ts/declaration'
 import { CHUNK_CORNERS, VoxelGridChunk } from './chunk'
+import { worldTangentMatrix } from './math'
 
 export class Scope extends Group {
   static instances = [] as Scope[]
@@ -33,7 +35,6 @@ export class Scope extends Group {
     height: 4,
   }
 
-  uvw: [Vector3, Vector3, Vector3]
   matrixWorldInverse = new Matrix4()
 
   constructor() {
@@ -41,22 +42,13 @@ export class Scope extends Group {
 
     Scope.instances.push(this)
 
-    this.matrixAutoUpdate = false
+    this.position.set(0, 0, 6)
+    this.rotation.setFromRotationMatrix(worldTangentMatrix, Vertigo.default.rotation.order)
+    this.rotation.x += fromAngleDeclaration('20deg')
 
-    const u = new Vector3(1, 0, 1).normalize()
-    const v = new Vector3(0, 1, -1).normalize()
-    const w = new Vector3().crossVectors(u, v).normalize()
-
-    this.uvw = [u, v, w]
-
-    v.crossVectors(w, u).normalize()
-    this.matrix.makeBasis(u, v, w)
-    this.matrix.setPosition(new Vector3(0, 0, 6))
-    this.matrixWorld.copy(this.matrix)
-    this.matrixWorldInverse.copy(this.matrix).invert()
-
-    this.position.setFromMatrixPosition(this.matrix)
-    this.rotation.setFromRotationMatrix(this.matrix, Vertigo.default.rotation.order)
+    this.updateMatrix()
+    this.updateMatrixWorld()
+    this.matrixWorldInverse.copy(this.matrixWorld).invert()
   }
 
   destroy = () => {
@@ -127,5 +119,15 @@ export class Scope extends Group {
       }
     }
     return false
+  }
+
+  toVertigoProps(): VertigoProps {
+    const { width, height } = this.state
+    return {
+      perspective: .5,
+      size: [width, height],
+      focus: this.position,
+      rotation: this.rotation,
+    }
   }
 }

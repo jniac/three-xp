@@ -8,7 +8,6 @@ import { setup } from 'some-utils-three/utils/tree'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { fromAngleDeclaration } from 'some-utils-ts/declaration'
 import { CameraHandler } from './camera-handler'
 import { useGroup } from './three-provider'
 import { World } from './voxel/world'
@@ -27,32 +26,15 @@ export function FractalGrid() {
     world.scope.updateScope({ aspect: three.aspect })
     world.ensureScopeChunks()
 
-    yield onTick('three', () => {
+    const cameraHandler = new CameraHandler()
+      .initialize(three.camera, three.renderer.domElement)
+
+    yield onTick('three', tick => {
+      cameraHandler.onTick(tick, three.aspect)
       world.scope.updateScope({ aspect: three.aspect })
     })
 
-    function cameraToScope() {
-      const [handler] = CameraHandler.instances
-      const { width, height } = world.scope.state
-      handler.mode = CameraHandler.Mode.Scope
-      handler.scopeVertigoControls.dampedVertigo.copy(handler.freeVertigoControls.dampedVertigo)
-
-      const rotation = world.scope.rotation.clone()
-      rotation.x += fromAngleDeclaration('20deg')
-      handler.scopeVertigoControls.vertigo.set({
-        size: [width, height],
-        focus: world.scope.position,
-        rotation: rotation,
-      })
-    }
-
-    function cameraToFree() {
-      const [handler] = CameraHandler.instances
-      handler.mode = CameraHandler.Mode.Free
-      handler.freeVertigoControls.dampedVertigo.copy(handler.scopeVertigoControls.dampedVertigo)
-    }
-
-    Object.assign(window, { world, three, cameraToScope, cameraToFree })
+    Object.assign(window, { world, cameraHandler })
 
     setup(new Mesh(new AxesGeometry(), new AutoLitMaterial({ vertexColors: true })), group)
 

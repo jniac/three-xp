@@ -2,8 +2,8 @@
 import { Group, Vector2 } from 'three'
 
 import { setup } from 'some-utils-three/utils/tree'
-
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
+
 import { VoxelGridChunk } from './chunk'
 import { Scope } from './scope'
 
@@ -35,23 +35,44 @@ function* neighborsCoords(...args: [number, number] | [Vector2Declaration]): Gen
     }
   })()
 
-  yield _neighborsCoordsVector.set(Math.floor((x - 1) / 2), y - 1)
-  yield _neighborsCoordsVector.set(Math.floor((x + 1) / 2), y - 1)
-  yield _neighborsCoordsVector.set(x - 1, y)
-  yield _neighborsCoordsVector.set(x + 1, y)
-  yield _neighborsCoordsVector.set(x * 2 - 1, y + 1)
-  yield _neighborsCoordsVector.set(x * 2, y + 1)
-  yield _neighborsCoordsVector.set(x * 2 + 1, y + 1)
-  yield _neighborsCoordsVector.set(x * 2 + 2, y + 1)
+  const v = _neighborsCoordsVector
+  yield v.set(Math.floor((x - 1) / 2), y - 1)
+  yield v.set(Math.floor((x + 1) / 2), y - 1)
+  yield v.set(x - 1, y)
+  yield v.set(x + 1, y)
+  yield v.set(x * 2 - 1, y + 1)
+  yield v.set(x * 2, y + 1)
+  yield v.set(x * 2 + 1, y + 1)
+  yield v.set(x * 2 + 2, y + 1)
 }
 
 export class World extends Group {
+  static instances = [] as World[]
+  static current() {
+    if (this.instances.length === 0)
+      throw new Error(`No World!`)
+    return this.instances[this.instances.length - 1]
+  }
+
   scope = setup(new Scope(), this)
+  chunkGroup = setup(new Group(), this)
 
   chunks = new Map<number, VoxelGridChunk>()
 
+  constructor() {
+    super()
+    World.instances.push(this)
+  }
+
   destroy = () => {
     this.scope.destroy()
+    this.chunks.clear()
+    this.clear()
+
+    const index = World.instances.indexOf(this)
+    if (index === -1)
+      throw new Error(`World instance not found`)
+    World.instances.splice(index, 1)
   }
 
   getChunk(x: number, y: number) {
@@ -64,7 +85,7 @@ export class World extends Group {
     if (chunk) {
       return chunk
     } else {
-      const chunk = setup(new VoxelGridChunk({ world: this }), this)
+      const chunk = setup(new VoxelGridChunk({ world: this }), this.chunkGroup)
       this.chunks.set(combineCoords(x, y), chunk)
       chunk.setGridCoords([x, y])
       return chunk
