@@ -3,6 +3,7 @@ import { Group, Vector2 } from 'three'
 
 import { setup } from 'some-utils-three/utils/tree'
 
+import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 import { VoxelGridChunk } from './chunk'
 import { Scope } from './scope'
 
@@ -22,7 +23,18 @@ export function splitCoords(value: number, out = new Vector2()) {
 }
 
 const _neighborsCoordsVector = new Vector2()
-function* neighborsCoords(x: number, y: number) {
+function neighborsCoords(x: number, y: number): Generator<Vector2>
+function neighborsCoords(chunkCoords: Vector2Declaration): Generator<Vector2>
+function* neighborsCoords(...args: [number, number] | [Vector2Declaration]): Generator<Vector2> {
+  let [x, y] = (() => {
+    if (args.length === 1) {
+      const { x, y } = fromVector2Declaration(args[0])
+      return [x, y]
+    } else {
+      return args
+    }
+  })()
+
   yield _neighborsCoordsVector.set(Math.floor((x - 1) / 2), y - 1)
   yield _neighborsCoordsVector.set(Math.floor((x + 1) / 2), y - 1)
   yield _neighborsCoordsVector.set(x - 1, y)
@@ -37,6 +49,10 @@ export class World extends Group {
   scope = setup(new Scope(), this)
 
   chunks = new Map<number, VoxelGridChunk>()
+
+  destroy = () => {
+    this.scope.destroy()
+  }
 
   getChunk(x: number, y: number) {
     return this.chunks.get(combineCoords(x, y)) ?? null
@@ -63,10 +79,25 @@ export class World extends Group {
   }
 
   ensureScopeChunks() {
+    const processed = new Set<number>([combineCoords(0, 0)])
     const queue = [this.ensureChunk(0, 0)]
+    const MAX = 50
+    let count = 0
     while (queue.length > 0) {
+      if (count++ > MAX) {
+        console.error(`Exceeded maximum chunk count of ${MAX}`)
+        break
+      }
       const chunk = queue.pop()!
-      this.scope.chunkIntersects(chunk)
+      if (this.scope.chunkIntersects(chunk)) {
+        for (const coords of neighborsCoords(chunk.gridCoords)) {
+          const index = combineCoords(coords.x, coords.y)
+          if (!processed.has(index)) {
+            processed.add(index)
+            queue.push(this.ensureChunk(coords.x, coords.y))
+          }
+        }
+      }
     }
   }
 }

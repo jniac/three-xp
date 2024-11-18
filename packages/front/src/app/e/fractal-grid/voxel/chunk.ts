@@ -8,7 +8,7 @@ import { setvertexColors } from 'some-utils-three/utils/geometry'
 import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { Vector2Declaration } from 'some-utils-ts/declaration'
-import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
+import { loop2 } from 'some-utils-ts/iteration/loop'
 import { PRNG } from 'some-utils-ts/random/prng'
 
 import { Scope } from './scope'
@@ -16,7 +16,7 @@ import { World } from './world'
 
 export const CHUNK_COL = 6
 export const CHUNK_ROW = 4
-export const CHUNK_SCALE = .5
+export const CHUNK_SCALE = 1
 export const BLOCK_SIZE = 4
 
 export const CHUNK_CORNERS = [
@@ -40,29 +40,40 @@ export class VoxelGridChunk extends Mesh {
     const p = new Vector3()
 
     const cube = (p: Vector3, size: number) => {
-      for (const v of loop3(size, size, size)) {
-        const x = p.x + v.x
-        const y = p.y + v.y
-        const z = p.z + v.z
-        chunk.getVoxelState(x, y, z).setInt8(0, 1)
+      const { x: px, y: py, z: pz } = p
+      const xMax = px + size
+      const yMax = py + size
+      const zMax = pz + size
+      for (let z = pz; z < zMax; z++) {
+        for (let y = py; y < yMax; y++) {
+          for (let x = px; x < xMax; x++) {
+            chunk.getVoxelState(x, y, z).setInt8(0, 1)
+          }
+        }
       }
     }
 
     for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
-      p.set(x, y, x + CHUNK_ROW - 1 - y)
+      p
+        .set(x, y, x + CHUNK_ROW - 1 - y)
         .multiplyScalar(BLOCK_SIZE)
       cube(p, BLOCK_SIZE)
     }
 
+    // Add extra blocks to the top row
     for (let x = 0; x < CHUNK_COL; x += 2) {
-      p.set(x + 1, CHUNK_ROW - 1, x)
+      p
+        .set(x + 1, CHUNK_ROW - 1, x)
         .multiplyScalar(BLOCK_SIZE)
       cube(p, BLOCK_SIZE)
     }
 
     const s = CHUNK_SCALE / BLOCK_SIZE
+
+    console.time('geometry')
     const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
-      .scale(s, s, s)
+    console.timeEnd('geometry')
+    geometry.scale(s, s, s)
 
     const material = new AutoLitMaterial({ color: '#fff' })
 
