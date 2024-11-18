@@ -61,7 +61,7 @@ function Scene() {
     const vertigoControls = new VertigoControls({
       size: [8, 8],
     })
-    vertigoControls.initialize(editor.three.renderer.domElement)
+    vertigoControls.start(editor.three.renderer.domElement)
     yield onTick('three', tick => {
       vertigoControls.update(editor.three.camera, editor.three.aspect)
     })

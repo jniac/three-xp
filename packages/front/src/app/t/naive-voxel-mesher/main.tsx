@@ -19,7 +19,7 @@ function Controller() {
       size: 10,
       perspective: 1,
     })
-    yield controls.initialize(three.renderer.domElement)
+    yield controls.start(three.renderer.domElement)
     const ticker = Ticker.get('three')
     ticker.set({ minActiveDuration: 60 })
     yield onTick('three', tick => {

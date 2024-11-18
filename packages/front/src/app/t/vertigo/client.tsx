@@ -169,7 +169,7 @@ export function Client() {
     const camera = new PerspectiveCamera(75, 1, .1, 1000)
     camera.position.z = 5
 
-    yield vertigoControls.initialize(renderer.domElement)
+    yield vertigoControls.start(renderer.domElement)
 
     const scene = new VertigoScene()
 

@@ -86,7 +86,7 @@ function Stage() {
       perspective: .25,
       size: 4,
     })
-    controls.initialize(three.renderer.domElement)
+    controls.start(three.renderer.domElement)
     yield onTick('three', () => {
       controls.update(three.camera, three.aspect)
     })
