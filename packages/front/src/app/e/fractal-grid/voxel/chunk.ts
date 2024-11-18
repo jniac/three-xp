@@ -1,0 +1,126 @@
+/* eslint-disable prefer-const */
+import { ColorRepresentation, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
+
+import { fromVector2Declaration } from 'some-utils-three/declaration'
+import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
+import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { setvertexColors } from 'some-utils-three/utils/geometry'
+import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
+import { setup } from 'some-utils-three/utils/tree'
+import { Vector2Declaration } from 'some-utils-ts/declaration'
+import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
+import { PRNG } from 'some-utils-ts/random/prng'
+
+import { Scope } from './scope'
+import { World } from './world'
+
+export const CHUNK_COL = 6
+export const CHUNK_ROW = 4
+export const CHUNK_SCALE = .5
+export const BLOCK_SIZE = 4
+
+export const CHUNK_CORNERS = [
+  new Vector3(0, 0, CHUNK_ROW).multiplyScalar(CHUNK_SCALE),
+  new Vector3(0, CHUNK_ROW, 0).multiplyScalar(CHUNK_SCALE),
+  new Vector3(CHUNK_COL, 0, CHUNK_ROW + CHUNK_COL - 1).multiplyScalar(CHUNK_SCALE),
+  new Vector3(CHUNK_COL, CHUNK_ROW, CHUNK_COL).multiplyScalar(CHUNK_SCALE),
+]
+
+export class VoxelGridChunk extends Mesh {
+  _gridCoords: Vector2 = new Vector2()
+
+  world: World | null = null
+
+  constructor({
+    world = <World | null>null,
+    color = <ColorRepresentation>(0xffffff * PRNG.random()),
+  } = {}) {
+    const chunk = new Chunk(128, 1)
+
+    const p = new Vector3()
+
+    const cube = (p: Vector3, size: number) => {
+      for (const v of loop3(size, size, size)) {
+        const x = p.x + v.x
+        const y = p.y + v.y
+        const z = p.z + v.z
+        chunk.getVoxelState(x, y, z).setInt8(0, 1)
+      }
+    }
+
+    for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
+      p.set(x, y, x + CHUNK_ROW - 1 - y)
+        .multiplyScalar(BLOCK_SIZE)
+      cube(p, BLOCK_SIZE)
+    }
+
+    for (let x = 0; x < CHUNK_COL; x += 2) {
+      p.set(x + 1, CHUNK_ROW - 1, x)
+        .multiplyScalar(BLOCK_SIZE)
+      cube(p, BLOCK_SIZE)
+    }
+
+    const s = CHUNK_SCALE / BLOCK_SIZE
+    const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+      .scale(s, s, s)
+
+    const material = new AutoLitMaterial({ color: '#fff' })
+
+    super(geometry, material)
+
+    setvertexColors(this.geometry, color)
+
+    this.world = world
+  }
+
+  dots: InstancedMesh | null = null
+  createDots() {
+    const dots = new InstancedMesh(
+      new IcosahedronGeometry(.1, 8),
+      new AutoLitMaterial(),
+      4)
+    setup(dots, this)
+    for (const [index, position] of CHUNK_CORNERS.entries()) {
+      dots.setMatrixAt(index, makeMatrix4({ position }))
+      dots.setColorAt(index, makeColor('#ffffff'))
+    }
+    this.dots = dots
+    return this
+  }
+
+  updateDots(scope: Scope) {
+    if (!this.dots) {
+      this.createDots()
+    }
+    const dots = this.dots!
+    for (const [index, corner] of CHUNK_CORNERS.entries()) {
+      dots.setMatrixAt(index, makeMatrix4({ position: corner }))
+      const color = scope.isWithin(corner) ? '#00ffa6' : '#ff0000'
+      dots.setColorAt(index, makeColor(color))
+    }
+    dots.instanceMatrix.needsUpdate = true
+    dots.instanceColor!.needsUpdate = true
+  }
+
+  get gridCoords() {
+    return this._gridCoords
+  }
+
+  setGridCoords(value: Vector2Declaration) {
+    fromVector2Declaration(value, this._gridCoords)
+    const { x, y } = this._gridCoords
+
+    const p = .5 ** y
+    const q = p * .5 // .5 ** (y + 1)
+
+    const px = x * CHUNK_COL * p
+    const py = CHUNK_ROW * (2 * q - 1)
+    const pz = x * CHUNK_COL * p
+      + 2 * CHUNK_ROW * (1 - p)
+
+    this.scale.setScalar(p)
+    this.position
+      .set(px, py, pz)
+      .multiplyScalar(CHUNK_SCALE)
+  }
+}
