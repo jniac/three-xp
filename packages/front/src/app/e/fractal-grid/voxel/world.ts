@@ -138,4 +138,16 @@ export class World extends Group {
       }
     }
   }
+
+  white() {
+    for (const chunk of this.chunks.values()) {
+      chunk.material.color.set(0xffffff)
+    }
+  }
+
+  color() {
+    for (const chunk of this.chunks.values()) {
+      chunk.material.color.set(chunk.color)
+    }
+  }
 }

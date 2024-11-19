@@ -92,7 +92,7 @@ export class CameraHandler {
 
   camera!: PerspectiveCamera
 
-  private _mode = CameraHandlerMode.Free
+  private _mode = CameraHandlerMode.Scope
   get mode() { return this._mode }
   set mode(value: CameraHandlerMode) { this.setMode(value) }
 
