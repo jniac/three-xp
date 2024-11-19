@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { ColorRepresentation, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
+import { AxesHelper, ColorRepresentation, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
@@ -16,8 +16,8 @@ import { World } from './world'
 
 export const CHUNK_COL = 6
 export const CHUNK_ROW = 4
-export const CHUNK_SCALE = 1
 export const BLOCK_SIZE = 4
+export const CHUNK_SCALE = 1
 
 export const CHUNK_CORNERS = [
   new Vector3(0, 0, CHUNK_ROW).multiplyScalar(CHUNK_SCALE),
@@ -25,6 +25,22 @@ export const CHUNK_CORNERS = [
   new Vector3(CHUNK_COL, 0, CHUNK_ROW + CHUNK_COL - 1).multiplyScalar(CHUNK_SCALE),
   new Vector3(CHUNK_COL, CHUNK_ROW, CHUNK_COL).multiplyScalar(CHUNK_SCALE),
 ]
+
+export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
+  const p = .5 ** y
+  const q = p * .5 // .5 ** (y + 1)
+
+  const px = x * CHUNK_COL * p
+  const py = CHUNK_ROW * (2 * q - 1)
+  const pz = x * CHUNK_COL * p
+    + 2 * CHUNK_ROW * (1 - p)
+
+  return out
+    .set(px, py, pz)
+    .multiplyScalar(CHUNK_SCALE)
+}
+
+export const CHUNK_POSITION_LIMIT = new Vector3(0, -CHUNK_ROW, 2 * CHUNK_ROW)
 
 export class VoxelGridChunk extends Mesh {
   _gridCoords: Vector2 = new Vector2()
@@ -35,7 +51,8 @@ export class VoxelGridChunk extends Mesh {
     world = <World | null>null,
     color = <ColorRepresentation>(0xffffff * PRNG.random()),
   } = {}) {
-    const chunk = new Chunk(128, 1)
+    const MAX_VOXELS = Math.ceil(CHUNK_COL * CHUNK_ROW * BLOCK_SIZE * 1.2)
+    const chunk = new Chunk(MAX_VOXELS, 1)
 
     const p = new Vector3()
 
@@ -81,6 +98,8 @@ export class VoxelGridChunk extends Mesh {
 
     setvertexColors(this.geometry, color)
 
+    setup(new AxesHelper(), this)
+
     this.world = world
   }
 
@@ -120,18 +139,7 @@ export class VoxelGridChunk extends Mesh {
   setGridCoords(value: Vector2Declaration) {
     fromVector2Declaration(value, this._gridCoords)
     const { x, y } = this._gridCoords
-
-    const p = .5 ** y
-    const q = p * .5 // .5 ** (y + 1)
-
-    const px = x * CHUNK_COL * p
-    const py = CHUNK_ROW * (2 * q - 1)
-    const pz = x * CHUNK_COL * p
-      + 2 * CHUNK_ROW * (1 - p)
-
-    this.scale.setScalar(p)
-    this.position
-      .set(px, py, pz)
-      .multiplyScalar(CHUNK_SCALE)
+    this.scale.setScalar(.5 ** y)
+    fromChunkCoords(x, y, this.position)
   }
 }

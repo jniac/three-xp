@@ -4,7 +4,6 @@ import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { DestroyableInstance } from 'some-utils-ts/misc/destroy'
 import { onTick, Tick } from 'some-utils-ts/ticker'
-import { worldTangentVectors } from './voxel/math'
 import { Scope } from './voxel/scope'
 import { World } from './voxel/world'
 
@@ -15,6 +14,7 @@ enum CameraHandlerMode {
 
 class ScopeCameraHandler {
   position = new Vector2()
+  dampedPosition = new Vector2()
 
   private _destroyables = new DestroyableInstance()
 
@@ -41,15 +41,11 @@ class ScopeCameraHandler {
       const world = World.current()
       const scope = Scope.current()
 
-      const y = this.position.y
-      world.chunkGroup.position
-        .set(0, 0, 0)
-        .addScaledVector(worldTangentVectors.v, y)
+      this.dampedPosition.lerp(this.position, 1 - Math.exp(-tick.deltaTime * 10))
 
-      const zoom = 2 ** (y / 4)
-      scope.scale.setScalar(1 / zoom)
-      this.vertigoControls.vertigo.set({ zoom })
-      this.vertigoControls.dampedVertigo.set({ zoom })
+      const y = this.dampedPosition.y
+      const scale = 2 ** (y * .33)
+      world.chunkWrapper.scale.setScalar(scale)
     })
   }
 

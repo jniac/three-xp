@@ -1,10 +1,11 @@
 /* eslint-disable prefer-const */
-import { Group, Vector2 } from 'three'
+import { AxesHelper, Group, IcosahedronGeometry, Mesh, Vector2 } from 'three'
 
 import { setup } from 'some-utils-three/utils/tree'
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 
-import { VoxelGridChunk } from './chunk'
+import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { CHUNK_POSITION_LIMIT, VoxelGridChunk } from './chunk'
 import { Scope } from './scope'
 
 export function combineCoords(x: number, y: number) {
@@ -54,8 +55,24 @@ export class World extends Group {
     return this.instances[this.instances.length - 1]
   }
 
+  origin = setup(new AxesHelper(), {
+    parent: this,
+    position: CHUNK_POSITION_LIMIT,
+  })
+
+  chunkWrapper = setup(new Group(), {
+    parent: this,
+    position: CHUNK_POSITION_LIMIT,
+  })
+  chunkGroup = setup(new Group(), {
+    parent: this.chunkWrapper,
+    position: CHUNK_POSITION_LIMIT.clone().negate(),
+  })
+  sphere = setup(new Mesh(new IcosahedronGeometry(1, 8), new AutoLitMaterial({ wireframe: true })), {
+    parent: this.chunkWrapper,
+  })
+
   scope = setup(new Scope(), this)
-  chunkGroup = setup(new Group(), this)
 
   chunks = new Map<number, VoxelGridChunk>()
 
