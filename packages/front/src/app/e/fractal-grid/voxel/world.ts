@@ -10,7 +10,7 @@ import { Scope } from './scope'
 
 export function combineCoords(x: number, y: number) {
   if (x < -0x8000 || x >= 0x8000 || y < -0x8000 || y >= 0x8000) {
-    throw new RangeError(`x and y must be in the range -0x8000 to 0x7fff`)
+    throw new RangeError(`x and y must be in the range -0x8000 to 0x7fff, received: ${x} (0x${x.toString(16)}), ${y} (0x${y.toString(16)})`)
   }
   x += 0x8000
   y += 0x8000
@@ -119,7 +119,7 @@ export class World extends Group {
   ensureScopeChunks() {
     const processed = new Set<number>([combineCoords(0, 0)])
     const queue = [this.ensureChunk(0, 0)]
-    const MAX = 50
+    const MAX = 100
     let count = 0
     while (queue.length > 0) {
       if (count++ > MAX) {

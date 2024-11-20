@@ -57,7 +57,8 @@ export class Scope extends Group {
     Scope.instances.splice(index, 1)
   }
 
-  updateScope({ aspect = 1, width = 4 } = {}) {
+  updateScope({ aspect = 1, size = 4 } = {}) {
+    const width = aspect > 1 ? size : size * aspect
     const height = width / aspect
 
     if (width === this.state.width && height === this.state.height)
