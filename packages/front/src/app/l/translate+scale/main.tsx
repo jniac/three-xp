@@ -5,6 +5,7 @@ import { Color, Group, IcosahedronGeometry, Mesh, Vector3 } from 'three'
 import { ToolType } from 'some-three-editor/editor-context'
 import { hierarchyDeployDownTo } from 'some-three-editor/editor-context/actions'
 import { ThreeAndEditorProvider, useEditor, useThree } from 'some-three-editor/editor-provider'
+import { SimpleGridHelper } from 'some-utils-three/helpers/grid'
 import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
@@ -29,10 +30,19 @@ class TranslatePlusScale extends Group {
       name: 'pivot',
       parent: this,
     }),
+    position: setup(new Group(), {
+      name: 'position',
+      parent: this,
+    }),
+    grid: setup(new SimpleGridHelper(), {
+      name: 'grid',
+      parent: this,
+      rotationX: '90deg',
+    }),
   }
 
   onTick(tick: Tick) {
-    const { sphere, pivot } = this.parts
+    const { sphere, pivot, position } = this.parts
 
     const scale = tick.lerpSin01Time(.5, 1.5, { frequency: 1 / 5 })
     const translate = new Vector3()
@@ -42,7 +52,7 @@ class TranslatePlusScale extends Group {
     sphere.matrixAutoUpdate = false
     sphere.matrix
       .makeScale(scale, scale, scale)
-      .setPosition(translate)
+      .setPosition(translate.add(position.position))
   }
 }
 
