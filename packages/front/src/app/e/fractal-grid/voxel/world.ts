@@ -1,11 +1,11 @@
 /* eslint-disable prefer-const */
-import { AxesHelper, Group, IcosahedronGeometry, Mesh, Vector2 } from 'three'
+import { AxesHelper, Group, Vector2 } from 'three'
 
 import { setup } from 'some-utils-three/utils/tree'
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { CHUNK_POSITION_LIMIT, VoxelGridChunk } from './chunk'
+import { VoxelGridChunk } from './chunk'
+import { CHUNK_POSITION_LIMIT, WORLD_EULER, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
 import { Scope } from './scope'
 
 export function combineCoords(x: number, y: number) {
@@ -58,19 +58,26 @@ export class World extends Group {
   origin = setup(new AxesHelper(), {
     parent: this,
     position: CHUNK_POSITION_LIMIT,
+    rotation: WORLD_EULER,
   })
 
-  chunkWrapper = setup(new Group(), {
-    parent: this,
-    position: CHUNK_POSITION_LIMIT,
-  })
   chunkGroup = setup(new Group(), {
-    parent: this.chunkWrapper,
-    position: CHUNK_POSITION_LIMIT.clone().negate(),
+    parent: this,
   })
-  sphere = setup(new Mesh(new IcosahedronGeometry(1, 8), new AutoLitMaterial({ wireframe: true })), {
-    parent: this.chunkWrapper,
-  })
+
+  setChunkGroupScale(scale: number) {
+    const p = this.scope.position.clone()
+      .applyMatrix4(WORLD_MATRIX_INVERSE)
+    p.y = 0
+    p.z = 0
+    p.applyMatrix4(WORLD_MATRIX)
+
+    this.chunkGroup.position
+      .copy(p)
+      .addScaledVector(p, -scale)
+    this.chunkGroup.scale
+      .setScalar(scale)
+  }
 
   scope = setup(new Scope(), this)
 

@@ -10,22 +10,11 @@ import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
 import { PRNG } from 'some-utils-ts/random/prng'
 
+import { CHUNK_COL, CHUNK_CORNERS, CHUNK_ROW, CHUNK_SCALE, CHUNK_SIZE } from './math'
 import { Scope } from './scope'
 import { World } from './world'
 
-export const CHUNK_COL = 6
-export const CHUNK_ROW = 4
-export const BLOCK_SIZE = 4
-export const CHUNK_SCALE = 1
-
-export const CHUNK_SIZE = new Vector3(CHUNK_COL, CHUNK_ROW, CHUNK_COL + CHUNK_ROW - 1)
-
-export const CHUNK_CORNERS = [
-  new Vector3(0, 0, CHUNK_ROW).multiplyScalar(CHUNK_SCALE),
-  new Vector3(0, CHUNK_ROW, 0).multiplyScalar(CHUNK_SCALE),
-  new Vector3(CHUNK_COL, 0, CHUNK_ROW + CHUNK_COL - 1).multiplyScalar(CHUNK_SCALE),
-  new Vector3(CHUNK_COL, CHUNK_ROW, CHUNK_COL).multiplyScalar(CHUNK_SCALE),
-]
+const CHUNK_BLOCK_SIZE = 4
 
 export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
   const p = .5 ** y
@@ -40,8 +29,6 @@ export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
     .set(px, py, pz)
     .multiplyScalar(CHUNK_SCALE)
 }
-
-export const CHUNK_POSITION_LIMIT = new Vector3(0, -CHUNK_ROW, 2 * CHUNK_ROW)
 
 function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   const { x: px, y: py, z: pz } = p
@@ -98,7 +85,7 @@ function isCavity(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
 }
 
 function getSomeSummits(chunk: Chunk, stride = 2) {
-  const size = CHUNK_SIZE.clone().multiplyScalar(BLOCK_SIZE / stride)
+  const size = CHUNK_SIZE.clone().multiplyScalar(CHUNK_BLOCK_SIZE / stride)
   const result = [] as Vector3[]
   for (const it of loop3(size)) {
     const x = it.x * stride
@@ -113,7 +100,7 @@ function getSomeSummits(chunk: Chunk, stride = 2) {
 }
 
 function getSomeCavities(chunk: Chunk, stride = 2) {
-  const size = CHUNK_SIZE.clone().multiplyScalar(BLOCK_SIZE / stride)
+  const size = CHUNK_SIZE.clone().multiplyScalar(CHUNK_BLOCK_SIZE / stride)
   const result = [] as Vector3[]
   for (const it of loop3(size)) {
     const x = it.x * stride
@@ -139,7 +126,7 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     color = <ColorRepresentation>(0xffffff * PRNG.random()),
     // color = <ColorRepresentation>0xffffff,
   } = {}) {
-    const MAX_VOXELS = Math.ceil(CHUNK_COL * CHUNK_ROW * BLOCK_SIZE * 1.2)
+    const MAX_VOXELS = Math.ceil(CHUNK_COL * CHUNK_ROW * CHUNK_BLOCK_SIZE * 1.2)
     const chunk = new Chunk(MAX_VOXELS, 1)
 
     const p = new Vector3()
@@ -147,22 +134,22 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
       p
         .set(x, y, x + CHUNK_ROW - 1 - y)
-        .multiplyScalar(BLOCK_SIZE)
-      cube(chunk, p, BLOCK_SIZE)
+        .multiplyScalar(CHUNK_BLOCK_SIZE)
+      cube(chunk, p, CHUNK_BLOCK_SIZE)
     }
 
     // Add extra blocks to the top row
     for (let x = 0; x < CHUNK_COL; x += 2) {
       p
         .set(x + 1, CHUNK_ROW - 1, x)
-        .multiplyScalar(BLOCK_SIZE)
-      cube(chunk, p, BLOCK_SIZE)
+        .multiplyScalar(CHUNK_BLOCK_SIZE)
+      cube(chunk, p, CHUNK_BLOCK_SIZE)
 
       if (PRNG.chance(.8)) {
         p
           .set(x + 1, CHUNK_ROW, x)
-          .multiplyScalar(BLOCK_SIZE)
-        cube(chunk, p, BLOCK_SIZE)
+          .multiplyScalar(CHUNK_BLOCK_SIZE)
+        cube(chunk, p, CHUNK_BLOCK_SIZE)
       }
     }
 
@@ -193,7 +180,7 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     console.time('geometry')
     const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
     console.timeEnd('geometry')
-    const s = CHUNK_SCALE / BLOCK_SIZE
+    const s = CHUNK_SCALE / CHUNK_BLOCK_SIZE
     geometry.scale(s, s, s)
 
     const material = new AutoLitMaterial({ color })

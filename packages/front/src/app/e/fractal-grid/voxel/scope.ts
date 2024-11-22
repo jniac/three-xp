@@ -1,15 +1,13 @@
 /* eslint-disable prefer-const */
-import { Group, Matrix4, Mesh, Vector3 } from 'three'
+import { Group, Matrix4, Vector3 } from 'three'
 
 import { Vertigo, VertigoProps } from 'some-utils-three/camera/vertigo'
-import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { LineHelper } from 'some-utils-three/helpers/line'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 
 import { fromAngleDeclaration } from 'some-utils-ts/declaration'
-import { CHUNK_CORNERS, VoxelGridChunk } from './chunk'
-import { worldTangentMatrix } from './math'
+import { VoxelGridChunk } from './chunk'
+import { CHUNK_CORNERS, WORLD_MATRIX } from './math'
 
 export class Scope extends Group {
   static instances = [] as Scope[]
@@ -21,10 +19,6 @@ export class Scope extends Group {
 
   parts = (() => {
     return {
-      axes: setup(new Mesh(new AxesGeometry(), new AutoLitMaterial({ vertexColors: true })), {
-        parent: this,
-        visible: false,
-      }),
       lines: setup(new LineHelper(), this),
       debugLines: setup(new LineHelper(), this),
     }
@@ -43,7 +37,7 @@ export class Scope extends Group {
     Scope.instances.push(this)
 
     this.position.set(0, 0, 6)
-    this.rotation.setFromRotationMatrix(worldTangentMatrix, Vertigo.default.rotation.order)
+    this.rotation.setFromRotationMatrix(WORLD_MATRIX, Vertigo.default.rotation.order)
     this.rotation.x += fromAngleDeclaration('20deg')
 
     this.updateMatrix()
