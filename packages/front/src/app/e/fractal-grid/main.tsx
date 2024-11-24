@@ -3,6 +3,8 @@
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { PassType } from 'some-utils-three/contexts/webgl'
+import { lerp } from 'some-utils-ts/math/basic'
+import { calculateExponentialDecayLerpRatio, calculateExponentialDecayLerpRatio2 } from 'some-utils-ts/math/misc/exponential-decay'
 
 import { leak } from '@/utils/leak'
 
@@ -23,7 +25,12 @@ function Settings() {
     })
     yield three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
 
-    leak({ three })
+    leak({
+      three,
+      calculateExponentialDecayLerpRatio,
+      calculateExponentialDecayLerpRatio2,
+      lerp,
+    })
   }, [])
   return null
 }

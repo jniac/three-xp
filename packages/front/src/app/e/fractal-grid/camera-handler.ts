@@ -4,7 +4,6 @@ import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { DestroyableInstance } from 'some-utils-ts/misc/destroy'
 import { onTick, Tick } from 'some-utils-ts/ticker'
-import { WORLD_BASIS } from './voxel/math'
 import { Scope } from './voxel/scope'
 import { World } from './voxel/world'
 
@@ -34,29 +33,19 @@ class ScopeCameraHandler {
   private *doStart(element: HTMLElement = this.element ?? document.body) {
     yield handlePointer(element, {
       onDrag: info => {
-        this.position.x += info.delta.x * .005 / this.scale
-        this.position.y += -info.delta.y * .01
+        const world = World.current()
+        world.scopeCoordinates.x += info.delta.x * .005 / world.worldScale
+        world.scopeCoordinates.y += -info.delta.y * .01
       },
     })
 
     yield onTick('three', tick => {
       const world = World.current()
-      const scope = Scope.current()
+      world.scopeUpdate(tick.deltaTime)
 
-      this.dampedPosition.lerp(this.position, 1 - Math.exp(-tick.deltaTime * 10))
-
-      scope.position
-        .set(0, 0, 6)
-        .addScaledVector(WORLD_BASIS.U, -this.dampedPosition.x)
-
-      this.vertigoControls.vertigo.set({ focus: scope.position })
-      this.vertigoControls.dampedVertigo.set({ focus: scope.position })
-
-      const y = this.dampedPosition.y
-      const scale = 2 ** (y * .33)
-      world.setChunkGroupScale(scale)
-
-      this.scale = scale
+      const focus = world.scope.position
+      this.vertigoControls.vertigo.set({ focus })
+      this.vertigoControls.dampedVertigo.set({ focus })
     })
   }
 

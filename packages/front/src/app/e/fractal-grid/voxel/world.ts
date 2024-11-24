@@ -1,11 +1,12 @@
 /* eslint-disable prefer-const */
-import { AxesHelper, Group, Vector2 } from 'three'
+import { AxesHelper, Group, Vector2, Vector3 } from 'three'
 
 import { setup } from 'some-utils-three/utils/tree'
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 
+import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
 import { VoxelGridChunk } from './chunk'
-import { CHUNK_POSITION_LIMIT, WORLD_EULER, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
+import { CHUNK_POSITION_LIMIT, WORLD_BASIS, WORLD_EULER, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
 import { Scope } from './scope'
 
 export function combineCoords(x: number, y: number) {
@@ -65,21 +66,40 @@ export class World extends Group {
     parent: this,
   })
 
-  setChunkGroupScale(scale: number) {
-    const p = this.scope.position.clone()
+  scopeCoordinates = new Vector2()
+  dampedScopeCoordinates = new Vector2()
+  worldScale = 1
+  scopeOriginPoint = new Vector3()
+
+  scope = setup(new Scope(), this)
+
+  scopeUpdate(deltaTime: number) {
+    const r = calculateExponentialDecayLerpRatio(.0001, deltaTime)
+    this.dampedScopeCoordinates.lerp(this.scopeCoordinates, r)
+
+    const { x, y } = this.dampedScopeCoordinates
+    this.scope.position
+      .set(0, 0, 6)
+      .addScaledVector(WORLD_BASIS.U, -x)
+
+    this.worldScale = 2 ** (y * .33)
+    this.setChunkGroupScale(this.worldScale)
+  }
+
+  private setChunkGroupScale(scale: number) {
+    this.scopeOriginPoint
+      .copy(this.scope.position)
       .applyMatrix4(WORLD_MATRIX_INVERSE)
-    p.y = 0
-    p.z = 0
-    p.applyMatrix4(WORLD_MATRIX)
+    this.scopeOriginPoint.y = 0
+    this.scopeOriginPoint.z = 0
+    this.scopeOriginPoint.applyMatrix4(WORLD_MATRIX)
 
     this.chunkGroup.position
-      .copy(p)
-      .addScaledVector(p, -scale)
+      .copy(this.scopeOriginPoint)
+      .addScaledVector(this.scopeOriginPoint, -scale)
     this.chunkGroup.scale
       .setScalar(scale)
   }
-
-  scope = setup(new Scope(), this)
 
   chunks = new Map<number, VoxelGridChunk>()
 
