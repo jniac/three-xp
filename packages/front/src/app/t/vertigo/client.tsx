@@ -26,7 +26,7 @@ import { VertigoWidgetPlane } from './VertigoWidgetPlane'
 
 import s from './vertigo.module.css'
 
-function VertigSerializedView({ vertigo }: { vertigo: Vertigo }) {
+function VertigoSerializedView({ vertigo }: { vertigo: Vertigo }) {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     yield onTick('three', { timeInterval: 1 / 6 }, () => {
       div.querySelector('pre')!.textContent =
@@ -371,7 +371,7 @@ export function Client() {
 
         <div className='Space flex-1 pointer-events-none' />
 
-        <VertigSerializedView
+        <VertigoSerializedView
           vertigo={vertigoControls.vertigo} />
       </div>
     </div>
