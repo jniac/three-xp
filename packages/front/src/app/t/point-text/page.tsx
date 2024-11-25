@@ -2,13 +2,12 @@ import { XpMetadata } from '@/types'
 import { Client } from './client'
 
 export const metadata = new XpMetadata({
-  slug: 'vertigo',
-  status: 'done',
+  slug: 'point-text',
 })
 
-export default function VertigoWidgetPage() {
+export default function PointTextPage() {
   return (
-    <div className='VertigoWidgetPage page'>
+    <div className='PointTextPage page'>
       <Client />
     </div>
   )
