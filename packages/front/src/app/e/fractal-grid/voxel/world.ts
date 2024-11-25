@@ -80,7 +80,7 @@ export class World extends Group {
     const { x, y } = this.dampedScopeCoordinates
     this.scope.position
       .set(0, 0, 6)
-      .addScaledVector(WORLD_BASIS.U, -x)
+      .addScaledVector(WORLD_BASIS.U, x)
 
     this.worldScale = 2 ** (y * .33)
     this.setChunkGroupScale(this.worldScale)

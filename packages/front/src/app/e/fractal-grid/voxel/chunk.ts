@@ -30,6 +30,41 @@ export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
     .multiplyScalar(CHUNK_SCALE)
 }
 
+export function toChunkCoords(px: number, py: number, pz?: number, out?: Vector2): Vector2
+export function toChunkCoords(p: Vector3, out?: Vector2): Vector2
+export function toChunkCoords(...args: any[]) {
+  let px = 0, py = 0
+  let out: Vector2 | undefined
+
+  if (typeof args[0] === 'number') {
+    [px, py] = args
+    out = args[3] ?? new Vector2()
+  } else {
+    const [p] = args
+    px = p.x
+    py = p.y
+    out = args[1] ?? new Vector2()
+  }
+
+  px /= CHUNK_SCALE
+  py /= CHUNK_SCALE
+
+  // Step 1: Compute `y` from `py`
+  const q = (py / CHUNK_ROW + 1) / 2
+  const y = -Math.log2(q) - 1
+
+  // Step 2: Compute `p` from `y`
+  const p = 0.5 ** y
+
+  // Step 3: Compute `x` from `px`
+  const x = px / (CHUNK_COL * p)
+
+  return out!.set(x, y)
+}
+
+console.log(toChunkCoords(fromChunkCoords(3, 2)))
+console.log(toChunkCoords(fromChunkCoords(-5, 21)))
+
 function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   const { x: px, y: py, z: pz } = p
   const xMax = px + size
@@ -232,5 +267,13 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     const { x, y } = this._gridCoords
     this.scale.setScalar(.5 ** y)
     fromChunkCoords(x, y, this.position)
+  }
+
+  toWhite() {
+    this.material.color.set(0xffffff)
+  }
+
+  toColor() {
+    this.material.color.set(this.color)
   }
 }

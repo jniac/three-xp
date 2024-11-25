@@ -34,7 +34,7 @@ class ScopeCameraHandler {
     yield handlePointer(element, {
       onDrag: info => {
         const world = World.current()
-        world.scopeCoordinates.x += info.delta.x * .005 / world.worldScale
+        world.scopeCoordinates.x += -info.delta.x * .005 / world.worldScale
         world.scopeCoordinates.y += -info.delta.y * .01
       },
     })
