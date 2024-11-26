@@ -49,10 +49,11 @@ export class TextHelper extends InstancedMesh {
     const material = new MeshBasicMaterial({
       map: atlas.texture,
       transparent: true,
+      alphaTest: .5,
     })
     material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines({
-        // BILLBOARD: ''
+        BILLBOARD: ''
       })
       .uniforms({
         uLineLength: { value: options.lineLength },
@@ -61,18 +62,17 @@ export class TextHelper extends InstancedMesh {
       })
       .vertex.replace('project_vertex', /* glsl */`
         vec4 mvPosition = vec4(transformed, 1.0);
-        mvPosition = instanceMatrix * mvPosition;
 
 #if defined(BILLBOARD)
         mat3 v = mat3(viewMatrix);
         v = inverse(v);
         mat4 m = mat4(v);
-        m[3] = vec4(viewMatrix[3].xyz, 1.0);
+        m[3] = vec4(instanceMatrix[3].xyz, 1.0);
 #else
-        mat4 m = modelMatrix;
+        mat4 m = instanceMatrix;
 #endif
 
-        mvPosition = viewMatrix * m * mvPosition;
+        mvPosition = viewMatrix * modelMatrix * m * mvPosition;
         gl_Position = projectionMatrix * mvPosition;  
       `)
       .fragment.replace('map_fragment', /* glsl */`

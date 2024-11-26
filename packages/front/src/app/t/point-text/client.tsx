@@ -1,5 +1,5 @@
 'use client'
-import { IcosahedronGeometry, Mesh } from 'three'
+import { IcosahedronGeometry, Matrix4, Mesh } from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -15,7 +15,8 @@ export function Setup() {
   useThree(function* (three) {
     yield () => three.scene.clear()
 
-    setup(new Mesh(new IcosahedronGeometry(10, 10), new AutoLitMaterial({ wireframe: true })), three.scene)
+    const sphere = setup(new Mesh(new IcosahedronGeometry(200, 40), new AutoLitMaterial({ wireframe: true })), three.scene)
+    console.log(sphere.geometry.attributes.position.count)
 
     const controls = new VertigoControls()
     controls
@@ -27,6 +28,17 @@ export function Setup() {
     })
 
     setup(new TextHelper(), three.scene)
+
+    const { array, count: textCount } = sphere.geometry.attributes.position
+    const textHelper2 = setup(new TextHelper({ textCount }), three.scene)
+    let x = 0, y = 0, z = 0
+    const m = new Matrix4().identity()
+    for (let i = 0; i < textCount; i++) {
+      x = array[i * 3]
+      y = array[i * 3 + 1]
+      z = array[i * 3 + 2]
+      textHelper2.setMatrixAt(i, m.makeTranslation(x, y, z))
+    }
   }, [])
   return null
 }
