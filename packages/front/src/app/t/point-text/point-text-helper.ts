@@ -126,9 +126,6 @@ export class TextHelper extends InstancedMesh {
     const dataTextureArray = new Uint8Array(DATA_TEXTURE_WIDTH * dataTextureHeight * 4)
     const dataTexture = new DataTexture(dataTextureArray, DATA_TEXTURE_WIDTH, dataTextureHeight, RGBAFormat, UnsignedByteType)
     dataTexture.needsUpdate = true
-    dataTexture.colorSpace = 'srgb-linear'
-
-    console.log({ dataStride, dataRequiredByteSize })
 
     const colors = [new Color('#ffffcc'), new Color('#ff7ef6'), new Color('blue'), new Color('yellow')]
     for (let i = 0, max = options.textCount; i < max; i++) {
@@ -138,21 +135,14 @@ export class TextHelper extends InstancedMesh {
       dataTextureArray[offset + 1] = g * 255
       dataTextureArray[offset + 2] = b * 255
       for (let j = 0; j < options.lineCount; j++) {
-        // dataTextureArray[offset + DATA_INFO_BYTE_SIZE + j * 4] = options.lineLength // lines length
-        // Fake data:
-        dataTextureArray[offset + DATA_INFO_BYTE_SIZE + j * 4] = 255 // lines length
-        // dataTextureArray[offset + DATA_INFO_BYTE_SIZE + j * 4] = options.lineLength * (i % 2 ? .5 : 1) - j// lines length
-
-        for (let k = 0; k < options.lineLength; k++) {
-          // dataTextureArray[offset + DATA_INFO_BYTE_SIZE + options.lineCount + j * 4 * options.lineLength + k] = k
-        }
+        dataTextureArray[offset + DATA_INFO_BYTE_SIZE + j * 4] = options.lineLength // lines length
       }
     }
 
     const material = new MeshBasicMaterial({
       map: atlas.texture,
       transparent: true,
-      // alphaTest: .5,
+      alphaTest: .5,
       side: DoubleSide,
     })
     material.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -160,6 +150,9 @@ export class TextHelper extends InstancedMesh {
         BILLBOARD: options.orientation === Orientation.Billboard ? 1 : 0,
       })
       .uniforms({
+        uOrientation: { value: options.orientation },
+        uPlaneSize: { value: planeSize },
+        uCharSize: { value: options.charSize },
         uLineLength: { value: options.lineLength },
         uLineCount: { value: options.lineCount },
         uAtlasLength: { value: atlas.symbols.length },
@@ -167,10 +160,12 @@ export class TextHelper extends InstancedMesh {
         uDataHeaderByteSize: { value: dataHeaderByteSize },
         uDataRequiredByteSize: { value: dataRequiredByteSize },
         uDataTexture: { value: dataTexture },
+        uBoxBorderWidth: { value: 0 }, // debug border
       })
       .varying({
         'vInstanceId': 'float',
         'vColor': 'vec3',
+        'vCurrentLineCount': 'float',
       })
       .top(/* glsl */`
         vec4 getData4(int instanceId, int offset) {
@@ -182,9 +177,9 @@ export class TextHelper extends InstancedMesh {
         vec4 getData4(float instanceId, int offset) {
           return getData4(int(instanceId), offset);
         }
-        vec2 getCharOffset(float instanceId, float line, float char) {
-          // return vec2(line * 82.0 + char, 0.0) / uAtlasLength;
-          int p = int(uDataHeaderByteSize + line * uLineLength + char);
+          
+        vec2 getCharOffset(float instanceId, float charIndex) {
+          int p = int(uDataHeaderByteSize + charIndex);
           int q = p / 4;
           int r = p - q * 4; // p % 4;
           vec4 charIndexes = getData4(instanceId, q);
@@ -193,52 +188,84 @@ export class TextHelper extends InstancedMesh {
           x /= uAtlasLength;
           return vec2(x, 0.0);
         }
+        vec2 getCharOffset(float instanceId, float line, float char) {
+          // return vec2(line * 82.0 + char, 0.0) / uAtlasLength;
+          return getCharOffset(instanceId, line * uLineLength + char);
+        }
       `)
       .vertex.replace('project_vertex', /* glsl */`
         vec4 dataTexel = getData4(gl_InstanceID, 0);
         vColor = dataTexel.rgb;
-        // vColor = vec3(255.0, 53.0, 235.0) / 255.0;
+        vCurrentLineCount = dataTexel.a * 255.0;
 
         vec4 mvPosition = vec4(transformed, 1.0);
 
-#if defined(BILLBOARD) && BILLBOARD == 1
-        // localMatrix: camera rotation + instance translation
-        mat3 v = mat3(viewMatrix);
-        v = inverse(v);
-        mat4 localMatrix = mat4(v);
-        localMatrix[3] = vec4(instanceMatrix[3].xyz, 1.0);
-#else
         mat4 localMatrix = instanceMatrix;
-#endif
+
+        if (uOrientation == 1.0) {
+          mat3 v = mat3(viewMatrix);
+          v = inverse(v);
+          localMatrix = mat4(v);
+          localMatrix[3] = vec4(instanceMatrix[3].xyz, 1.0);
+        }
 
         mvPosition = viewMatrix * modelMatrix * localMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;
 
         vInstanceId = float(gl_InstanceID);
       `)
+      .fragment.top(/* glsl */`
+        float sdBox(in vec2 p, in vec2 b) {
+          vec2 d = abs(p) - b;
+          return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+        }
+
+        vec4 getCharColor() {
+          vec2 uv = vMapUv * vec2(uLineLength, uLineCount);
+
+          uv.y += (uLineCount - vCurrentLineCount) * 0.5;
+          float lineIndex = floor((uLineCount - uv.y));
+
+          if (lineIndex < 0.0 || lineIndex >= vCurrentLineCount)
+            discard;
+
+          float currentLineLength = getData4(vInstanceId, 1 + int(lineIndex)).r * 255.0;
+          // vec2 ddx = dFdx(uv);
+          // vec2 ddy = dFdy(uv);
+          uv.x += (uLineLength - currentLineLength) * -0.5;
+          float charIndex = floor(uv.x);
+
+          if (charIndex < 0.0 || charIndex >= currentLineLength)
+            discard;
+
+          uv = fract(uv);
+          // diffuseColor = vec4(uv, 1.0, 1.0);
+          uv.x /= uAtlasLength;
+
+          uv += getCharOffset(vInstanceId, lineIndex, charIndex);
+          // float lod = log2(max(length(dFdx(vMapUv)), length(dFdy(vMapUv))));
+          vec4 sampledDiffuseColor = textureLod(map, uv, 0.0);
+          // Use textureGrad for better quality, when the square texture will be used
+          // vec4 sampledDiffuseColor = textureGrad(map, uv, ddx, ddy);
+          
+          vec3 color = vColor;
+          float alpha = sampledDiffuseColor.r;
+          return vec4(color, alpha);
+        }
+
+        vec4 getCharColorWithBorder() {
+          if (uBoxBorderWidth > 0.0) {
+            vec2 p = (vMapUv - 0.5) * uPlaneSize;
+            float d = sdBox(p, uPlaneSize * 0.5) + uBoxBorderWidth;
+            if (d > 0.0) {
+              return vec4(vColor, 1.0);
+            }
+          }
+          return getCharColor();
+        }
+      `)
       .fragment.replace('map_fragment', /* glsl */`
-        vec2 uv = vMapUv;
-        // vec2 ddx = dFdx(uv);
-        // vec2 ddy = dFdy(uv);
-        uv *= vec2(uLineLength, uLineCount);
-        uv = fract(uv);
-        // diffuseColor = vec4(uv, 1.0, 1.0);
-        uv.x *= 1.0 / uAtlasLength;
-        float charIndex = floor(uLineLength * vMapUv.x);
-        float lineIndex = floor(uLineCount * (1.0 - vMapUv.y));
-
-        float currentLineLength = getData4(vInstanceId, 1 + int(lineIndex)).r * 255.0;
-        if (charIndex >= currentLineLength)
-          discard;
-
-        uv += getCharOffset(vInstanceId, lineIndex, charIndex);
-        // float lod = log2(max(length(dFdx(vMapUv)), length(dFdy(vMapUv))));
-        vec4 sampledDiffuseColor = textureLod(map, uv, 0.0);
-        // Use textureGrad for better quality, when the square texture will be used
-        // vec4 sampledDiffuseColor = textureGrad(map, uv, ddx, ddy);
-        diffuseColor.a *= sampledDiffuseColor.r;
-        diffuseColor.rgb *= vColor;
-        diffuseColor.a += 0.01;
+        diffuseColor = getCharColorWithBorder();
       `)
     super(geometry, material, options.textCount)
 
@@ -277,15 +304,6 @@ export class TextHelper extends InstancedMesh {
       return line
     })
 
-    // Useless (trim() above)
-    // while (!lines[0]) {
-    //   lines.shift()
-    // }
-
-    // while (!lines[lines.length - 1]) {
-    //   lines.pop()
-    // }
-
     const { atlas } = this
     const { dataTextureArray, dataTexture } = this.internal
     const { dataStride, dataHeaderByteSize } = this.derived
@@ -299,11 +317,13 @@ export class TextHelper extends InstancedMesh {
     dataTextureArray[offset + 3] = lines.length
 
     const currentLineCount = lines.length
-    console.log({ dataHeaderByteSize }, lineLength * lineCount)
     for (let i = 0; i < lineCount; i++) {
-      dataTextureArray[offset + DATA_INFO_BYTE_SIZE + i * 4] = lines[i].length
+      let currentLineLength = 0
+      if (i < currentLineCount) {
+        dataTextureArray[offset + DATA_INFO_BYTE_SIZE + i * 4] = lines[i].length
+        currentLineLength = lines[i].length
+      }
       const lineOffset = offset + dataHeaderByteSize + i * lineLength
-      const currentLineLength = lines[i].length
       for (let j = 0; j < lineLength; j++) {
         const k = lineOffset + j
         if (i >= currentLineCount || j >= currentLineLength) {
@@ -317,8 +337,9 @@ export class TextHelper extends InstancedMesh {
     }
 
     this.setMatrixAt(index, makeMatrix4(options))
+  }
 
-    console.log(getDataStringView(atlas, dataTextureArray, dataStride, lineCount))
-    console.log(this.material.un)
+  getDataStringView(start = 0, length = 3) {
+    return getDataStringView(this.atlas, this.internal.dataTextureArray, this.derived.dataStride, this.options.lineCount, start, length)
   }
 }

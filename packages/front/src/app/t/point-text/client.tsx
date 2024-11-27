@@ -1,5 +1,5 @@
 'use client'
-import { IcosahedronGeometry, Mesh } from 'three'
+import { IcosahedronGeometry, Mesh, Vector3 } from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -9,7 +9,6 @@ import { onTick } from 'some-utils-ts/ticker'
 import { TextHelper } from './point-text-helper'
 import { ThreeProvider, useThree } from './three-provider'
 
-import { makeMatrix4 } from 'some-utils-three/utils/make'
 import s from './client.module.css'
 
 export function Setup() {
@@ -28,26 +27,33 @@ export function Setup() {
 
     const text1 = setup(new TextHelper({
       textCount: 3,
+      // orientation: TextHelper.Orientation.Billboard,
     }), three.scene)
     text1.setTextAt(0, 'Hello, World!!!\nTest?!', { y: 0, color: '#ff4080' })
-    text1.setMatrixAt(1, makeMatrix4({ y: .7 }))
+    text1.setTextAt(1, 'bonjour', { y: .7, color: '#4080ff' })
     text1.setTextAt(2, 'FooBar\n!!!', { y: 1.4, color: '#ff8040' })
-
+    console.log(text1.getDataStringView())
 
     Object.assign(window, { controls, text1 })
 
-    const sphere = setup(new Mesh(new IcosahedronGeometry(200, 10), new AutoLitMaterial({ wireframe: true })), three.scene)
-    // console.log(sphere.geometry.attributes.position.count)
-    // const { array, count: textCount } = sphere.geometry.attributes.position
-    // const textHelper2 = setup(new TextHelper({ textCount, textSize: 4, orientation: TextHelper.Orientation.Normal }), three.scene)
-    // let x = 0, y = 0, z = 0
-    // const m = new Matrix4().identity()
-    // for (let i = 0; i < textCount; i++) {
-    //   x = array[i * 3]
-    //   y = array[i * 3 + 1]
-    //   z = array[i * 3 + 2]
-    //   textHelper2.setMatrixAt(i, m.makeTranslation(x, y, z))
-    // }
+    const sphere = setup(new Mesh(new IcosahedronGeometry(200, 40), new AutoLitMaterial({ wireframe: true })), three.scene)
+    const { array, count } = sphere.geometry.attributes.position
+    const textCount = count / 3
+    console.log({ textCount })
+    const textHelper2 = setup(new TextHelper({
+      textCount,
+      textSize: 2.75,
+      orientation: TextHelper.Orientation.Billboard,
+    }), three.scene)
+    const v1 = new Vector3()
+    const v2 = new Vector3()
+    for (let i = 0; i < textCount; i++) {
+      const { x, y, z } = v1.fromArray(array, i * 9)
+        .add(v2.fromArray(array, i * 9 + 3))
+        .add(v2.fromArray(array, i * 9 + 6))
+        .divideScalar(3)
+      textHelper2.setTextAt(i, `${i}`, { x, y, z, color: '#99ccff' })
+    }
   }, [])
   return null
 }
