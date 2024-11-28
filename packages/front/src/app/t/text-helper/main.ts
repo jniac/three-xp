@@ -10,7 +10,9 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
-import { TextHelper } from './point-text-helper'
+
+import { loop2 } from 'some-utils-ts/iteration/loop'
+import { TextHelper } from './text-helper'
 
 const colors = [
   new Color('#ff4080'),
@@ -23,9 +25,13 @@ export function* main(three: ThreeWebglContext) {
 
   PRNG.reset()
 
+  const testOptions = {
+    grid: true
+  }
+
   const skyColor = new Color('#09121b')
   const fog = new FogExp2(skyColor, 0.05)
-  three.scene.fog = fog
+  // three.scene.fog = fog
   three.scene.background = skyColor
 
   const controls = new VertigoControls({
@@ -39,18 +45,56 @@ export function* main(three: ThreeWebglContext) {
     fog.density = remap(controls.vertigo.zoom, 1, 0, .05, 0)
     controls.vertigo.zoom
   })
-
   let totalTextCount = 0
 
   const th1 = setup(new TextHelper({
     textCount: 3,
-    // lineLength: 32,
-    // lineCount: 4,
+    lineLength: 32,
+    lineCount: 4,
     orientation: TextHelper.Orientation.Normal,
   }), three.scene)
-  th1.setTextAt(0, 'Hello, World!!!', { y: 0, color: colors[0] })
-  th1.setTextAt(2, 'À l’âge mûr, où l’été s’achève, il était déjà prêt.\nNoël, sì! Señor', { y: -.7, color: colors[1] })
+  th1.setTextAt(0, ' Hello \n World \n !!! ', {
+    y: 0,
+    textColor: colors[0],
+    textOpacity: 0,
+    backgroundColor: colors[0],
+    backgroundOpacity: 1,
+  })
+  th1.setTextAt(2, 'À l’âge mûr,\noù l’été s’achève,\nil était déjà prêt.\nNoël, sì! Señor', {
+    y: -1.2,
+    textColor: colors[1],
+  })
+  // console.log(th1.getDataStringView(0, 3))
+
   totalTextCount += th1.options.textCount
+
+  if (testOptions.grid) {
+    const side = 2
+
+    const text = setup(new TextHelper({
+      textCount: side * side,
+      textSize: 1,
+      lineLength: 12,
+      orientation: TextHelper.Orientation.Billboard,
+    }), three.scene)
+
+    for (const it of loop2(side, side)) {
+      const str = `${it.i}\n(${it.x}, ${it.y})`
+      text.setTextAt(it.i, str, {
+        x: (it.px - .5) * side * 2,
+        y: (it.py - .5) * side * 2,
+      })
+    }
+
+    // text.setTextAt(0, 'foo', { x: -2 })
+    // text.setTextAt(1, 'bar', { x: 2 })
+    // text.setTextAt(2, 'qux', { y: 2 })
+    // text.setTextAt(3, 'baz', { y: -2 })
+    // console.log(text.getDataStringView(0, 4))
+  }
+
+  // console.log(th1.getDataStringView(0, 3))
+  return
 
   {
     const sphere = setup(new Mesh(
@@ -81,8 +125,9 @@ export function* main(three: ThreeWebglContext) {
     const th3 = setup(new TextHelper({
       textSize: 5,
       textCount: count,
-      // lineCount: 3,
     }), three.scene)
+    console.log(th3.derived.dataTextureSize)
+
     const v = new Vector3()
     const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
     for (let i = 0; i < count; i++) {
@@ -94,8 +139,11 @@ export function* main(three: ThreeWebglContext) {
     totalTextCount += th3.options.textCount
   }
 
-  th1.setTextAt(1, `text count: ${totalTextCount}`, { y: .7, color: '#4080ff' })
-  console.log(th1.getDataStringView())
+  th1.setTextAt(1, `text count: ${totalTextCount}`, {
+    y: 1,
+    color: '#4080ff',
+  })
+  // console.log(th1.getDataStringView())
 
   setup(new Mesh(new TorusGeometry(3, .1), new AutoLitMaterial({
     color: colors[2],
