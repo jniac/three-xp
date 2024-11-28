@@ -2,12 +2,12 @@ import { XpMetadata } from '@/types'
 import { Client } from './client'
 
 export const metadata = new XpMetadata({
-  slug: 'point-text',
+  slug: 'text-helper',
 })
 
-export default function PointTextPage() {
+export default function TextHelperPage() {
   return (
-    <div className='PointTextPage page'>
+    <div className='TextHelperPage page'>
       <Client />
     </div>
   )

@@ -60,7 +60,7 @@ export class TextHelperAtlas {
     const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     const diacritics = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
     const numbers = '0123456789'
-    const punctuation = ' .,!?:;-+*/=%&|()[]{}<>$\'’"'
+    const punctuation = ' .,!?¿:;-+*/=%&|()[]{}<>$\'’"'
     const symbols = [...new Set([unknown, ...alphabet, ...diacritics, ...numbers, ...punctuation])].join('')
     const charSize = new Vector2(16, 24)
     const pixelRatio = 3

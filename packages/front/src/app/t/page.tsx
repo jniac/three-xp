@@ -2,8 +2,8 @@ import { SummaryPage } from '@/components/summary'
 import { Metadata } from 'next'
 
 import * as easingGraph from './easing-graph/page'
-import * as pointText from './point-text/page'
 import * as shaderXplr from './shader-xplr/page'
+import * as pointText from './text-helper/page'
 import * as vertigo from './vertigo/page'
 
 export const metadata: Metadata = {
