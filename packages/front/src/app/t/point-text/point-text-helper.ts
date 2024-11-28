@@ -13,9 +13,11 @@ function getDataStringView(atlas: TextHelperAtlas, dataTextureArray: Uint8Array,
     const a = dataTextureArray[offset + 3]
     return [r, g, b, a]
   }).slice(start * dataStride / 4, length * dataStride / 4)
+
   const withHeader = [] as string[]
   withHeader.push(`\nData texture array (${dataTextureArray.length} bytes):`)
   withHeader.push(`\ndataStride: ${dataStride} (${dataStride / 4} x 4 bytes)`)
+
   for (let i = 0; i < packed.length; i++) {
     const line = i % (dataStride / 4)
     if (line === 0) {
@@ -35,6 +37,7 @@ function getDataStringView(atlas: TextHelperAtlas, dataTextureArray: Uint8Array,
     }
     withHeader.push('  ' + str)
   }
+
   return withHeader.join('\n')
 }
 
@@ -51,9 +54,14 @@ const DATA_INFO_BYTE_SIZE = 4
 export class TextHelperAtlas {
   texture: CanvasTexture
   symbols: string
+
   constructor() {
+    const unknown = '�'
     const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const symbols = `�${alphabet}0123456789 .,!?:;-+*/=%&|()[]{}<>`
+    const diacritics = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
+    const numbers = '0123456789'
+    const punctuation = ' .,!?:;-+*/=%&|()[]{}<>$\'’"'
+    const symbols = [...new Set([unknown, ...alphabet, ...diacritics, ...numbers, ...punctuation])].join('')
     const charSize = new Vector2(16, 24)
     const pixelRatio = 3
     const fullCharSize = charSize.clone().multiplyScalar(pixelRatio)
@@ -88,7 +96,7 @@ const defaultOptions = {
   lineCount: 2,
   charSize: new Vector2(.2, .3),
   textSize: 1,
-  orientation: Orientation.Normal,
+  orientation: Orientation.Billboard,
 }
 
 type SetTextOption = TransformDeclaration & Partial<{

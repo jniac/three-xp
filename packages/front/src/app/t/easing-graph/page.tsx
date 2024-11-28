@@ -1,11 +1,12 @@
 import { SVGProps } from 'react'
 
+import { easing } from 'some-utils-ts/math/easings'
+
 import { XpMetadata } from '@/types'
-import { elasticInPlace } from 'some-utils-ts/math/easings'
 
 const defaultPlotProps = {
   fn: (x: number) => x,
-  subdivisions: 500,
+  subdivisions: 400,
 }
 
 type PlotProps = Partial<typeof defaultPlotProps> & SVGProps<SVGPolylineElement>
@@ -37,8 +38,17 @@ function Graph({
           </g>
         </g>
         <g>
-          <Plot stroke='#f90' fn={x => elasticInPlace(x)} />
-          <Plot stroke='#fc6' fn={x => elasticInPlace(x, 5, 3)} />
+          <Plot stroke='#bdf' fn={x => easing.bump.cos(x)} />
+          <Plot stroke='#acf' fn={x => easing.bump.pow(x, 3)} />
+          <Plot stroke='#6af' fn={x => easing.bump.iqPower(x, 4, 2)} />
+          <Plot stroke='#6af' fn={x => easing.bump.iqPower(x, 5, .5)} />
+
+          <Plot stroke='#f60' fn={x => easing.bump.elastic(x, 10, 5)} opacity={.25} />
+          <Plot stroke='#f93' fn={x => easing.bump.elastic(x, 5, 3)} />
+          <Plot stroke='#fc6' fn={x => easing.bump.elastic(x)} />
+          <Plot stroke='#f60' fn={x => easing.bump.unnormalizedElastic(x, 10, 5)} opacity={.25} />
+          <Plot stroke='#f93' fn={x => easing.bump.unnormalizedElastic(x, 5, 3)} />
+          <Plot stroke='#fc6' fn={x => easing.bump.unnormalizedElastic(x)} />
         </g>
       </g>
     </svg>
