@@ -3,7 +3,7 @@ import { ColorRepresentation, Vector2 } from 'three'
 import { makeColor } from 'some-utils-three/utils/make'
 import { ceilPowerOfTwo, toff } from 'some-utils-ts/math/basic'
 
-import { DATA_INFO_BYTE_SIZE } from './constants-and-enums'
+import { DATA_HEADER_INFO_BYTE_SIZE } from './constants-and-enums'
 
 export type SetTextOption = Partial<{
   /**
@@ -38,12 +38,14 @@ export class TextData {
   readonly array: Uint8Array
 
   constructor(textCount: number, lineCount: number, lineLength: number) {
-    const header = DATA_INFO_BYTE_SIZE + lineCount * 4
+    const header = DATA_HEADER_INFO_BYTE_SIZE + lineCount * 4
     const stride = header + Math.ceil((lineCount * lineLength) / 4) * 4
     const bytes = header + textCount * stride
     const pixels = Math.ceil(bytes / 4)
-    const width = Math.sqrt(ceilPowerOfTwo(pixels))
+    const width = ceilPowerOfTwo(Math.sqrt(pixels))
     const height = Math.ceil(pixels / width)
+
+    console.log({ width, height }, `(${width * height} total pixels, ${pixels} used pixels)`)
 
     this.textCount = textCount
     this.lineCount = lineCount
@@ -110,7 +112,7 @@ export class TextData {
     for (let i = 0; i < lineCount; i++) {
       let currentLineLength = 0
       if (i < currentLineCount) {
-        dataTextureArray[offset + DATA_INFO_BYTE_SIZE + i * 4] = lines[i].length
+        dataTextureArray[offset + DATA_HEADER_INFO_BYTE_SIZE + i * 4] = lines[i].length
         currentLineLength = lines[i].length
       }
       const lineOffset = offset + dataHeaderByteSize + i * lineLength

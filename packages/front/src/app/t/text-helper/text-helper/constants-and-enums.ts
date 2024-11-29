@@ -12,9 +12,7 @@
  *
  * Should be a multiple of 4.
  */
-export const DATA_INFO_BYTE_SIZE = 3 * 4
-
-export const DATA_TEXTURE_WIDTH = 1024
+export const DATA_HEADER_INFO_BYTE_SIZE = 3 * 4
 
 export enum Orientation {
   Normal,
