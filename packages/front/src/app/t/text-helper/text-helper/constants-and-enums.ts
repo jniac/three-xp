@@ -15,6 +15,7 @@
 export const DATA_INFO_BYTE_SIZE = 3 * 4
 
 export const DATA_TEXTURE_WIDTH = 1024
+
 export enum Orientation {
   Normal,
   Billboard

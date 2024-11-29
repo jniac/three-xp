@@ -1,12 +1,12 @@
-import { ColorRepresentation, DataTexture, DoubleSide, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
+import { DataTexture, DoubleSide, DynamicDrawUsage, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
-import { toff } from 'some-utils-ts/math/basic'
+import { makeMatrix4 } from 'some-utils-three/utils/make'
 
 import { TextHelperAtlas } from './atlas'
-import { DATA_INFO_BYTE_SIZE, DATA_TEXTURE_WIDTH, Orientation } from './constants-and-enums'
+import { Orientation } from './constants-and-enums'
+import { SetTextOption, TextData } from './data'
 import { getDataStringView } from './utils'
 
 const defaultOptions = {
@@ -18,28 +18,6 @@ const defaultOptions = {
   orientation: Orientation.Billboard,
 }
 
-type SetTextOption = TransformDeclaration & Partial<{
-  /**
-   * Whether to trim the text before setting it.
-   */
-  trim: boolean
-  /**
-   * Sugar for `textColor`
-   */
-  color: ColorRepresentation
-  /**
-   * The color of the text.
-   */
-  textColor: ColorRepresentation
-  /**
-   * The opacity of the text.
-   * @default 1
-   */
-  textOpacity: number
-  backgroundColor: ColorRepresentation
-  backgroundOpacity: number
-}>
-
 let nextId = 0
 export class TextHelper extends InstancedMesh {
   static readonly defaultOptions = defaultOptions
@@ -49,15 +27,10 @@ export class TextHelper extends InstancedMesh {
   readonly options: typeof defaultOptions
   readonly derived: {
     planeSize: Vector2
-    dataTextureSize: Vector2
-    dataHeaderByteSize: number
-    dataStride: number
   }
   readonly atlas: TextHelperAtlas
-  readonly internal: {
-    dataTextureArray: Uint8Array
-    dataTexture: DataTexture
-  }
+  readonly data: TextData
+  readonly dataTexture: DataTexture
 
   constructor(userOptions?: Partial<typeof defaultOptions>) {
     const atlas = new TextHelperAtlas()
@@ -67,13 +40,8 @@ export class TextHelper extends InstancedMesh {
       options.textSize * options.lineCount * options.charSize.y)
     const geometry = new PlaneGeometry(planeSize.width, planeSize.height)
 
-    const dataHeaderByteSize = DATA_INFO_BYTE_SIZE + options.lineCount * 4
-    const dataStride = dataHeaderByteSize + Math.ceil((options.lineCount * options.lineLength) / 4) * 4
-    const dataRequiredByteSize = options.textCount * dataStride
-    const dataTextureHeight = Math.ceil(dataRequiredByteSize / DATA_TEXTURE_WIDTH)
-    const dataTextureArray = new Uint8Array(DATA_TEXTURE_WIDTH * dataTextureHeight * 4)
-    const dataTextureSize = new Vector2(DATA_TEXTURE_WIDTH, dataTextureHeight)
-    const dataTexture = new DataTexture(dataTextureArray, dataTextureSize.width, dataTextureSize.height, RGBAFormat, UnsignedByteType)
+    const data = new TextData(options.textCount, options.lineCount, options.lineLength)
+    const dataTexture = new DataTexture(data.array, data.textureSize.width, data.textureSize.height, RGBAFormat, UnsignedByteType)
     dataTexture.needsUpdate = true
 
     const material = new MeshBasicMaterial({
@@ -81,14 +49,9 @@ export class TextHelper extends InstancedMesh {
       transparent: true,
       alphaTest: .5,
       side: DoubleSide,
-      depthTest: false,
-      depthWrite: false,
     })
+    material.name = 'TextHelperMaterial'
     material.onBeforeCompile = shader => ShaderForge.with(shader)
-      .shaderName(`TextHelper-${Math.random()}`)
-      .defines({
-        BILLBOARD: options.orientation === Orientation.Billboard ? 1 : 0,
-      })
       .uniforms({
         uOrientation: { value: options.orientation },
         uPlaneSize: { value: planeSize },
@@ -96,23 +59,24 @@ export class TextHelper extends InstancedMesh {
         uLineLength: { value: options.lineLength },
         uLineCount: { value: options.lineCount },
         uAtlasLength: { value: atlas.symbols.length },
-        uDataTextureSize: { value: new Vector2(DATA_TEXTURE_WIDTH, dataTextureHeight) },
-        uDataHeaderByteSize: { value: dataHeaderByteSize },
-        uDataRequiredByteSize: { value: dataRequiredByteSize },
+        uDataHeaderByteSize: { value: data.headerByteSize },
         uDataTexture: { value: dataTexture },
+        uDataTextureSize: { value: data.textureSize },
+        uDataStride: { value: data.strideByteSize / 4 },
         uBoxBorderWidth: { value: 0 }, // debug border
       })
       .varying({
-        'vInstanceId': 'float',
-        'vTextColor': 'vec4',
-        'vBackgroundColor': 'vec4',
-        'vCurrentLineCount': 'float',
+        vInstanceId: 'float',
+        vTextColor: 'vec4',
+        vBackgroundColor: 'vec4',
+        vCurrentLineCount: 'float',
       })
       .top(/* glsl */`
         vec4 getData4(int instanceId, int offset) {
-          int index = instanceId * ${dataStride / 4} + offset;
-          int dataY = index / ${DATA_TEXTURE_WIDTH};
-          int dataX = index - dataY * ${DATA_TEXTURE_WIDTH};
+          int width = int(uDataTextureSize.x);
+          int index = instanceId * int(uDataStride) + offset;
+          int dataY = index / width;
+          int dataX = index - dataY * width;
           return texelFetch(uDataTexture, ivec2(dataX, dataY), 0);
         }
         vec4 getData4(float instanceId, int offset) {
@@ -153,6 +117,7 @@ export class TextHelper extends InstancedMesh {
         }
 
         mvPosition = viewMatrix * modelMatrix * localMatrix * mvPosition;
+
         gl_Position = projectionMatrix * mvPosition;
 
         vInstanceId = float(gl_InstanceID);
@@ -211,116 +176,35 @@ export class TextHelper extends InstancedMesh {
       .fragment.replace('map_fragment', /* glsl */`
         diffuseColor = getCharColorWithBorder();
       `)
+
     super(geometry, material, options.textCount)
 
     this.options = options
     this.atlas = atlas
+    this.data = data
+    this.dataTexture = dataTexture
     this.derived = {
       planeSize,
-      dataTextureSize,
-      dataHeaderByteSize,
-      dataStride,
-    }
-    this.internal = {
-      dataTextureArray,
-      dataTexture,
     }
 
-    console.log(`TextHelper ${this.textHelperId} created.`)
+    this.instanceMatrix.setUsage(DynamicDrawUsage)
+
+    console.log(`TextHelper ${this.textHelperId} created.`, options.textCount)
   }
 
-  setTextAt(index: number, text: string, options: SetTextOption = {}) {
-    console.log(`TextHelper ${this.textHelperId} setTextAt ${index}:`, text)
-    const {
-      trim = false,
-      color = '#ffffff',
-      textColor = color,
-      textOpacity = 1,
-      backgroundColor = textColor,
-      backgroundOpacity = 0,
-      ...transform
-    } = options
+  setTextAt(index: number, text: string, options: TransformDeclaration & SetTextOption = {}) {
+    this.data.setTextAt(index, text, this.atlas.symbols, options)
+    this.dataTexture.needsUpdate = true
 
-    const { lineCount, lineLength } = this.options
-
-    let lines = (trim ? text.trim() : text).split('\n')
-
-    if (lines.length > lineCount) {
-      console.warn(`TextHelper: Text has more lines than ${lineCount}, truncating.`)
-      lines = lines.slice(0, lineCount)
-    }
-
-    lines = lines.map(line => {
-      if (trim)
-        line = line.trim()
-
-      // Check if line is too long
-      if (line.length > lineLength) {
-        console.warn(`TextHelper: Line length is greater than ${lineLength} characters, clamping.`)
-        return line.slice(0, lineLength)
-      }
-
-      return line
-    })
-
-    const { atlas } = this
-    const { dataTextureArray, dataTexture } = this.internal
-    const { dataStride, dataHeaderByteSize } = this.derived
-    dataTexture.needsUpdate = true
-    // this.material.needsUpdate = true
-
-    {
-      const offset = index * dataStride
-      dataTextureArray[offset + 0] = lines.length
-    }
-
-    {
-      const { r, g, b } = makeColor(textColor)
-      const offset = index * dataStride + 4 * 1
-      dataTextureArray[offset + 0] = r * 255
-      dataTextureArray[offset + 1] = g * 255
-      dataTextureArray[offset + 2] = b * 255
-      dataTextureArray[offset + 3] = toff(textOpacity)
-    }
-
-    {
-      const { r, g, b } = makeColor(backgroundColor)
-      const offset = index * dataStride + 4 * 2
-      dataTextureArray[offset + 0] = r * 255
-      dataTextureArray[offset + 1] = g * 255
-      dataTextureArray[offset + 2] = b * 255
-      dataTextureArray[offset + 3] = toff(backgroundOpacity)
-    }
-
-    const offset = index * dataStride
-    const currentLineCount = lines.length
-    for (let i = 0; i < lineCount; i++) {
-      let currentLineLength = 0
-      if (i < currentLineCount) {
-        dataTextureArray[offset + DATA_INFO_BYTE_SIZE + i * 4] = lines[i].length
-        currentLineLength = lines[i].length
-      }
-      const lineOffset = offset + dataHeaderByteSize + i * lineLength
-      for (let j = 0; j < lineLength; j++) {
-        const k = lineOffset + j
-        if (i >= currentLineCount || j >= currentLineLength) {
-          dataTextureArray[k] = 0
-        } else {
-          const charIndex = atlas.symbols.indexOf(lines[i].charAt(j))
-          // let charIndex = 1 + j * (1 + i)
-          dataTextureArray[k] = charIndex === -1 ? 0 : charIndex
-        }
-      }
-    }
-
-    this.setMatrixAt(index, makeMatrix4(transform))
+    this.setMatrixAt(index, makeMatrix4(options))
+    this.instanceMatrix.needsUpdate = true
   }
 
   getDataStringView(start = 0, length = 3) {
     return getDataStringView(
       this.atlas,
-      this.internal.dataTextureArray,
-      this.derived.dataStride,
+      this.data.array,
+      this.data.strideByteSize,
       this.options.lineCount,
       this.options.lineLength,
       start,
