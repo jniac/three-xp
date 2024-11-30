@@ -1,4 +1,4 @@
-import { DataTexture, DoubleSide, DynamicDrawUsage, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
+import { DataTexture, DoubleSide, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
@@ -6,7 +6,7 @@ import { makeMatrix4 } from 'some-utils-three/utils/make'
 
 import { TextHelperAtlas } from './atlas'
 import { Orientation } from './constants-and-enums'
-import { SetTextOption, TextData } from './data'
+import { SetTextOption, TextHelperData } from './data'
 import { getDataStringView } from './utils'
 
 const defaultOptions = {
@@ -20,16 +20,20 @@ const defaultOptions = {
 
 let nextId = 0
 export class TextHelper extends InstancedMesh {
+  // Expose some statics
   static readonly defaultOptions = defaultOptions
   static readonly Orientation = Orientation
+  static readonly TextHelperAtlas = TextHelperAtlas
+  static readonly TextHelperData = TextHelperData
 
+  // Instance properties
   readonly textHelperId = nextId++
   readonly options: typeof defaultOptions
   readonly derived: {
     planeSize: Vector2
   }
   readonly atlas: TextHelperAtlas
-  readonly data: TextData
+  readonly data: TextHelperData
   readonly dataTexture: DataTexture
 
   constructor(userOptions?: Partial<typeof defaultOptions>) {
@@ -40,7 +44,7 @@ export class TextHelper extends InstancedMesh {
       options.textSize * options.lineCount * options.charSize.y)
     const geometry = new PlaneGeometry(planeSize.width, planeSize.height)
 
-    const data = new TextData(options.textCount, options.lineCount, options.lineLength)
+    const data = new TextHelperData(options.textCount, options.lineCount, options.lineLength)
     const dataTexture = new DataTexture(data.array, data.textureSize.width, data.textureSize.height, RGBAFormat, UnsignedByteType)
     dataTexture.needsUpdate = true
 
@@ -186,10 +190,6 @@ export class TextHelper extends InstancedMesh {
     this.derived = {
       planeSize,
     }
-
-    this.instanceMatrix.setUsage(DynamicDrawUsage)
-
-    console.log(`TextHelper ${this.textHelperId} created.`, options.textCount)
   }
 
   setTextAt(index: number, text: string, options: TransformDeclaration & SetTextOption = {}) {

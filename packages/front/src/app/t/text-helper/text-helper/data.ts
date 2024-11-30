@@ -27,7 +27,7 @@ export type SetTextOption = Partial<{
   backgroundOpacity: number
 }>
 
-export class TextData {
+export class TextHelperData {
   readonly textCount: number
   readonly lineCount: number
   readonly lineLength: number
@@ -44,8 +44,6 @@ export class TextData {
     const pixels = Math.ceil(bytes / 4)
     const width = ceilPowerOfTwo(Math.sqrt(pixels))
     const height = Math.ceil(pixels / width)
-
-    console.log({ width, height }, `(${width * height} total pixels, ${pixels} used pixels)`)
 
     this.textCount = textCount
     this.lineCount = lineCount
