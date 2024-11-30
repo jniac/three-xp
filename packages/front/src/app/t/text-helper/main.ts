@@ -13,7 +13,6 @@ import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
 
-import { fetchHunger } from './hunger'
 import { TextHelper } from './text-helper'
 
 leak({
@@ -22,6 +21,7 @@ leak({
   textCloud,
   textRing,
   textGrid,
+  TextHelper,
 })
 
 const colors = [
@@ -31,7 +31,7 @@ const colors = [
 ]
 
 function textCloud(parent: Object3D) {
-  const count = 100_000
+  const count = 300_000
   const text = setup(new TextHelper({
     textSize: 5,
     lineLength: 50,
@@ -39,29 +39,13 @@ function textCloud(parent: Object3D) {
     textCount: count,
   }), parent)
 
-  const useHunger = false
-
-  if (!useHunger) {
-    const v = new Vector3()
-    const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
-    for (let i = 0; i < count; i++) {
-      const r = easing.transition.inOut(PRNG.random(), 1 / 4, .9)
-      const radius = lerp(100, 190, r) + 20 * PRNG.boxMuller()[0]
-      const { x, y, z } = PRNG.unitVector(v).multiplyScalar(radius)
-      text.setTextAt(i, `${PRNG.pick(letters)}${PRNG.pick(letters)}${PRNG.pick(letters)}\n${i}`, { x, y, z, color: PRNG.pick(colors) })
-    }
-  } else {
-    fetchHunger().then(hunger => {
-      console.log('hunger', hunger)
-      const v = new Vector3()
-      for (let i = 0, max = hunger.words.length; i < max; i++) {
-        const r = easing.transition.inOut(PRNG.random(), 1 / 4, .9)
-        const radius = lerp(100, 190, r) + 20 * PRNG.boxMuller()[0]
-        const { x, y, z } = PRNG.unitVector(v).multiplyScalar(radius)
-        text.setTextAt(i, hunger.words[i], { x, y, z, color: PRNG.pick(colors) })
-      }
-      hunger.words.length = 0
-    })
+  const v = new Vector3()
+  const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+  for (let i = 0; i < count; i++) {
+    const r = easing.transition.inOut(PRNG.random(), 1 / 4, .9)
+    const radius = lerp(70, 190, r) + 20 * PRNG.boxMuller()[0]
+    const { x, y, z } = PRNG.unitVector(v).multiplyScalar(radius)
+    text.setTextAt(i, `${PRNG.pick(letters)}${PRNG.pick(letters)}${PRNG.pick(letters)}\n${i}`, { x, y, z, color: PRNG.pick(colors) })
   }
 
   return text
@@ -128,7 +112,7 @@ function textIcosahedron(parent: Object3D) {
       .add(v2.fromArray(array, i * 9 + 3))
       .add(v2.fromArray(array, i * 9 + 6))
       .divideScalar(3)
-    text.setTextAt(i, `${i}`, { x, y, z, color: '#fff' })
+    text.setTextAt(i, `${i}`, { x, y, z, color: '#fff', backgroundOpacity: 1, textOpacity: 0 })
   }
 
   return text
@@ -138,10 +122,6 @@ export async function* main(three: ThreeWebglContext) {
   yield () => three.scene.clear()
 
   PRNG.reset()
-
-  const testOptions = {
-    grid: false,
-  }
 
   const skyColor = new Color('#09121b')
   const fog = new FogExp2(skyColor, 0.05)
@@ -162,6 +142,16 @@ export async function* main(three: ThreeWebglContext) {
 
   const ring = textRing(three.scene)
   totalTextCount += ring.count
+
+  document.body.append(ring.atlas.canvas)
+  ring.atlas.canvas.style.position = 'fixed'
+  ring.atlas.canvas.style.bottom = '10px'
+  ring.atlas.canvas.style.right = '10px'
+  ring.atlas.canvas.style.width = `${Math.round(document.body.clientWidth * .33)}px`
+  ring.atlas.canvas.onclick = () => ring.atlas.canvas.remove()
+
+  yield () => ring.atlas.canvas.remove()
+
   const cloud = textCloud(three.scene)
   totalTextCount += cloud.count
   totalTextCount += textIcosahedron(three.scene).count

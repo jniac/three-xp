@@ -62,7 +62,7 @@ export class TextHelper extends InstancedMesh {
         uCharSize: { value: options.charSize },
         uLineLength: { value: options.lineLength },
         uLineCount: { value: options.lineCount },
-        uAtlasLength: { value: atlas.symbols.length },
+        uAtlasCharGrid: { value: atlas.charGrid },
         uDataHeaderByteSize: { value: data.headerByteSize },
         uDataTexture: { value: dataTexture },
         uDataTextureSize: { value: data.textureSize },
@@ -92,13 +92,13 @@ export class TextHelper extends InstancedMesh {
           int q = p / 4;
           int r = p - q * 4; // p % 4;
           vec4 charIndexes = getData4(instanceId, q);
-          float x = charIndexes[r];
-          x *= 255.0;
-          x /= uAtlasLength;
-          return vec2(x, 0.0);
+          float i = charIndexes[r] * 255.0;
+          float x = mod(i, uAtlasCharGrid.x);
+          float y = floor(i / uAtlasCharGrid.x);
+          return vec2(x, uAtlasCharGrid.y - y - 1.0) / uAtlasCharGrid;
         }
         vec2 getCharOffset(float instanceId, float line, float char) {
-          // return vec2(line * 82.0 + char, 0.0) / uAtlasLength;
+          // return vec2(line * 82.0 + char, 0.0) / uAtlasCharGrid;
           return getCharOffset(instanceId, line * uLineLength + char);
         }
       `)
@@ -152,7 +152,7 @@ export class TextHelper extends InstancedMesh {
 
           uv = fract(uv);
           // diffuseColor = vec4(uv, 1.0, 1.0);
-          uv.x /= uAtlasLength;
+          uv /= uAtlasCharGrid;
 
           uv += getCharOffset(vInstanceId, lineIndex, charIndex);
           // float lod = log2(max(length(dFdx(vMapUv)), length(dFdy(vMapUv))));
