@@ -12,7 +12,7 @@
  *
  * Should be a multiple of 4.
  */
-export const DATA_HEADER_INFO_BYTE_SIZE = 3 * 4
+export const DATA_STRIDE_HEADER_BYTE_SIZE = 3 * 4
 
 export enum Orientation {
   Normal,

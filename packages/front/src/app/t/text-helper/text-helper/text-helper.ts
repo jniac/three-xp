@@ -44,7 +44,7 @@ export class TextHelper extends InstancedMesh {
       options.textSize * options.lineCount * options.charSize.y)
     const geometry = new PlaneGeometry(planeSize.width, planeSize.height)
 
-    const data = new TextHelperData(options.textCount, options.lineCount, options.lineLength)
+    const data = new TextHelperData(atlas.symbols, options.textCount, options.lineCount, options.lineLength)
     const dataTexture = new DataTexture(data.array, data.textureSize.width, data.textureSize.height, RGBAFormat, UnsignedByteType)
     dataTexture.needsUpdate = true
 
@@ -63,10 +63,10 @@ export class TextHelper extends InstancedMesh {
         uLineLength: { value: options.lineLength },
         uLineCount: { value: options.lineCount },
         uAtlasCharGrid: { value: atlas.charGrid },
-        uDataHeaderByteSize: { value: data.headerByteSize },
+        uDataStrideHeader: { value: data.strideHeaderByteSize },
+        uDataStride: { value: data.strideByteSize / 4 },
         uDataTexture: { value: dataTexture },
         uDataTextureSize: { value: data.textureSize },
-        uDataStride: { value: data.strideByteSize / 4 },
         uBoxBorderWidth: { value: 0 }, // debug border
       })
       .varying({
@@ -88,10 +88,10 @@ export class TextHelper extends InstancedMesh {
         }
           
         vec2 getCharOffset(float instanceId, float charIndex) {
-          int p = int(uDataHeaderByteSize + charIndex);
+          int p = int(uDataStrideHeader + charIndex);
+          vec4 charIndexes = getData4(instanceId, q);
           int q = p / 4;
           int r = p - q * 4; // p % 4;
-          vec4 charIndexes = getData4(instanceId, q);
           float i = charIndexes[r] * 255.0;
           float x = mod(i, uAtlasCharGrid.x);
           float y = floor(i / uAtlasCharGrid.x);
@@ -193,7 +193,7 @@ export class TextHelper extends InstancedMesh {
   }
 
   setTextAt(index: number, text: string, options: TransformDeclaration & SetTextOption = {}) {
-    this.data.setTextAt(index, text, this.atlas.symbols, options)
+    this.data.setTextAt(index, text, options)
     this.dataTexture.needsUpdate = true
 
     this.setMatrixAt(index, makeMatrix4(options))

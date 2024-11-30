@@ -1,5 +1,5 @@
 import { TextHelperAtlas } from './atlas'
-import { DATA_HEADER_INFO_BYTE_SIZE } from './constants-and-enums'
+import { DATA_STRIDE_HEADER_BYTE_SIZE } from './constants-and-enums'
 
 export function getDataStringView(atlas: TextHelperAtlas, dataTextureArray: Uint8Array, dataStride: number, lineCount: number, lineLength: number, start = 0, length = 3) {
   const packed = Array.from({ length: dataTextureArray.length / 4 }, (_, i) => {
@@ -15,7 +15,7 @@ export function getDataStringView(atlas: TextHelperAtlas, dataTextureArray: Uint
   withHeader.push(`\nData texture array (${dataTextureArray.length} bytes):`)
   withHeader.push(`\ndataStride: ${dataStride} (${dataStride / 4} x 4 bytes)`)
 
-  const LINES_INFO_START = DATA_HEADER_INFO_BYTE_SIZE / 4
+  const LINES_INFO_START = DATA_STRIDE_HEADER_BYTE_SIZE / 4
   const TEXT_START = LINES_INFO_START + lineCount
   for (let i = 0; i < packed.length; i++) {
     const line = i % (dataStride / 4)

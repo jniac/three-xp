@@ -1,5 +1,6 @@
-import { ceilPowerOfTwo } from 'some-utils-ts/math/basic'
 import { CanvasTexture, Vector2 } from 'three'
+
+import { ceilPowerOfTwo } from 'some-utils-ts/math/basic'
 
 function getDefaultSymbols() {
   const unknown = '�'
@@ -17,6 +18,8 @@ function computeGrid(count: number, aspect: number, out = new Vector2()) {
 }
 
 export class TextHelperAtlas {
+  static getDefaultSymbols = getDefaultSymbols
+
   canvas: HTMLCanvasElement
   texture: CanvasTexture
   symbols: string
