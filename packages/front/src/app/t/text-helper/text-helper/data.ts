@@ -3,7 +3,21 @@ import { ColorRepresentation, Vector2 } from 'three'
 import { makeColor } from 'some-utils-three/utils/make'
 import { ceilPowerOfTwo, toff } from 'some-utils-ts/math/basic'
 
-import { DATA_STRIDE_HEADER_BYTE_SIZE } from './constants-and-enums'
+/**
+ * Byte size of the info:
+ * #0:
+ * - Lines count (1 byte)
+ * - empty (3 bytes)
+ * #1:
+ * - Text Color (3 bytes)
+ * - Text Opacity (1 byte)
+ * #2:
+ * - Background Color (3 bytes)
+ * - Background Opacity (1 byte)
+ *
+ * Should be a multiple of 4.
+ */
+export const DATA_STRIDE_HEADER_BYTE_SIZE = 3 * 4
 
 export type SetColorOptions = Partial<{
   /**

@@ -5,9 +5,13 @@ import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 
 import { TextHelperAtlas } from './atlas'
-import { Orientation } from './constants-and-enums'
 import { SetTextOption, TextHelperData } from './data'
 import { getDataStringView } from './utils'
+
+export enum Orientation {
+  Normal,
+  Billboard
+}
 
 const defaultOptions = {
   textCount: 1000,
