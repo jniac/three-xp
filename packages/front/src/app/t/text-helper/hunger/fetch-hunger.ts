@@ -1,8 +1,8 @@
 import { Uint8ArrayReader, Uint8ArrayWriter, ZipReader } from '@zip.js/zip.js'
 
-import { config } from '@/config'
+import { TextHelper } from 'some-utils-three/helpers/text-helper'
 
-import { TextHelper } from '../text-helper'
+import { config } from '@/config'
 
 async function unzip(zippedData: Uint8Array) {
   const reader = new ZipReader(new Uint8ArrayReader(zippedData))

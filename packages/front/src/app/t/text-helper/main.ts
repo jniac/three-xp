@@ -3,6 +3,7 @@ import { Color, FogExp2, Mesh, Object3D, TorusGeometry, Vector3 } from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { TextHelper } from 'some-utils-three/helpers/text-helper'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { loop2 } from 'some-utils-ts/iteration/loop'
@@ -12,8 +13,6 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
-
-import { TextHelper } from './text-helper'
 
 leak({
   ...THREE,
