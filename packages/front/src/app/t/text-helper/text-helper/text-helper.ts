@@ -23,8 +23,8 @@ export class TextHelper extends InstancedMesh {
   // Expose some statics
   static readonly defaultOptions = defaultOptions
   static readonly Orientation = Orientation
-  static readonly TextHelperAtlas = TextHelperAtlas
-  static readonly TextHelperData = TextHelperData
+  static readonly Atlas = TextHelperAtlas
+  static readonly Data = TextHelperData
 
   // Instance properties
   readonly textHelperId = nextId++
@@ -89,9 +89,9 @@ export class TextHelper extends InstancedMesh {
           
         vec2 getCharOffset(float instanceId, float charIndex) {
           int p = int(uDataStrideHeader + charIndex);
-          vec4 charIndexes = getData4(instanceId, q);
           int q = p / 4;
           int r = p - q * 4; // p % 4;
+          vec4 charIndexes = getData4(instanceId, q);
           float i = charIndexes[r] * 255.0;
           float x = mod(i, uAtlasCharGrid.x);
           float y = floor(i / uAtlasCharGrid.x);
