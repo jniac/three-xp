@@ -1,5 +1,5 @@
 {
-  "name": "three-xp",
+  "name": "front",
   "version": "0.1.0",
   "scripts": {
     "dev": "next dev",
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@svgr/webpack": "^8.1.0",
+    "@zip.js/zip.js": "^2.7.53",
     "js-yaml": "^4.1.0",
     "katex": "^0.16.11",
     "next": "14.2.15",
@@ -35,6 +36,12 @@
     "eslint-config-next": "14.2.8",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
+  },
+  "exports": {
+    "./*": {
+      "default": "./src/*.ts"
+    }
   }
 }
