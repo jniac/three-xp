@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 
 import { Uint8ArrayReader, Uint8ArrayWriter, ZipReader, ZipWriter } from '@zip.js/zip.js'
-import { TextHelper } from 'front/app/t/text-helper/text-helper/text-helper'
+import { TextHelper } from 'some-utils-three/helpers/text-helper'
 
 const symbols = TextHelper.Atlas.getDefaultSymbols()
 const data = new TextHelper.Data(symbols, 100_000, 1, 30)

@@ -59,6 +59,7 @@ function textRing(parent: Object3D) {
   }), parent)
   text.setTextAt(0, ' Hello \n World \n !!! ', {
     y: 0,
+    size: 1.5,
     textColor: colors[0],
     textOpacity: 0,
     backgroundColor: colors[0],
@@ -66,6 +67,7 @@ function textRing(parent: Object3D) {
   })
   text.setTextAt(1, 'À l’âge mûr,\noù l’été s’achève,\nil était déjà prêt.\nNoël, sì! Señor', {
     y: -1.2,
+    size: .6,
     textColor: colors[1],
   })
   return text
@@ -147,7 +149,7 @@ export async function* main(three: ThreeWebglContext) {
   ring.atlas.canvas.style.position = 'fixed'
   ring.atlas.canvas.style.bottom = '10px'
   ring.atlas.canvas.style.right = '10px'
-  ring.atlas.canvas.style.width = `${Math.round(document.body.clientWidth * .33)}px`
+  ring.atlas.canvas.style.width = `${Math.round(document.body.clientWidth * .2)}px`
   ring.atlas.canvas.onclick = () => ring.atlas.canvas.remove()
 
   yield () => ring.atlas.canvas.remove()
@@ -158,6 +160,7 @@ export async function* main(three: ThreeWebglContext) {
 
   ring.setTextAt(2, `text count: ${totalTextCount}`, {
     y: 1,
+    size: .6,
     color: '#4080ff',
   })
 
