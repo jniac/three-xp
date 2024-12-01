@@ -138,6 +138,7 @@ export async function* main(three: ThreeWebglContext) {
     controls.update(three.camera, three.aspect, tick.deltaTime)
     fog.density = remap(controls.vertigo.zoom, 1, 0, .05, 0)
   })
+
   let totalTextCount = 0
 
   const ring = textRing(three.scene)

@@ -1,4 +1,4 @@
-import { DataTexture, DoubleSide, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
+import { Color, DataTexture, DoubleSide, InstancedMesh, MeshBasicMaterial, PlaneGeometry, RGBAFormat, UnsignedByteType, Vector2 } from 'three'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
@@ -32,9 +32,10 @@ export class TextHelper extends InstancedMesh {
   readonly derived: {
     planeSize: Vector2
   }
-  readonly atlas: TextHelperAtlas
-  readonly data: TextHelperData
-  readonly dataTexture: DataTexture
+
+  atlas: TextHelperAtlas
+  data: TextHelperData
+  dataTexture: DataTexture
 
   constructor(userOptions?: Partial<typeof defaultOptions>) {
     const atlas = new TextHelperAtlas()
@@ -192,12 +193,27 @@ export class TextHelper extends InstancedMesh {
     }
   }
 
+  setData(data: TextHelperData) {
+    this.data = data
+    this.dataTexture.image.data = data.array
+    this.dataTexture.needsUpdate = true
+
+    return this
+  }
+
   setTextAt(index: number, text: string, options: TransformDeclaration & SetTextOption = {}) {
     this.data.setTextAt(index, text, options)
     this.dataTexture.needsUpdate = true
 
     this.setMatrixAt(index, makeMatrix4(options))
     this.instanceMatrix.needsUpdate = true
+
+    return this
+  }
+
+  override setColorAt(index: number, color: Color): void {
+    this.data.setColorAt(index, { color })
+    this.dataTexture.needsUpdate = true
   }
 
   getDataStringView(start = 0, length = 3) {

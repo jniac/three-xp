@@ -5,11 +5,7 @@ import { ceilPowerOfTwo, toff } from 'some-utils-ts/math/basic'
 
 import { DATA_STRIDE_HEADER_BYTE_SIZE } from './constants-and-enums'
 
-export type SetTextOption = Partial<{
-  /**
-   * Whether to trim the text before setting it.
-   */
-  trim: boolean
+export type SetColorOptions = Partial<{
   /**
    * Sugar for `textColor`
    */
@@ -23,8 +19,22 @@ export type SetTextOption = Partial<{
    * @default 1
    */
   textOpacity: number
+  /**
+   * The color of the background.
+   */
   backgroundColor: ColorRepresentation
+  /**
+   * The opacity of the background.
+   * @default 0
+   */
   backgroundOpacity: number
+}>
+
+export type SetTextOption = SetColorOptions & Partial<{
+  /**
+   * Whether to trim the text before setting it.
+   */
+  trim: boolean
 }>
 
 export class TextHelperData {
@@ -153,15 +163,46 @@ export class TextHelperData {
     }
   }
 
-  setTextAt(index: number, text: string, options: SetTextOption = {}) {
+  setColorAt(index: number, options: SetColorOptions) {
     const {
-      trim = false,
       color = '#ffffff',
       textColor = color,
       textOpacity = 1,
       backgroundColor = textColor,
       backgroundOpacity = 0,
     } = options
+
+    const { array } = this
+    const { strideByteSize: stride } = this.metadata
+
+    {
+      const { r, g, b } = makeColor(textColor)
+      const offset = index * stride + 4 * 1
+      array[offset + 0] = r * 255
+      array[offset + 1] = g * 255
+      array[offset + 2] = b * 255
+      array[offset + 3] = toff(textOpacity)
+    }
+
+    {
+      const { r, g, b } = makeColor(backgroundColor)
+      const offset = index * stride + 4 * 2
+      array[offset + 0] = r * 255
+      array[offset + 1] = g * 255
+      array[offset + 2] = b * 255
+      array[offset + 3] = toff(backgroundOpacity)
+    }
+
+    return this
+  }
+
+  setTextAt(index: number, text: string, options: SetTextOption = {}) {
+    const {
+      trim = false,
+      ...colorOptions
+    } = options
+
+    this.setColorAt(index, colorOptions)
 
     const { array } = this
 
@@ -196,24 +237,6 @@ export class TextHelperData {
     {
       const offset = index * stride
       array[offset + 0] = lines.length
-    }
-
-    {
-      const { r, g, b } = makeColor(textColor)
-      const offset = index * stride + 4 * 1
-      array[offset + 0] = r * 255
-      array[offset + 1] = g * 255
-      array[offset + 2] = b * 255
-      array[offset + 3] = toff(textOpacity)
-    }
-
-    {
-      const { r, g, b } = makeColor(backgroundColor)
-      const offset = index * stride + 4 * 2
-      array[offset + 0] = r * 255
-      array[offset + 1] = g * 255
-      array[offset + 2] = b * 255
-      array[offset + 3] = toff(backgroundOpacity)
     }
 
     const offset = index * stride
