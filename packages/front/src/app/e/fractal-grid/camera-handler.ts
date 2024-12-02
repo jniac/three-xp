@@ -92,7 +92,7 @@ export class CameraHandler {
 
   camera!: PerspectiveCamera
 
-  private _mode = CameraHandlerMode.Scope
+  private _mode = CameraHandlerMode.Free
   get mode() { return this._mode }
   set mode(value: CameraHandlerMode) { this.setMode(value) }
 
@@ -164,6 +164,7 @@ export class CameraHandler {
     switch (this._mode) {
       case CameraHandlerMode.Free: {
         this.freeVertigoControls.update(this.camera, aspect, tick.deltaTime)
+        console.log()
         break
       }
       case CameraHandlerMode.Scope: {

@@ -1,4 +1,4 @@
-import { Euler, Matrix4, Vector3 } from 'three'
+import { Euler, Matrix4, Plane, Vector3 } from 'three'
 
 export const CHUNK_COL = 6
 export const CHUNK_ROW = 4
@@ -24,3 +24,4 @@ export const WORLD_BASIS = { U, V, W }
 export const WORLD_MATRIX = new Matrix4().makeBasis(U, V, W).setPosition(CHUNK_POSITION_LIMIT)
 export const WORLD_MATRIX_INVERSE = new Matrix4().copy(WORLD_MATRIX).invert()
 export const WORLD_EULER = new Euler().setFromRotationMatrix(WORLD_MATRIX)
+export const WORLD_PLANE = new Plane().setFromNormalAndCoplanarPoint(W, CHUNK_POSITION_LIMIT)

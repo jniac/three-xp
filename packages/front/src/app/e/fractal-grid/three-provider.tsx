@@ -158,7 +158,7 @@ function ServerProofThreeProvider(props: Props) {
 
 
   const { ref } = useLayoutEffects<HTMLDivElement>({ debounce: true }, function* (div, effect) {
-    yield three.initialize(div)
+    yield three.initialize(div.firstElementChild as HTMLDivElement)
     effect.triggerRender()
     Object.assign(window, { three })
   }, [])
@@ -166,7 +166,10 @@ function ServerProofThreeProvider(props: Props) {
   return (
     <div ref={ref} className={className} style={{ position: 'absolute', inset: 0 }}>
       <reactThreeContext.Provider value={three}>
-        {three.initialized && children}
+        <div style={{ position: 'absolute', inset: '0' }} />
+        <div style={{ position: 'absolute', inset: '0' }} className='thru'>
+          {three.initialized && children}
+        </div>
       </reactThreeContext.Provider>
     </div>
   )

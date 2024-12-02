@@ -1,11 +1,14 @@
 /* eslint-disable prefer-const */
-import { AxesHelper, Group, Vector2, Vector3 } from 'three'
+import { AxesHelper, Group, LineSegments, Matrix4, Mesh, Vector2, Vector3 } from 'three'
 
+import { AxesGeometry } from 'some-utils-three/geometries/axis'
+import { LineHelper } from 'some-utils-three/helpers/line'
+import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
-
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
-import { VoxelGridChunk } from './chunk'
+
+import { toChunkCoords, VoxelGridChunk } from './chunk'
 import { CHUNK_POSITION_LIMIT, WORLD_BASIS, WORLD_EULER, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
 import { Scope } from './scope'
 
@@ -48,6 +51,38 @@ function* neighborsCoords(...args: [number, number] | [Vector2Declaration]): Gen
   yield v.set(x * 2 + 2, y + 1)
 }
 
+class SuperAxesHelper extends Group {
+  parts = (() => {
+    const circles = new LineHelper()
+    circles
+      .circle({ radius: 1, color: AxesGeometry.defaultOptions.zColor })
+      .circle({ radius: 1, color: AxesGeometry.defaultOptions.xColor, transform: { rotationY: '90deg' } })
+      .circle({ radius: 1, color: AxesGeometry.defaultOptions.yColor, transform: { rotationX: '90deg' } })
+      .draw()
+
+    const axes = new Mesh(new AxesGeometry(), new AutoLitMaterial({ vertexColors: true }))
+
+    return {
+      axes: setup(axes, this),
+      circles: setup(circles, this),
+    }
+  })()
+
+  drawCircles({
+    count = 1,
+    step = 1,
+  } = {}) {
+    for (let i = 1; i < count; i++) {
+      const scale = 1 + i * step
+      setup(new LineSegments(this.parts.circles.geometry, this.parts.circles.material), {
+        parent: this,
+        scaleScalar: scale,
+      })
+    }
+    return this
+  }
+}
+
 export class World extends Group {
   static instances = [] as World[]
   static current() {
@@ -70,8 +105,12 @@ export class World extends Group {
   dampedScopeCoordinates = new Vector2()
   worldScale = 1
   scopeOriginPoint = new Vector3()
+  scopeCenterChunkPoint = new Vector3()
 
   scope = setup(new Scope(), this)
+
+  XXX = setup(new SuperAxesHelper(), this.chunkGroup)
+  YYY = new Vector2()
 
   scopeUpdate(deltaTime: number) {
     const r = calculateExponentialDecayLerpRatio(.0001, deltaTime)
@@ -86,20 +125,41 @@ export class World extends Group {
     this.setChunkGroupScale(this.worldScale)
   }
 
-  private setChunkGroupScale(scale: number) {
-    this.scopeOriginPoint
-      .copy(this.scope.position)
-      .applyMatrix4(WORLD_MATRIX_INVERSE)
-    this.scopeOriginPoint.y = 0
-    this.scopeOriginPoint.z = 0
-    this.scopeOriginPoint.applyMatrix4(WORLD_MATRIX)
 
-    this.chunkGroup.position
-      .copy(this.scopeOriginPoint)
-      .addScaledVector(this.scopeOriginPoint, -scale)
-    this.chunkGroup.scale
-      .setScalar(scale)
-  }
+  private setChunkGroupScale = (() => {
+    const m = new Matrix4()
+    return (scale: number) => {
+      this.scopeCenterChunkPoint
+        .copy(this.scope.position)
+        .applyMatrix4(WORLD_MATRIX_INVERSE)
+
+      this.scopeOriginPoint
+        .set(this.scopeCenterChunkPoint.x, 0, 0)
+        .applyMatrix4(WORLD_MATRIX)
+
+      this.chunkGroup.position
+        .copy(this.scopeOriginPoint)
+        .addScaledVector(this.scopeOriginPoint, -scale)
+      this.chunkGroup.scale
+        .setScalar(scale)
+      this.chunkGroup
+        .updateMatrix()
+
+      this.XXX.position
+        .copy(this.scope.position)
+        .applyMatrix4(WORLD_MATRIX_INVERSE)
+      this.XXX.position.z = 0
+      this.XXX.position
+        .applyMatrix4(WORLD_MATRIX)
+        .applyMatrix4(m.copy(this.chunkGroup.matrix).invert())
+
+      let { x, y } = toChunkCoords(this.XXX.position, this.YYY)
+      x = Math.round(x - .5)
+      y = Math.round(y + .5)
+      this.toWhite()
+      this.getChunk(x, y)?.toColor()
+    }
+  })()
 
   chunks = new Map<number, VoxelGridChunk>()
 
@@ -166,15 +226,15 @@ export class World extends Group {
     }
   }
 
-  white() {
+  toWhite() {
     for (const chunk of this.chunks.values()) {
-      chunk.material.color.set(0xffffff)
+      chunk.toWhite()
     }
   }
 
-  color() {
+  toColor() {
     for (const chunk of this.chunks.values()) {
-      chunk.material.color.set(chunk.color)
+      chunk.toColor()
     }
   }
 }

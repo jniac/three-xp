@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { Mesh, TorusKnotGeometry } from 'three'
+import { IcosahedronGeometry, Mesh, TorusKnotGeometry, Vector3 } from 'three'
 
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -10,6 +10,7 @@ import { onTick } from 'some-utils-ts/ticker'
 
 import { CameraHandler } from './camera-handler'
 import { useGroup } from './three-provider'
+import { WORLD_PLANE } from './voxel/math'
 import { World } from './voxel/world'
 
 export function FractalGrid() {
@@ -29,10 +30,19 @@ export function FractalGrid() {
     const cameraHandler = new CameraHandler()
       .initialize(three.camera, three.renderer.domElement)
 
+    const intersection = new Vector3()
+    const intersectionSphere = setup(new Mesh(new IcosahedronGeometry(.1), new AutoLitMaterial({ color: '#f0f' })), group)
+
     yield onTick('three', tick => {
       cameraHandler.onTick(tick, three.aspect)
       world.scope.updateScope({ aspect: three.aspect })
+
+      three.pointer.ray.intersectPlane(WORLD_PLANE, intersection)
+      intersectionSphere.position.copy(intersection)
     })
+
+    world.toColor()
+    world.getChunk(0, 0)?.toWhite()
 
     Object.assign(window, { world, cameraHandler })
 

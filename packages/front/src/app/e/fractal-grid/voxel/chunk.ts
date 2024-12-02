@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { AxesHelper, BufferGeometry, ColorRepresentation, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
+import { AxesHelper, BufferAttribute, BufferGeometry, ColorRepresentation, DoubleSide, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
@@ -10,7 +10,7 @@ import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
 import { PRNG } from 'some-utils-ts/random/prng'
 
-import { CHUNK_COL, CHUNK_CORNERS, CHUNK_ROW, CHUNK_SCALE, CHUNK_SIZE } from './math'
+import { CHUNK_COL, CHUNK_CORNERS, CHUNK_ROW, CHUNK_SCALE, CHUNK_SIZE, WORLD_BASIS } from './math'
 import { Scope } from './scope'
 import { World } from './world'
 
@@ -62,9 +62,6 @@ export function toChunkCoords(...args: any[]) {
   return out!.set(x, y)
 }
 
-console.log(toChunkCoords(fromChunkCoords(3, 2)))
-console.log(toChunkCoords(fromChunkCoords(-5, 21)))
-
 function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   const { x: px, y: py, z: pz } = p
   const xMax = px + size
@@ -79,6 +76,9 @@ function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   }
 }
 
+/**
+ * Returns `true` if the voxel at `(x, y, z)` is a summit.
+ */
 function isSummit(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
   const plain = chunk.getVoxelState(x, y, z).getInt8(0) > 0
   if (!plain)
@@ -99,6 +99,9 @@ function isSummit(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
   return true
 }
 
+/**
+ * Returns `true` if the voxel at `(x, y, z)` is a cavity.
+ */
 function isCavity(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
   const plain = chunk.getVoxelState(x, y, z).getInt8(0) > 0
   if (plain)
@@ -149,6 +152,50 @@ function getSomeCavities(chunk: Chunk, stride = 2) {
   return result
 }
 
+/**
+ * Converts chunk coordinates `(x, y)` to a plane coordinate `(x, y, x + CHUNK_ROW - 1 - y)`.
+ */
+function toChunkSlope(x: number, y: number, out = new Vector3()) {
+  return out
+    .set(x, y, x + CHUNK_ROW - 1 - y)
+    .multiplyScalar(CHUNK_SCALE)
+}
+
+/**
+ * Returns a "slope" geometry, for debugging purposes.
+ */
+function createSlopeGeometry() {
+  const geometry = new BufferGeometry()
+
+  geometry.index = new BufferAttribute(new Uint16Array([0, 2, 1, 0, 3, 2]), 1)
+
+  const x = CHUNK_COL
+  const y = CHUNK_ROW
+  const positionArray = new Float32Array(12)
+  const offset = new Vector3(0, 0, 1).multiplyScalar(CHUNK_SCALE)
+  toChunkSlope(0, 0).add(offset).toArray(positionArray, 0)
+  toChunkSlope(x, 0).add(offset).toArray(positionArray, 9)
+  toChunkSlope(x, y).add(offset).toArray(positionArray, 6)
+  toChunkSlope(0, y).add(offset).toArray(positionArray, 3)
+  geometry.setAttribute('position', new BufferAttribute(positionArray, 3))
+
+  const normalArray = new Float32Array(12)
+  WORLD_BASIS.W.toArray(normalArray, 0)
+  WORLD_BASIS.V.toArray(normalArray, 3)
+  WORLD_BASIS.W.toArray(normalArray, 6)
+  WORLD_BASIS.V.toArray(normalArray, 9)
+  geometry.setAttribute('normal', new BufferAttribute(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]), 3))
+
+  const colorArray = new Float32Array(12).fill(1)
+  geometry.setAttribute('color', new BufferAttribute(colorArray, 3))
+
+  return geometry
+}
+
+
+const _p = new Vector3()
+const _q = new Vector3()
+
 export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
   _gridCoords: Vector2 = new Vector2()
 
@@ -164,27 +211,24 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     const MAX_VOXELS = Math.ceil(CHUNK_COL * CHUNK_ROW * CHUNK_BLOCK_SIZE * 1.2)
     const chunk = new Chunk(MAX_VOXELS, 1)
 
-    const p = new Vector3()
-
     for (const { x, y } of loop2(CHUNK_COL, CHUNK_ROW)) {
-      p
-        .set(x, y, x + CHUNK_ROW - 1 - y)
+      toChunkSlope(x, y, _p)
         .multiplyScalar(CHUNK_BLOCK_SIZE)
-      cube(chunk, p, CHUNK_BLOCK_SIZE)
+      cube(chunk, _p, CHUNK_BLOCK_SIZE)
     }
 
     // Add extra blocks to the top row
     for (let x = 0; x < CHUNK_COL; x += 2) {
-      p
-        .set(x + 1, CHUNK_ROW - 1, x)
+      toChunkSlope(x, CHUNK_ROW - 1, _p)
+        .add(new Vector3(1, 0, 0))
         .multiplyScalar(CHUNK_BLOCK_SIZE)
-      cube(chunk, p, CHUNK_BLOCK_SIZE)
+      cube(chunk, _p, CHUNK_BLOCK_SIZE)
 
       if (PRNG.chance(.8)) {
-        p
-          .set(x + 1, CHUNK_ROW, x)
+        toChunkSlope(x, CHUNK_ROW - 1, _p)
+          .add(new Vector3(1, 1, 0))
           .multiplyScalar(CHUNK_BLOCK_SIZE)
-        cube(chunk, p, CHUNK_BLOCK_SIZE)
+        cube(chunk, _p, CHUNK_BLOCK_SIZE)
       }
     }
 
@@ -220,7 +264,9 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
 
     const material = new AutoLitMaterial({ color })
 
-    super(geometry, material)
+    super(createSlopeGeometry(), new AutoLitMaterial({ color, side: DoubleSide }))
+
+    setup(new Mesh(geometry, material), this)
 
     setup(new AxesHelper(), this)
 

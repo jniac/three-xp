@@ -8,6 +8,7 @@ import { calculateExponentialDecayLerpRatio, calculateExponentialDecayLerpRatio2
 
 import { leak } from '@/utils/leak'
 
+import { CameraHandler } from './camera-handler'
 import { FractalGrid } from './fractal-grid'
 import { ThreeProvider, useThree } from './three-provider'
 
@@ -39,7 +40,14 @@ export function Main() {
   return (
     <div className='FractalGrid'>
       <ThreeProvider>
-        <h1>FractalGrid</h1>
+        <div className='layer thru flex flex-col p-4 gap-2 items-start'>
+          <h1 className='text-2xl'>FractalGrid</h1>
+          <button
+            className='border border-white px-2 py-1 rounded'
+            onClick={() => CameraHandler.instances[0].mode++}>
+            Switch camera
+          </button>
+        </div>
         <Settings />
         <FractalGrid />
       </ThreeProvider>
