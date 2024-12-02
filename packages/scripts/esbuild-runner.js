@@ -38,7 +38,7 @@ try {
   // Execute the temporary file with Node.js
   spawnSync('node', [tempFile], { stdio: 'inherit' })
 
-  console.log('Successfully ran the TypeScript file!')
+  console.log('\nSuccessfully ran the TypeScript file!')
 
   // Cleanup the temporary file
   await fs.unlink(tempFile)
