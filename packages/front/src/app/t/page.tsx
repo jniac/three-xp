@@ -5,6 +5,7 @@ import * as easingGraph from './easing-graph/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as pointText from './text-helper/page'
 import * as vertigo from './vertigo/page'
+import { voxelPages } from './voxel/page'
 
 export const metadata: Metadata = {
   title: 'Threejs Tools',
@@ -21,6 +22,7 @@ export default function ToolsPage() {
         pointText,
         shaderXplr,
         vertigo,
+        ...voxelPages,
       }}
     />
   )

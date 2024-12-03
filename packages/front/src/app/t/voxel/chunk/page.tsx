@@ -3,7 +3,8 @@ import { XpMetadata } from '@/types'
 import { Main } from './main'
 
 export const metadata = new XpMetadata({
-  slug: 'naive-voxel-mesher',
+  slug: 'voxel/chunk',
+  status: 'done',
 })
 
 export default function VertigoWidgetPage() {
