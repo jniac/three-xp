@@ -1,6 +1,6 @@
 
 import { XpMetadata } from '@/types'
-import { Main } from './main'
+import { Client } from './client'
 
 export const metadata = new XpMetadata({
   slug: 'voxel/chunk',
@@ -10,7 +10,7 @@ export const metadata = new XpMetadata({
 export default function VertigoWidgetPage() {
   return (
     <div className='VertigoWidgetPage page'>
-      <Main />
+      <Client />
     </div>
   )
 }

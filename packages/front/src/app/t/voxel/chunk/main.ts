@@ -32,13 +32,14 @@ function nearestPointOnCircle(
   return [nearestX, nearestY]
 }
 
-export class Stage extends Group {
+export class Main extends Group {
   parts = (() => {
     setup(new Mesh(new TorusKnotGeometry(10, .4, 512, 64), new AutoLitMaterial()), this)
     setup(new SimpleGridHelper(), {
       parent: this,
       rotationX: '90deg',
     })
+
     const sky = setup(new SkyMesh(), this)
 
     const SIZE = 16
@@ -93,6 +94,21 @@ export class Stage extends Group {
         new AutoLitMaterial({ color: '#55ff96' })), {
         parent: this,
         x: SIZE * -2,
+      })
+    }
+
+    {
+      // Non-cube chunk:
+      const chunk = new Chunk(new Vector3(12, 24, 4), 1)
+      for (const { x, y, z } of loop3(chunk.size)) {
+        const full = Math.random() < .5
+        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+      }
+      setup(new Mesh(
+        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        new AutoLitMaterial({ color: '#cfedff' })), {
+        parent: this,
+        position: [16, 0, -12],
       })
     }
     // setup(new Mesh(voxels.geometry, new MeshBasicMaterial({ color: 'red', wireframe: true })), this)

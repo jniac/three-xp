@@ -1,4 +1,5 @@
 'use client'
+import Markdown from 'react-markdown'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
@@ -10,14 +11,19 @@ import { onTick, Ticker } from 'some-utils-ts/ticker'
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
-import { Stage } from './stage'
+import { Main } from './main'
+
+import s from './client.module.css'
+import Readme from './README.md'
 
 function Controller() {
   useThree(function* (three) {
     leak({ three })
     const controls = new VertigoControls({
-      size: 10,
+      size: 60,
       perspective: 1,
+      focus: [0, 5, 0],
+      rotation: ['-20deg', '30deg', 0],
     })
     yield controls.start(three.renderer.domElement)
     const ticker = Ticker.get('three')
@@ -49,17 +55,20 @@ function Controller() {
 
 function MainComponent() {
   useGroup('main', function* (group) {
-    setup(new Stage(), group)
+    setup(new Main(), group)
   }, [])
   return null
 }
 
-export function Main() {
+export function Client() {
   return (
     <div>
       <ThreeProvider>
         <Controller />
         <MainComponent />
+        <div className='layer thru flex flex-col p-4 gap-2'>
+          <Markdown className={s.Markdown}>{Readme}</Markdown>
+        </div>
       </ThreeProvider>
     </div>
   )

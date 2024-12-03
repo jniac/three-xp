@@ -1,0 +1,8 @@
+.Markdown h1 {
+  font-size: 1.5em;
+}
+
+.Markdown li {
+  margin-left: 1em;
+  list-style: disc;
+}
