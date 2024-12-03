@@ -1,11 +1,7 @@
 import { SummaryPage } from '@/components/summary'
 import { Metadata } from 'next'
 
-import * as chunk from './chunk/page'
-
-export const voxelPages = {
-  chunk,
-}
+import { voxelPages } from './pages'
 
 export const metadata: Metadata = {
   title: 'Threejs Tools',

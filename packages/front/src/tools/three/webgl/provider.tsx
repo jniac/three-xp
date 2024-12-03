@@ -36,7 +36,7 @@ export function UseThree({ fn }: { fn: UseEffectsCallback<Three> }) {
   return null
 }
 
-function __BasicThreeProvider({ children }: { children?: ReactNode }) {
+function Internal_BasicThreeProvider({ children }: { children?: ReactNode }) {
   const three = useMemo(() => {
     const width = window.innerWidth
     const height = window.innerHeight
@@ -66,8 +66,8 @@ function __BasicThreeProvider({ children }: { children?: ReactNode }) {
 
 export function BasicThreeProvider({ children }: { children?: ReactNode }) {
   return useIsClient() && (
-    <__BasicThreeProvider>
+    <Internal_BasicThreeProvider>
       {children}
-    </__BasicThreeProvider>
+    </Internal_BasicThreeProvider>
   )
 }

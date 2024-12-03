@@ -54,7 +54,7 @@ function parseFromHash() {
   }
 }
 
-function __Client() {
+function Internal_Client() {
   const initial = parseFromHash()
   const [libName, setLibName] = useState<keyof typeof ShaderLib>(initial.libName)
   const [shaderProgram, setShaderProgram] = useState<typeof shaderPrograms[number]>(initial.shaderProgram)
@@ -200,5 +200,5 @@ function __Client() {
 }
 
 export function Client() {
-  return useIsClient() && <__Client />
+  return useIsClient() && <Internal_Client />
 }
