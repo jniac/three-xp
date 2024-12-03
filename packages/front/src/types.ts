@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { TemplateString } from 'next/dist/lib/metadata/types/metadata-types'
 
 const statusOptions = [
   'wip',
@@ -21,12 +22,16 @@ type XpMetadataType =
 export class XpMetadata implements XpMetadataType {
   internal: XpMetadataType
 
-  get slug() { return this.internal.slug }
-  get title() { return this.internal.title ?? this.internal.slug }
-  get description() { return this.internal.description ?? this.internal.slug }
-  get status() { return this.internal.status ?? defaultProps.status }
+  slug: string
+  title: string | TemplateString
+  description: string
+  status: Status
 
   constructor(metadata: XpMetadataType) {
     this.internal = metadata
+    this.slug = metadata.slug
+    this.title = metadata.title ?? metadata.slug
+    this.description = metadata.description ?? metadata.slug
+    this.status = metadata.status ?? defaultProps.status
   }
 }
