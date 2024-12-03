@@ -3,8 +3,9 @@ import { XpMetadata } from '@/types'
 import { Client } from './client'
 
 export const metadata = new XpMetadata({
-  slug: 'voxel/chunk',
-  status: 'done',
+  title: 'Voxel World',
+  slug: 'voxel/world',
+  // status: 'done',
 })
 
 export default function VertigoWidgetPage() {

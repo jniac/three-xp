@@ -1,5 +1,5 @@
 'use client'
-
+import Markdown from 'react-markdown'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
@@ -12,6 +12,9 @@ import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
 import { Main } from './main'
+
+import s from '../md.module.css'
+import Readme from './README.md'
 
 function Controller() {
   useThree(function* (three) {
@@ -61,6 +64,9 @@ export function Client() {
       <ThreeProvider>
         <Controller />
         <MainComponent />
+        <div className='layer thru flex flex-col p-4 gap-2'>
+          <Markdown className={s.Markdown}>{Readme}</Markdown>
+        </div>
       </ThreeProvider>
     </div>
   )

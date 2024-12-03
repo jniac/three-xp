@@ -47,9 +47,10 @@ export class Main extends Group {
 
     const knot = setup(
       new Mesh(
-        new TorusKnotGeometry(10, 2, 64, 16),
+        new TorusKnotGeometry(10, 3, 32, 6),
         new AutoLitMaterial({ wireframe: true, side: DoubleSide })
       ), this)
+    knot.visible = false
 
     setup(new SimpleGridHelper({ size: 24 }), {
       parent: this,

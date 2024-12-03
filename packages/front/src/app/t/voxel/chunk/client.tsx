@@ -13,7 +13,7 @@ import { leak } from '@/utils/leak'
 
 import { Main } from './main'
 
-import s from './client.module.css'
+import s from '../md.module.css'
 import Readme from './README.md'
 
 function Controller() {
