@@ -2,10 +2,12 @@ import { Group, Mesh, TorusKnotGeometry, Vector3 } from 'three'
 
 import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
 import { SimpleGridHelper } from 'some-utils-three/helpers/grid'
+import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setup } from 'some-utils-three/utils/tree'
 import { loop3 } from 'some-utils-ts/iteration/loop'
+import { PRNG } from 'some-utils-ts/random/prng'
 
 function nearestPointOnCircle(
   circleX: number,
@@ -111,6 +113,53 @@ export class Main extends Group {
         position: [16, 0, -12],
       })
     }
+
+    {
+      // Bounds test:
+      const chunk = new Chunk(SIZE)
+      for (const { x, y, z } of loop3(SIZE, SIZE, SIZE)) {
+        const full = (x === 0 || y === 0 || z === 0 || x === SIZE - 1 || y === SIZE - 1 || z === SIZE - 1) && PRNG.chance(.66)
+        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+      }
+      console.log(chunk.computeBounds())
+      setup(new Mesh(
+        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        new AutoLitMaterial({ color: '#9900ff' })), {
+        parent: this,
+        x: -SIZE,
+        z: -2 * SIZE,
+      })
+    }
+
+    {
+      // Bounds test:
+      const chunk = new Chunk(SIZE)
+      const p = new Vector3()
+      const halfSize = SIZE / 2
+      for (const { x, y, z } of loop3(SIZE, SIZE, SIZE)) {
+        p.set(x - halfSize, y - halfSize, z - halfSize)
+        const d = p.lengthSq() - halfSize * halfSize * .25
+        if (PRNG.chance(1 - d * .05)) {
+          chunk.getVoxelState(x, y, z).setUint8(0, 1)
+        }
+      }
+      const mesh = setup(new Mesh(
+        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        new AutoLitMaterial({ color: '#00ddff' })), {
+        parent: this,
+        x: -SIZE,
+        z: 0,
+      })
+      const lines = setup(new LineHelper(), { parent: mesh })
+      lines
+        .box({
+          box3: chunk.computeBounds(),
+          asIntBox3: true,
+        })
+        .draw()
+    }
+
+
     // setup(new Mesh(voxels.geometry, new MeshBasicMaterial({ color: 'red', wireframe: true })), this)
 
     return { sky }

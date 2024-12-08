@@ -1,6 +1,5 @@
 import { DoubleSide, Group, Mesh, Raycaster, TorusKnotGeometry, Vector3 } from 'three'
 
-import { leak } from '@/utils/leak'
 import { createNaiveVoxelGeometry, World } from 'some-utils-three/experimental/voxel'
 import { SimpleGridHelper } from 'some-utils-three/helpers/grid'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -9,30 +8,8 @@ import { setup } from 'some-utils-three/utils/tree'
 import { loop3 } from 'some-utils-ts/iteration/loop'
 import { PRNG } from 'some-utils-ts/random/prng'
 
-function nearestPointOnCircle(
-  circleX: number,
-  circleY: number,
-  radius: number,
-  pointX: number,
-  pointY: number
-): [x: number, y: number] {
-  // Compute the vector from the circle's center to the point
-  const vectorX = pointX - circleX
-  const vectorY = pointY - circleY
-
-  // Compute the magnitude of the vector
-  const distance = Math.sqrt(vectorX * vectorX + vectorY * vectorY)
-
-  // Normalize the vector
-  const unitVectorX = vectorX / distance
-  const unitVectorY = vectorY / distance
-
-  // Scale the vector by the radius
-  const nearestX = circleX + unitVectorX * radius
-  const nearestY = circleY + unitVectorY * radius
-
-  return [nearestX, nearestY]
-}
+import { leak } from '@/utils/leak'
+import { LineHelper } from 'some-utils-three/helpers/line'
 
 const raycaster = new Raycaster()
 function isPointInsideMesh(point: Vector3, mesh: Mesh) {
@@ -74,32 +51,43 @@ export class Main extends Group {
         world.setVoxelState(x, y, z, plainVoxel)
     }
 
-    for (let { x, y, z } of loop3(2, 2, 2)) {
-      x -= 1
-      y -= 1
-      z -= 1
-      const chunk = world.tryGetChunk(x, y, z)
-      if (chunk) {
-        const color = PRNG.pick([
-          '#ffdd55',
-          '#55ddff',
-          '#dd55ff',
-          '#55ffdd',
-          '#ff55dd',
-          '#ddff55',
-          '#ff5555',
-        ])
-        setup(new Mesh(
-          createNaiveVoxelGeometry(chunk.voxelFaces()),
-          new AutoLitMaterial({ color })), {
-          parent: this,
-          x: x * 16,
-          y: y * 16,
-          z: z * 16,
-        })
-      }
-    }
+    this.createAllChunkMeshes(world)
 
     return { sky }
   })()
+
+  createAllChunkMeshes(world: World) {
+    for (const { superChunkIndex, chunkIndex, chunk } of world.enumerateChunks()) {
+      const color = PRNG.pick([
+        '#ffdd55',
+        '#55ddff',
+        '#dd55ff',
+        '#55ffdd',
+        '#ff55dd',
+        '#ddff55',
+        '#ff5555',
+      ])
+
+      const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+      const material = new AutoLitMaterial({ color })
+
+      const { x, y, z } = world.metrics.fromIndexes(superChunkIndex, chunkIndex, 0)
+      setup(new Mesh(geometry, material), {
+        parent: this,
+        x,
+        y,
+        z,
+      })
+    }
+
+    const box3 = world.computeBounds()
+    const lines = setup(new LineHelper(), this)
+    lines
+      .box({ box3, asIntBox3: true })
+      .draw()
+  }
+
+  createOneUniqueMesh(world: World) {
+
+  }
 }
