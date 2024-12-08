@@ -20,8 +20,9 @@ function Controller() {
   useThree(function* (three) {
     leak({ three })
     const controls = new VertigoControls({
-      size: 10,
+      size: 50,
       perspective: 1,
+      rotation: ['-20deg', '-45deg', 0],
     })
     yield controls.start(three.renderer.domElement)
     const ticker = Ticker.get('three')

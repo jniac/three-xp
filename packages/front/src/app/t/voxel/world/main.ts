@@ -80,11 +80,29 @@ export class Main extends Group {
       })
     }
 
-    const box3 = world.computeBounds()
+    const box3 = world.computeVoxelBounds()
     const lines = setup(new LineHelper(), this)
     lines
       .box({ box3, asIntBox3: true })
+      .box({
+        box3: world.computeChunkBounds(),
+        asIntBox3: true,
+        color: '#ff0000',
+      })
       .draw()
+
+    {
+      // One single mesh:
+      const bounds = world.computeVoxelBounds()
+      const geometry = createNaiveVoxelGeometry(world.chunkVoxelFaces(bounds))
+      const material = new AutoLitMaterial({ color: '#ffffff' })
+      setup(new Mesh(geometry, material), {
+        parent: this,
+        x: 0,
+        y: 0,
+        z: -32,
+      })
+    }
   }
 
   createOneUniqueMesh(world: World) {
