@@ -1,7 +1,7 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { PerspectiveCamera, Scene, WebGPURenderer } from 'three/tsl'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { Ticker } from 'some-utils-ts/ticker'
 
 export type Three = ReturnType<typeof createThree>

@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { Euler, Group, Mesh, PerspectiveCamera, TorusKnotGeometry, Vector2, Vector3, WebGLRenderer } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { handleSize } from 'some-utils-dom/handle/size'
 import { useEffects } from 'some-utils-react/hooks/effects'

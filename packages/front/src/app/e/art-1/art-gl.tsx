@@ -24,7 +24,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { handleSize } from 'some-utils-dom/handle/size'
 import { useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { Animation } from 'some-utils-ts/animation'

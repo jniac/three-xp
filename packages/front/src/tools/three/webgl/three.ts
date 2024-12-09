@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Scene, Vector2, WebGLRenderer } from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { handleSize } from 'some-utils-dom/handle/size'
 import { Ticker } from 'some-utils-ts/ticker'
 

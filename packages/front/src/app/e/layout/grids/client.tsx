@@ -1,6 +1,6 @@
 'use client'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Ticker } from 'some-utils-ts/ticker'
 

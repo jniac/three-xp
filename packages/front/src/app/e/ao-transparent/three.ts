@@ -9,7 +9,7 @@ import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
 import { Message } from 'some-utils-ts/message'
 import { Ticker } from 'some-utils-ts/ticker'
 
-import { handleAnyUserInteraction } from 'some-utils-dom/handle/anyUserInteraction'
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { GTAOPass } from './GTAOPass'
 import { createScene } from './scene'
 
