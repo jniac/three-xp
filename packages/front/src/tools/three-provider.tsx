@@ -4,10 +4,9 @@ import { createContext, HTMLAttributes, useContext, useMemo } from 'react'
 import * as THREE from 'three'
 import { Group } from 'three'
 
-import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable } from 'some-utils-react/hooks/effects'
+import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
 
-import { config } from '@/config'
 import { useIsClient } from '@/utils/is-client'
 
 const reactThreeContext = createContext<ThreeWebglContext>(null!)
@@ -96,21 +95,33 @@ export function useThreeInstance<T>(
   return instance
 }
 
-function ServerProofThreeProvider({ children, className }: HTMLAttributes<HTMLDivElement>) {
+const defaultProps = {
+  className: '',
+  assetsPath: '/',
+}
+
+type Props = HTMLAttributes<HTMLDivElement> & Partial<typeof defaultProps>
+
+function ServerProofThreeProvider(props: Props) {
+  const { children, className, assetsPath } = { ...defaultProps, ...props }
+
   const three = useMemo(() => new ThreeWebglContext(), [])
+  three.loader.setPath(assetsPath)
 
-  const { ref } = useEffects<HTMLDivElement>(function* (div) {
-    // Set path for assets, it is very dependent on the environment
-    three.loader.setPath(config.assetsPath)
 
-    yield three.initialize(div)
-    Object.assign(window, { three, THREE })
+  const { ref } = useLayoutEffects<HTMLDivElement>({ debounce: true }, function* (div, effect) {
+    yield three.initialize(div.firstElementChild as HTMLDivElement)
+    effect.triggerRender()
+    Object.assign(window, { three })
   }, [])
 
   return (
-    <div ref={ref} className={`ThreeProvider absolute-through ${className ?? ''}`}>
+    <div ref={ref} className={className} style={{ position: 'absolute', inset: 0 }}>
       <reactThreeContext.Provider value={three}>
-        {children}
+        <div style={{ position: 'absolute', inset: '0' }} />
+        <div style={{ position: 'absolute', inset: '0' }} className='thru'>
+          {three.initialized && children}
+        </div>
       </reactThreeContext.Provider>
     </div>
   )
