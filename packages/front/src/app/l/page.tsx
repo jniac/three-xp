@@ -5,10 +5,12 @@ import { SummaryPage } from '@/components/summary'
 import * as depthOffset from './depth-offset/page'
 import * as occludedLines from './occluded-lines/page'
 import * as translatePlusScale from './translate+scale/page'
+import * as webgpuOld from './webgpu-old/page'
 import * as webgpu from './webgpu/page'
 
 const learning = {
   depthOffset,
+  webgpuOld,
   webgpu,
   translatePlusScale,
   occludedLines,

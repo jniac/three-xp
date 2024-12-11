@@ -1,25 +1,25 @@
 'use client'
 
 import { createContext, CSSProperties, HTMLAttributes, useContext, useMemo } from 'react'
-import { Group, Object3D } from 'three'
+import { Group, Object3D } from 'three/webgpu'
 
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
-import { VertigoProps } from 'some-utils-three/camera/vertigo'
-import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { VertigoProps } from 'some-utils-three/webgpu/camera/vertigo'
+import { VertigoControls } from 'some-utils-three/webgpu/camera/vertigo/controls'
+import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { useIsClient } from '@/utils/is-client'
 
-const reactThreeContext = createContext<ThreeWebglContext>(null!)
+const reactThreeContext = createContext<ThreeWebGPUContext>(null!)
 
 export function useThree(
-  effects?: UseEffectsCallback<ThreeWebglContext>,
+  effects?: UseEffectsCallback<ThreeWebGPUContext>,
   deps?: UseEffectsDeps,
-): ThreeWebglContext {
+): ThreeWebGPUContext {
   const three = useContext(reactThreeContext)
 
-  useEffects(async function* (_, state) {
+  useLayoutEffects(async function* (_, state) {
     if (effects) {
       const it = effects(three, state)
       if (it && typeof it.next === 'function') {
@@ -37,7 +37,7 @@ export function useThree(
 
 export function useGroup(
   name: string,
-  effects?: (group: Group, three: ThreeWebglContext, state: UseEffectsEffect) => UseEffectsReturnable,
+  effects?: (group: Group, three: ThreeWebGPUContext, state: UseEffectsEffect) => UseEffectsReturnable,
   deps?: UseEffectsDeps,
 ): Group {
   const group = useMemo(() => new Group(), [])
@@ -65,38 +65,6 @@ export function useGroup(
   return group
 }
 
-/**
- * NOTE: Not tested!
- */
-export function useThreeInstance<T>(
-  _class: new () => (T extends Object3D ? T : never),
-  effects?: (instance: T, three: ThreeWebglContext, state: UseEffectsEffect) => UseEffectsReturnable,
-  deps?: UseEffectsDeps,
-): T {
-  const instance = useMemo(() => new _class(), [_class])
-
-  useThree(async function* (three, state) {
-    three.scene.add(instance)
-    yield () => {
-      instance.clear()
-      instance.removeFromParent()
-    }
-
-    if (effects) {
-      const it = effects(instance, three, state)
-      if (it && typeof it.next === 'function') {
-        do {
-          const { value, done } = await it.next()
-          if (done) break
-          yield value
-        } while (state.mounted)
-      }
-    }
-  }, deps)
-
-  return instance
-}
-
 export function ThreeInstance({ value }: { value: Object3D | (new (...args: any[]) => Object3D) }) {
   const instance = useMemo(() => typeof value === 'function' ? new value() : value, [value])
   useThree(async function* (three) {
@@ -113,8 +81,8 @@ export function ThreeInstance({ value }: { value: Object3D | (new (...args: any[
     }
     yield () => {
       instance.removeFromParent()
-      if ('destroy' in instance) {
-        (instance as any).destroy?.()
+      if ('onDestroy' in instance) {
+        (instance as any).onDestroy?.()
       }
     }
   }, [instance])
@@ -130,10 +98,10 @@ const defaultProps = {
 type Props = HTMLAttributes<HTMLDivElement> & Partial<typeof defaultProps>
 
 function ServerProofThreeProvider(props: Props) {
-  const { children, className, assetsPath, vertigoControls: vertigo } = { ...defaultProps, ...props }
+  const { children, className, vertigoControls: vertigo } = { ...defaultProps, ...props }
 
-  const three = useMemo(() => new ThreeWebglContext(), [])
-  three.loader.setPath(assetsPath)
+  const three = useMemo(() => new ThreeWebGPUContext(), [])
+  // three.loader.setPath(assetsPath)
 
   const { ref } = useLayoutEffects<HTMLDivElement>({ debounce: true }, function* (div, effect) {
     yield three.initialize(div.firstElementChild as HTMLDivElement)

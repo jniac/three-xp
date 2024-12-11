@@ -1,18 +1,21 @@
+import { SummaryPage } from '@/components/summary'
 
 import { XpMetadata } from '@/types'
-import { ServerProof } from './server-proof'
+
+import * as pages from './pages'
 
 export const metadata = new XpMetadata({
+  title: 'Threejs Learning WebGPU',
   slug: 'webgpu',
-  description: `
-    # WebGPU first steps
-  `,
 })
 
-export default function WebgpuPage() {
+export default function ToolsPage() {
   return (
-    <div className='WebgpuPage page'>
-      <ServerProof />
-    </div>
+    <SummaryPage
+      className='ToolsPage'
+      path='../l'
+      metadata={metadata}
+      pages={pages}
+    />
   )
 }
