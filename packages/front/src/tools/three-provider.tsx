@@ -1,11 +1,13 @@
 'use client'
 
-import { createContext, HTMLAttributes, useContext, useMemo } from 'react'
-import * as THREE from 'three'
-import { Group } from 'three'
+import { createContext, CSSProperties, HTMLAttributes, useContext, useMemo } from 'react'
+import { Group, Object3D } from 'three'
 
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
+import { VertigoProps } from 'some-utils-three/camera/vertigo'
+import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { onTick } from 'some-utils-ts/ticker'
 
 import { useIsClient } from '@/utils/is-client'
 
@@ -67,7 +69,7 @@ export function useGroup(
  * NOTE: Not tested!
  */
 export function useThreeInstance<T>(
-  _class: new () => (T extends THREE.Object3D ? T : never),
+  _class: new () => (T extends Object3D ? T : never),
   effects?: (instance: T, three: ThreeWebglContext, state: UseEffectsEffect) => UseEffectsReturnable,
   deps?: UseEffectsDeps,
 ): T {
@@ -95,19 +97,29 @@ export function useThreeInstance<T>(
   return instance
 }
 
+export function ThreeInstance({ value }: { value: Object3D }) {
+  useThree(async function* (three) {
+    three.scene.add(value)
+    yield () => {
+      value.removeFromParent()
+    }
+  }, [value])
+  return null
+}
+
 const defaultProps = {
   className: '',
   assetsPath: '/',
+  vertigoControls: false as boolean | VertigoProps,
 }
 
 type Props = HTMLAttributes<HTMLDivElement> & Partial<typeof defaultProps>
 
 function ServerProofThreeProvider(props: Props) {
-  const { children, className, assetsPath } = { ...defaultProps, ...props }
+  const { children, className, assetsPath, vertigoControls: vertigo } = { ...defaultProps, ...props }
 
   const three = useMemo(() => new ThreeWebglContext(), [])
   three.loader.setPath(assetsPath)
-
 
   const { ref } = useLayoutEffects<HTMLDivElement>({ debounce: true }, function* (div, effect) {
     yield three.initialize(div.firstElementChild as HTMLDivElement)
@@ -115,11 +127,26 @@ function ServerProofThreeProvider(props: Props) {
     Object.assign(window, { three })
   }, [])
 
+  useEffects(function* () {
+    if (vertigo) {
+      const controls = new VertigoControls(typeof vertigo === 'object' ? vertigo : {})
+        .initialize(ref.current!)
+        .start()
+
+      yield controls.destroy
+
+      yield onTick('three', tick => {
+        controls.update(three.camera, three.aspect, tick.deltaTime)
+      })
+    }
+  }, [vertigo])
+
+  const layer = { position: 'absolute', inset: 0 } as CSSProperties
   return (
-    <div ref={ref} className={className} style={{ position: 'absolute', inset: 0 }}>
+    <div ref={ref} className={className} style={layer}>
       <reactThreeContext.Provider value={three}>
-        <div style={{ position: 'absolute', inset: '0' }} />
-        <div style={{ position: 'absolute', inset: '0' }} className='thru'>
+        <div style={layer} />
+        <div style={layer} className='thru'>
           {three.initialized && children}
         </div>
       </reactThreeContext.Provider>
@@ -127,7 +154,7 @@ function ServerProofThreeProvider(props: Props) {
   )
 }
 
-export function ThreeProvider(props: HTMLAttributes<HTMLDivElement>) {
-  return useIsClient() && <ServerProofThreeProvider {...props} />
+export function ThreeProvider(...args: Parameters<typeof ServerProofThreeProvider>) {
+  return useIsClient() && <ServerProofThreeProvider {...args[0]} />
 }
 

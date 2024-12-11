@@ -2,6 +2,16 @@ import path from 'path'
 
 const isProd = process.env.NODE_ENV === 'production'
 
+const logOnce = (() => {
+  const logs = new Set()
+  return (msg) => {
+    if (!logs.has(msg)) {
+      logs.add(msg)
+      console.log(msg)
+    }
+  }
+})()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -22,7 +32,7 @@ const nextConfig = {
 
     // Deliver svg from public assets folder (double usage of svg, as source file (component) or as asset).
     const svgFolder = path.join(import.meta.dirname, 'public/assets/svg') // Node 20
-    console.log(`svgFolder: ${svgFolder}`)
+    logOnce(`   SVG Folder: ${svgFolder}`)
     config.resolve.alias['@svg'] = svgFolder
     config.module.rules.push({
       test: /^@svg\/.*\.svg$/,
