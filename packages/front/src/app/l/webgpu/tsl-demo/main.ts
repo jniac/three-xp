@@ -1,7 +1,8 @@
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
-import { Ticker } from 'some-utils-ts/ticker'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { EquirectangularReflectionMapping, float, Fn, Group, Mesh, MeshPhysicalNodeMaterial, oscTriangle, positionGeometry, TorusGeometry, uniform } from 'three/webgpu'
+
+import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
+import { Ticker } from 'some-utils-ts/ticker'
 
 export class Main extends Group {
   parts = (() => {
@@ -23,6 +24,7 @@ export class Main extends Group {
   })()
 
   async *onInitialize(three: ThreeWebGPUContext) {
+    // NOTE: RGBELoader trigger the "Multiple instances of Three.js being imported." warning, but it's fine...
     const rgbeLoader = new RGBELoader()
     const url = 'https://threejs.org/examples/textures/equirectangular/pedestrian_overpass_1k.hdr'
     rgbeLoader.load(url, (environmentMap) => {

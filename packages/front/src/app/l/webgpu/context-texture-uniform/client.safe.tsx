@@ -9,19 +9,12 @@ import { useEffect, useState } from 'react'
  * By using dynamic imports and relying on the client-side rendering.
  */
 export function SafeClient() {
-  const [Client, setClient] = useState<any>(null)
+  const [module, setModule] = useState<any>(null)
   useEffect(() => {
-    import('./client').then(({ Client }) => {
-      setClient(Client)
-    })
+    import('./client')
+      .then(module => setModule(module))
   }, [])
-  return Client
-    ? (
-      <Client />
-    )
-    : (
-      <div className='layer'>
-        loading...
-      </div >
-    )
+  return module
+    ? <module.Client />
+    : <div className='layer col-center'>loading...</div >
 }
