@@ -7,3 +7,30 @@
   line-height: 1em;
   text-transform: uppercase;
 }
+
+.ThreeDiv {
+  color: white;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  user-select: none;
+  text-transform: uppercase;
+  padding: 0.25em;
+}
+
+.ThreeDiv:hover {
+  border: 1px solid #fff;
+}
+
+.ThreeDiv > * {
+  pointer-events: none;
+}
+
+.ThreeDiv .Counter span {
+  display: inline-block;
+  width: 0.3em;
+  text-align: center;
+}

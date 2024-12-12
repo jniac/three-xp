@@ -2,7 +2,7 @@
 
 import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
 import { Tick, Ticker } from 'some-utils-ts/ticker'
-import { DoubleSide, float, Fn, Group, instanceIndex, Mesh, MeshBasicNodeMaterial, PlaneGeometry, StorageTexture, texture, textureStore, uniform, uvec2, vec4 } from 'three/webgpu'
+import { color, DoubleSide, float, Fn, Group, If, instanceIndex, Mesh, MeshBasicNodeMaterial, mix, mx_noise_float, mx_worley_noise_float, PlaneGeometry, saturation, StorageTexture, texture, textureStore, uniform, uvec2, vec3, vec4 } from 'three/webgpu'
 
 export class Main extends Group {
   static instances: Main[] = []
@@ -12,6 +12,8 @@ export class Main extends Group {
     const width = 512, height = 512
 
     const uTime = uniform(float(0))
+    uTime.onObjectUpdate(() => Ticker.get('three').time)
+    const uPhase = uniform(float(0))
     // @ts-ignore
     const computeTexture = Fn(({ storageTexture }) => {
 
@@ -24,20 +26,29 @@ export class Main extends Group {
       const x = float(posX).div(50.0)
       const y = float(posY).div(50.0)
 
-      const v1 = x.sin()
-      const v2 = y.sin()
-      const v3 = x.add(y).sin()
-      const v4 = x.mul(x).add(y.mul(y), uTime.mul(1.2).sin()).sqrt().add(5.0, uTime.sin()).sin()
-      const v = v1.add(v2, v3, v4)
+      If(uPhase.equal(0), () => {
+        const v1 = x.sin()
+        const v2 = y.sin()
+        const v3 = x.add(y).sin()
+        const v4 = x.mul(x).add(y.mul(y), uTime.mul(1.2).sin()).sqrt().add(5.0, uTime.sin()).sin()
+        const v = v1.add(v2, v3, v4)
 
-      const r = uTime.mul(2).add(x.div(12).add(y.div(32))).sin().remap(-1, 1, 0, 1)
-      const g = v.add(Math.PI).sin()
-      const b = v.add(Math.PI).sub(0.5).sin()
+        const r = uTime.mul(2).add(x.div(12).add(y.div(32))).sin().remap(-1, 1, 0, 1)
+        const g = v.add(Math.PI).sin()
+        const b = v.add(Math.PI).sub(0.5).sin()
 
-      textureStore(storageTexture, indexUV, vec4(r, g, b, 1)).toWriteOnly()
+        const c = saturation(vec3(r, g, b), uTime.sin().remap(-1, 1, -1, 1))
+
+        textureStore(storageTexture, indexUV, vec4(c, 1)).toWriteOnly()
+      }).Else(() => {
+        const n = mx_worley_noise_float(vec3(x, y, uTime))
+        const n2 = mx_noise_float(vec3(x, y, uTime).mul(.2)).remap(-.65, .65, 0, 1)
+        const c = mix(color('red'), color('blue'), saturation(n2, 5))
+        c.mixAssign(color('black'), n.oneMinus())
+
+        textureStore(storageTexture, indexUV, vec4(c, 1)).toWriteOnly()
+      })
     })
-
-    uTime.onObjectUpdate(() => Ticker.get('three').time)
 
     const plane = new Mesh(
       new PlaneGeometry(),
@@ -53,7 +64,7 @@ export class Main extends Group {
     // @ts-ignore
     plane.material.colorNode = texture(storageTexture)
 
-    return { plane, computeNode }
+    return { plane, computeNode, uPhase }
   })()
 
   constructor() {
