@@ -10,7 +10,7 @@
   },
   "pnpm": {
     "overrides": {
-      "three": "0.170"
+      "three": "0.171"
     }
   }
 }
