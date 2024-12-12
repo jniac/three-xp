@@ -1,6 +1,6 @@
 import { XpMetadata } from '@/types'
 
-import { Client } from './client'
+import { SafeClient } from './client.safe'
 
 export const metadata = new XpMetadata({
   slug: 'webgpu/tsl-demo',
@@ -9,7 +9,7 @@ export const metadata = new XpMetadata({
 export default function Page() {
   return (
     <div className='page'>
-      <Client />
+      <SafeClient />
     </div>
   )
 }
