@@ -19,7 +19,7 @@ export function useThree(
 ): ThreeWebGPUContext {
   const three = useContext(reactThreeContext)
 
-  useLayoutEffects(async function* (_, state) {
+  useEffects(async function* (_, state) {
     if (effects) {
       const it = effects(three, state)
       if (it && typeof it.next === 'function') {
@@ -66,8 +66,8 @@ export function useGroup(
 }
 
 export function ThreeInstance({ value }: { value: Object3D | (new (...args: any[]) => Object3D) }) {
-  const instance = useMemo(() => typeof value === 'function' ? new value() : value, [value])
   useThree(async function* (three) {
+    const instance = typeof value === 'function' ? new value() : value
     three.scene.add(instance)
     if ('onInitialize' in instance) {
       const result = (instance as any).onInitialize(three)
@@ -85,7 +85,7 @@ export function ThreeInstance({ value }: { value: Object3D | (new (...args: any[
         (instance as any).onDestroy?.()
       }
     }
-  }, [instance])
+  }, 'always')
   return null
 }
 
