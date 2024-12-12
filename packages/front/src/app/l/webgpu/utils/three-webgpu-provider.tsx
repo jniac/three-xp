@@ -69,8 +69,8 @@ export function ThreeInstance({ value }: { value: Object3D | (new (...args: any[
   const instance = useMemo(() => typeof value === 'function' ? new value() : value, [value])
   useThree(async function* (three) {
     three.scene.add(instance)
-    if ('initialize' in instance) {
-      const result = (instance as any).initialize(three)
+    if ('onInitialize' in instance) {
+      const result = (instance as any).onInitialize(three)
       if (result && typeof result.next === 'function') {
         do {
           const { value, done } = await result.next()

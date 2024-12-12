@@ -1,13 +1,14 @@
 'use client'
 
+import { useState } from 'react'
+
+import { ToggleWidget } from 'some-utils-react/components/widgets/toggle'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { update3d } from 'some-utils-three/webgpu/css-3d/compute'
 
 import { ThreeInstance, ThreeProvider, useThree } from '../utils/three-webgpu-provider'
 import { Main } from './main'
 
-import { useState } from 'react'
-import { ToggleWidget } from 'some-utils-react/components/widgets/toggle'
 import s from './client.module.css'
 
 function Background() {
