@@ -77,10 +77,7 @@ export function createJelly() {
     })().compute(count)
 
     // initialize the storage buffer with the base position
-
     computeUpdate.onInit(() => renderer.compute(computeInit))
-
-    //
 
     return computeUpdate
   })
