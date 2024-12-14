@@ -16,3 +16,8 @@ Three.js Experiments
 ## Resources
 
 - [TSL (Three.js-Shading-Language)](https://github.com/mrdoob/three.js/wiki/Three.js-Shading-Language)
+
+WebGPU:
+
+- [webgpu.github.io](https://webgpu.github.io/webgpu-samples/)
+- [google.github.io/tour-of-wgsl](https://google.github.io/tour-of-wgsl/)
