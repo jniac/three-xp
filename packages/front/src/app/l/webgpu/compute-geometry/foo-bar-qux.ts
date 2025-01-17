@@ -12,12 +12,9 @@ export function applyFooBazQux(targetGeometry: BufferGeometry, targetMaterial: M
   const fooAttribute = new StorageBufferAttribute(targetGeometry.attributes.position.array, 3)
   const bazAttribute = new StorageBufferAttribute(targetGeometry.attributes.position.array, 3)
   const quxAttribute = new StorageBufferAttribute(new Float32Array(count * 3), 3)
-  const zooAttribute = new StorageBufferAttribute(new Float32Array(count * 3), 3)
-  // @ts-ignore
   const fooStorage = storage(fooAttribute, 'vec3', count)
   const bazStorage = storage(bazAttribute, 'vec3', count)
   const quxStorage = storage(quxAttribute, 'vec3', count)
-  const zooStorage = storage(zooAttribute, 'vec3', count)
 
   const uTime = uniform(float(0))
   uTime.onFrameUpdate(() => Ticker.get('three').time)
@@ -54,6 +51,7 @@ export function applyFooBazQux(targetGeometry: BufferGeometry, targetMaterial: M
     // @ts-ignore
     const computeUpdate = Fn(() => {
       const baz = bazStorage.element(instanceIndex)
+      baz.assign(baz.add(vec3(1, 0, 1).mul(uTime.sin().remap(-1, 1, -1, 2).mul(.001))))
 
       // Position
       const foo = fooStorage.element(instanceIndex)

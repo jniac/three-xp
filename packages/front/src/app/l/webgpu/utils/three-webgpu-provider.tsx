@@ -4,12 +4,11 @@ import { createContext, CSSProperties, HTMLAttributes, useContext, useMemo } fro
 import { Group, Object3D } from 'three/webgpu'
 
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
+import { useIsClient } from 'some-utils-react/hooks/is-client'
 import { VertigoProps } from 'some-utils-three/webgpu/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/webgpu/camera/vertigo/controls'
 import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
 import { onTick } from 'some-utils-ts/ticker'
-
-import { useIsClient } from '@/utils/is-client'
 
 const reactThreeContext = createContext<ThreeWebGPUContext>(null!)
 
@@ -137,6 +136,8 @@ function ServerProofThreeProvider(props: Props) {
 }
 
 export function ThreeProvider(...args: Parameters<typeof ServerProofThreeProvider>) {
-  return useIsClient() && <ServerProofThreeProvider {...args[0]} />
+  return useIsClient() && (
+    <ServerProofThreeProvider {...args[0]} />
+  )
 }
 
