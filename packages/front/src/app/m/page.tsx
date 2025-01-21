@@ -1,22 +1,25 @@
+
 import { Metadata } from 'next'
 
 import { SummaryPage } from '@/components/summary'
 
 import * as contextTest from './context-test/page'
 
+const pages = {
+ 'context-test': contextTest,
+}
+
 export const metadata: Metadata = {
   title: 'Miscellaneous',
 }
 
-export default function MiscellaneousPage() {
+export default function ExperimentsPage() {
   return (
     <SummaryPage
-      className='MiscellaneousPage'
+      className='ExperimentsPage'
       path='m'
       metadata={metadata}
-      pages={{
-        contextTest,
-      }}
+      pages={pages}
     />
   )
 }

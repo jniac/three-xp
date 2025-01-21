@@ -81,7 +81,7 @@ export class FractalHelper extends Group {
       lineLength: 14,
     }), this)
 
-    const pointerLine = setup(new LineHelper(), this)
+    const pointerLine = setup(new LineHelper(100), this)
 
     for (const p of positions) {
       const { x, y, z, w } = fromCoordinates(p.x, p.y)

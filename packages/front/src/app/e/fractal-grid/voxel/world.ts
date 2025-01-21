@@ -8,8 +8,8 @@ import { setup } from 'some-utils-three/utils/tree'
 import { fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
 
-import { toChunkCoords, VoxelGridChunk } from './chunk'
-import { CHUNK_POSITION_LIMIT, WORLD_BASIS, WORLD_EULER, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
+import { FractalGridChunk, toChunkCoords } from './chunk'
+import { WORLD_BASIS, WORLD_EULER, WORLD_LIMIT, WORLD_MATRIX, WORLD_MATRIX_INVERSE } from './math'
 import { Scope } from './scope'
 
 export function combineCoords(x: number, y: number) {
@@ -83,8 +83,8 @@ class SuperAxesHelper extends Group {
   }
 }
 
-export class World extends Group {
-  static instances = [] as World[]
+export class FractalGridWorld extends Group {
+  static instances = [] as FractalGridWorld[]
   static current() {
     if (this.instances.length === 0)
       throw new Error(`No World!`)
@@ -93,7 +93,7 @@ export class World extends Group {
 
   origin = setup(new AxesHelper(), {
     parent: this,
-    position: CHUNK_POSITION_LIMIT,
+    position: WORLD_LIMIT,
     rotation: WORLD_EULER,
   })
 
@@ -161,11 +161,11 @@ export class World extends Group {
     }
   })()
 
-  chunks = new Map<number, VoxelGridChunk>()
+  chunks = new Map<number, FractalGridChunk>()
 
   constructor() {
     super()
-    World.instances.push(this)
+    FractalGridWorld.instances.push(this)
   }
 
   destroy = () => {
@@ -173,10 +173,10 @@ export class World extends Group {
     this.chunks.clear()
     this.clear()
 
-    const index = World.instances.indexOf(this)
+    const index = FractalGridWorld.instances.indexOf(this)
     if (index === -1)
       throw new Error(`World instance not found`)
-    World.instances.splice(index, 1)
+    FractalGridWorld.instances.splice(index, 1)
   }
 
   getChunk(x: number, y: number) {
@@ -189,7 +189,7 @@ export class World extends Group {
     if (chunk) {
       return chunk
     } else {
-      const chunk = setup(new VoxelGridChunk({ world: this }), this.chunkGroup)
+      const chunk = setup(new FractalGridChunk({ world: this }), this.chunkGroup)
       this.chunks.set(combineCoords(x, y), chunk)
       chunk.setGridCoords([x, y])
       return chunk

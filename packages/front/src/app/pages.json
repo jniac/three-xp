@@ -1,0 +1,162 @@
+[
+  {
+    "page": "e/ao-transparent/page.tsx",
+    "dir": "e/ao-transparent"
+  },
+  {
+    "page": "e/art-1/page.tsx",
+    "dir": "e/art-1"
+  },
+  {
+    "page": "e/art-2/page.tsx",
+    "dir": "e/art-2"
+  },
+  {
+    "page": "e/dots-and-falloffs/page.tsx",
+    "dir": "e/dots-and-falloffs"
+  },
+  {
+    "page": "e/four-circles/page.tsx",
+    "dir": "e/four-circles"
+  },
+  {
+    "page": "e/fractal-grid/chunk-viewer/page.tsx",
+    "dir": "e/fractal-grid/chunk-viewer"
+  },
+  {
+    "page": "e/fractal-grid/page.tsx",
+    "dir": "e/fractal-grid"
+  },
+  {
+    "page": "e/from-earth-to/page.tsx",
+    "dir": "e/from-earth-to"
+  },
+  {
+    "page": "e/layout/grids/page.tsx",
+    "dir": "e/layout/grids"
+  },
+  {
+    "page": "e/page.tsx",
+    "dir": "e"
+  },
+  {
+    "page": "e/path-with-loop/page.tsx",
+    "dir": "e/path-with-loop"
+  },
+  {
+    "page": "e/scattered-plane/page.tsx",
+    "dir": "e/scattered-plane"
+  },
+  {
+    "page": "e/two-env-demo/page.tsx",
+    "dir": "e/two-env-demo"
+  },
+  {
+    "page": "l/depth-offset/page.tsx",
+    "dir": "l/depth-offset"
+  },
+  {
+    "page": "l/occluded-lines/page.tsx",
+    "dir": "l/occluded-lines"
+  },
+  {
+    "page": "l/page.tsx",
+    "dir": "l"
+  },
+  {
+    "page": "l/translate+scale/page.tsx",
+    "dir": "l/translate+scale"
+  },
+  {
+    "page": "l/webgpu-old/page.tsx",
+    "dir": "l/webgpu-old"
+  },
+  {
+    "page": "l/webgpu/compute-geometry/page.tsx",
+    "dir": "l/webgpu/compute-geometry"
+  },
+  {
+    "page": "l/webgpu/context-texture-uniform/page.tsx",
+    "dir": "l/webgpu/context-texture-uniform"
+  },
+  {
+    "page": "l/webgpu/nurbs/page.tsx",
+    "dir": "l/webgpu/nurbs"
+  },
+  {
+    "page": "l/webgpu/page.tsx",
+    "dir": "l/webgpu"
+  },
+  {
+    "page": "l/webgpu/tsl-demo/page.tsx",
+    "dir": "l/webgpu/tsl-demo"
+  },
+  {
+    "page": "m/context-test/page.tsx",
+    "dir": "m/context-test"
+  },
+  {
+    "page": "m/page.tsx",
+    "dir": "m"
+  },
+  {
+    "page": "t/css-3d/page.tsx",
+    "dir": "t/css-3d"
+  },
+  {
+    "page": "t/easing-graph/page.tsx",
+    "dir": "t/easing-graph"
+  },
+  {
+    "page": "t/flexible-layout/page.tsx",
+    "dir": "t/flexible-layout"
+  },
+  {
+    "page": "t/page.tsx",
+    "dir": "t"
+  },
+  {
+    "page": "t/shader-xplr/page.tsx",
+    "dir": "t/shader-xplr"
+  },
+  {
+    "page": "t/template/page.tsx",
+    "dir": "t/template"
+  },
+  {
+    "page": "t/text-helper/hunger/page.tsx",
+    "dir": "t/text-helper/hunger"
+  },
+  {
+    "page": "t/text-helper/page.tsx",
+    "dir": "t/text-helper"
+  },
+  {
+    "page": "t/vertigo-widget/page.tsx",
+    "dir": "t/vertigo-widget"
+  },
+  {
+    "page": "t/vertigo/page.tsx",
+    "dir": "t/vertigo"
+  },
+  {
+    "page": "t/voxel/chunk/page.tsx",
+    "dir": "t/voxel/chunk"
+  },
+  {
+    "page": "t/voxel/page.tsx",
+    "dir": "t/voxel"
+  },
+  {
+    "page": "t/voxel/world/page.tsx",
+    "dir": "t/voxel/world"
+  },
+  {
+    "page": "tmp/compute-normals/page.tsx",
+    "dir": "tmp/compute-normals"
+  },
+  {
+    "page": "tmp/page.tsx",
+    "dir": "tmp"
+  }
+]

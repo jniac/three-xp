@@ -2,7 +2,7 @@
 import { AxesHelper, BufferAttribute, BufferGeometry, ColorRepresentation, DoubleSide, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
-import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
+import { Chunk } from 'some-utils-three/experimental/voxel'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
@@ -10,11 +10,18 @@ import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { loop2, loop3 } from 'some-utils-ts/iteration/loop'
 import { PRNG } from 'some-utils-ts/random/prng'
 
-import { CHUNK_COL, CHUNK_CORNERS, CHUNK_ROW, CHUNK_SCALE, CHUNK_SIZE, WORLD_BASIS } from './math'
+import { CHUNK_COL, CHUNK_CORNERS, CHUNK_ROW, CHUNK_SIZE, WORLD_BASIS } from './math'
 import { Scope } from './scope'
-import { World } from './world'
+import { FractalGridWorld } from './world'
 
 const CHUNK_BLOCK_SIZE = 4
+
+/**
+ * Converts chunk coordinates `(x, y)` to a plane coordinate `(x, y, x + CHUNK_ROW - 1 - y)`.
+ */
+function toChunkSlope(x: number, y: number, out = new Vector3()) {
+  return out.set(x, y, x - y)
+}
 
 export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
   const p = .5 ** y
@@ -25,9 +32,7 @@ export function fromChunkCoords(x: number, y: number, out = new Vector3()) {
   const pz = x * CHUNK_COL * p
     + 2 * CHUNK_ROW * (1 - p)
 
-  return out
-    .set(px, py, pz)
-    .multiplyScalar(CHUNK_SCALE)
+  return out.set(px, py, pz)
 }
 
 export function toChunkCoords(px: number, py: number, pz?: number, out?: Vector2): Vector2
@@ -45,9 +50,6 @@ export function toChunkCoords(...args: any[]) {
     py = p.y
     out = args[1] ?? new Vector2()
   }
-
-  px /= CHUNK_SCALE
-  py /= CHUNK_SCALE
 
   // Step 1: Compute `y` from `py`
   const q = (py / CHUNK_ROW + 1) / 2
@@ -70,7 +72,7 @@ function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   for (let z = pz; z < zMax; z++) {
     for (let y = py; y < yMax; y++) {
       for (let x = px; x < xMax; x++) {
-        chunk.getVoxelState(x, y, z).setInt8(0, value)
+        chunk.getVoxelState(x, y, z + CHUNK_ROW * CHUNK_BLOCK_SIZE).setInt8(0, value)
       }
     }
   }
@@ -153,15 +155,6 @@ function getSomeCavities(chunk: Chunk, stride = 2) {
 }
 
 /**
- * Converts chunk coordinates `(x, y)` to a plane coordinate `(x, y, x + CHUNK_ROW - 1 - y)`.
- */
-function toChunkSlope(x: number, y: number, out = new Vector3()) {
-  return out
-    .set(x, y, x + CHUNK_ROW - 1 - y)
-    .multiplyScalar(CHUNK_SCALE)
-}
-
-/**
  * Returns a "slope" geometry, for debugging purposes.
  */
 function createSlopeGeometry() {
@@ -172,7 +165,7 @@ function createSlopeGeometry() {
   const x = CHUNK_COL
   const y = CHUNK_ROW
   const positionArray = new Float32Array(12)
-  const offset = new Vector3(0, 0, 1).multiplyScalar(CHUNK_SCALE)
+  const offset = new Vector3(0, 0, 1)
   toChunkSlope(0, 0).add(offset).toArray(positionArray, 0)
   toChunkSlope(x, 0).add(offset).toArray(positionArray, 9)
   toChunkSlope(x, y).add(offset).toArray(positionArray, 6)
@@ -196,15 +189,15 @@ function createSlopeGeometry() {
 const _p = new Vector3()
 const _q = new Vector3()
 
-export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
+export class FractalGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
   _gridCoords: Vector2 = new Vector2()
 
   chunk: Chunk
-  world: World | null = null
+  world: FractalGridWorld | null = null
   color: ColorRepresentation
 
   constructor({
-    world = <World | null>null,
+    world = <FractalGridWorld | null>null,
     color = <ColorRepresentation>(0xffffff * PRNG.random()),
     // color = <ColorRepresentation>0xffffff,
   } = {}) {
@@ -257,9 +250,10 @@ export class VoxelGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     }
 
     console.time('geometry')
-    const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+    const geometry = new BufferGeometry()
+    // const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
     console.timeEnd('geometry')
-    const s = CHUNK_SCALE / CHUNK_BLOCK_SIZE
+    const s = 1 / CHUNK_BLOCK_SIZE
     geometry.scale(s, s, s)
 
     const material = new AutoLitMaterial({ color })

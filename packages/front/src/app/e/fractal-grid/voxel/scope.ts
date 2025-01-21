@@ -6,7 +6,7 @@ import { LineHelper } from 'some-utils-three/helpers/line'
 import { setup } from 'some-utils-three/utils/tree'
 
 import { fromAngleDeclaration } from 'some-utils-ts/declaration'
-import { VoxelGridChunk } from './chunk'
+import { FractalGridChunk } from './chunk'
 import { CHUNK_CORNERS, WORLD_MATRIX } from './math'
 
 export class Scope extends Group {
@@ -79,7 +79,7 @@ export class Scope extends Group {
   }
 
   static _chunkIntersectsVectors = [new Vector3(), new Vector3(), new Vector3(), new Vector3()]
-  chunkIntersects(chunk: VoxelGridChunk) {
+  chunkIntersects(chunk: FractalGridChunk) {
     // Important: updateMatrixWorld() must be called first to ensure the matrices are up to date.
     this.updateMatrixWorld()
     chunk.updateMatrixWorld()

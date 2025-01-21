@@ -9,21 +9,25 @@ import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { CameraHandler } from './camera-handler'
+import { FractalHelper } from './fractal-helper'
 import { useGroup } from './three-provider'
 import { WORLD_PLANE } from './voxel/math'
-import { World } from './voxel/world'
+import { FractalGridWorld } from './voxel/world'
 
 export function FractalGrid() {
   useGroup('fractal-grid', function* (group, three) {
     setup(new SkyMesh({ color: '#110512' }), group)
+
+    const helper = setup(new FractalHelper(), group)
 
     setup(new Mesh(
       new TorusKnotGeometry(2.5, .025, 512, 32),
       new AutoLitMaterial({ color: '#0cf' })), group).visible = false
 
     PRNG.seed(98763)
-    const world = setup(new World(), group)
+    const world = setup(new FractalGridWorld(), group)
     yield world.destroy
+    // world.visible = false
     world.scope.updateScope({ aspect: three.aspect })
     world.ensureScopeChunks()
 
@@ -39,6 +43,7 @@ export function FractalGrid() {
 
       three.pointer.ray.intersectPlane(WORLD_PLANE, intersection)
       intersectionSphere.position.copy(intersection)
+      helper.updatePointer(three.pointer.ray)
     })
 
     world.toColor()

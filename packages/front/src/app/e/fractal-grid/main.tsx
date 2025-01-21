@@ -3,6 +3,8 @@
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { PassType } from 'some-utils-three/contexts/webgl'
+import { TextHelper } from 'some-utils-three/helpers/text-helper'
+import * as Loop from 'some-utils-ts/iteration/loop'
 import { lerp } from 'some-utils-ts/math/basic'
 import { calculateExponentialDecayLerpRatio, calculateExponentialDecayLerpRatio2 } from 'some-utils-ts/math/misc/exponential-decay'
 
@@ -28,6 +30,8 @@ function Settings() {
 
     leak({
       three,
+      ...Loop,
+      TextHelper,
       calculateExponentialDecayLerpRatio,
       calculateExponentialDecayLerpRatio2,
       lerp,

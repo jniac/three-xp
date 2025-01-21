@@ -1,11 +1,18 @@
 {
   "name": "three-xp",
+  "type": "module",
   "scripts": {
-    "dev": "cd packages/front && pnpm dev",
+    "dev": "pnpx tsx scripts/dev.ts",
     "build": "cd packages/front && pnpm build",
     "pages": "pnpm build && git add docs && git commit -m 'deploy (docs)' && git push origin main"
   },
   "devDependencies": {
+    "chokidar": "^4.0.3",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.24.0",
+    "esbuild-register": "^3.6.0",
+    "glob": "^11.0.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
   "pnpm": {

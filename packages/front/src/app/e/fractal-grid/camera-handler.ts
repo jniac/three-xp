@@ -5,7 +5,7 @@ import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { DestroyableInstance } from 'some-utils-ts/misc/destroy'
 import { onTick, Tick } from 'some-utils-ts/ticker'
 import { Scope } from './voxel/scope'
-import { World } from './voxel/world'
+import { FractalGridWorld } from './voxel/world'
 
 enum CameraHandlerMode {
   Free,
@@ -33,14 +33,14 @@ class ScopeCameraHandler {
   private *doStart(element: HTMLElement = this.element ?? document.body) {
     yield handlePointer(element, {
       onDrag: info => {
-        const world = World.current()
+        const world = FractalGridWorld.current()
         world.scopeCoordinates.x += -info.delta.x * .005 / world.worldScale
         world.scopeCoordinates.y += -info.delta.y * .01
       },
     })
 
     yield onTick('three', tick => {
-      const world = World.current()
+      const world = FractalGridWorld.current()
       world.scopeUpdate(tick.deltaTime)
 
       const focus = world.scope.position
