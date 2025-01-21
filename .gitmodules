@@ -14,3 +14,6 @@
 	path = packages/some-three-editor
 	url = https://github.com/jniac/some-three-editor
 	branch = v0
+[submodule "packages/some-utils-misc"]
+	path = packages/some-utils-misc
+	url = https://github.com/jniac/some-utils-misc

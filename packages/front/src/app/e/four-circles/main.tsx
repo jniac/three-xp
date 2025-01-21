@@ -1,6 +1,5 @@
 'use client'
 
-
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { onTick, Ticker } from 'some-utils-ts/ticker'
 
