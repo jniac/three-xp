@@ -1,6 +1,6 @@
 import { BufferGeometry, CatmullRomCurve3, Group, Line, LineBasicMaterial, Mesh, MeshBasicNodeMaterial, SphereGeometry, Vector3 } from 'three/webgpu'
 
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
+import { ThreeWebGPUContext } from 'some-utils-three/experimental/contexts/webgpu'
 
 export class Main extends Group {
   parts = (() => {

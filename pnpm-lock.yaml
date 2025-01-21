@@ -71,6 +71,9 @@ importers:
       some-utils-dom:
         specifier: workspace:*
         version: link:../some-utils-dom
+      some-utils-misc:
+        specifier: workspace:*
+        version: link:../some-utils-misc
       some-utils-react:
         specifier: workspace:*
         version: link:../some-utils-react
@@ -206,8 +209,8 @@ importers:
         specifier: ^18
         version: 18.3.1
       '@types/three':
-        specifier: '>=0.168.0'
-        version: 0.170.0
+        specifier: '>=0.172.0'
+        version: 0.172.0
       eslint-config-next:
         specifier: 14.2.8
         version: 14.2.8(eslint@8.57.1)(typescript@5.7.2)
@@ -287,8 +290,8 @@ importers:
         version: link:../some-utils-ts
     devDependencies:
       '@types/three':
-        specifier: '>=0.168.0'
-        version: 0.170.0
+        specifier: '>=0.172.0'
+        version: 0.172.0
       three:
         specifier: '0.172'
         version: 0.172.0

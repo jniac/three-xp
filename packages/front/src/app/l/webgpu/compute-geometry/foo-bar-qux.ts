@@ -1,7 +1,9 @@
 import { BufferGeometry, RepeatWrapping, TextureLoader } from 'three'
-import { Fn, MeshPhysicalNodeMaterial, StorageBufferAttribute, attribute, float, instanceIndex, mx_noise_vec3, storage, texture, transformNormalToView, uniform, uv, vec3, vec4 } from 'three/webgpu'
+import { Fn, attribute, float, instanceIndex, mx_noise_vec3, storage, texture, transformNormalToView, uniform, uv, vec3, vec4 } from 'three/tsl'
+import { MeshPhysicalNodeMaterial } from 'three/webgpu'
 
 import { Ticker } from 'some-utils-ts/ticker'
+import { StorageBufferAttribute } from 'three/webgpu'
 
 /**
  * Foo Baz Qux ok?

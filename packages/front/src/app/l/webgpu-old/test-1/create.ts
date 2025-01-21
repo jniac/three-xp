@@ -1,18 +1,20 @@
 import {
-  Color,
   Fn,
   hash,
+  instanceIndex,
+  storage,
+  vec3
+} from 'three/tsl'
+import {
+  Color,
   IcosahedronGeometry,
   InstancedMesh,
-  instanceIndex,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  storage,
   StorageInstancedBufferAttribute,
   TorusKnotGeometry,
-  vec3
-} from 'three/tsl'
+} from 'three/webgpu'
 
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { loop3 } from 'some-utils-ts/iteration/loop'

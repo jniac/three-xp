@@ -2,7 +2,7 @@ import { SummaryPage } from '@/components/summary'
 
 import { XpMetadata } from '@/types'
 
-import * as pages from './pages'
+import { pages } from './pages'
 
 export const metadata = new XpMetadata({
   title: 'Threejs Learning WebGPU',
@@ -13,7 +13,7 @@ export default function ToolsPage() {
   return (
     <SummaryPage
       className='ToolsPage'
-      path='../l'
+      path='../l/webgpu'
       metadata={metadata}
       pages={pages}
     />

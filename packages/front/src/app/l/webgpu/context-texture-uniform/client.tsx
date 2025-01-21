@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { ToggleWidget } from 'some-utils-react/components/widgets/toggle'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { update3d } from 'some-utils-three/webgpu/css-3d/compute'
+import { updatePosition3d } from 'some-utils-three/css-3d/compute'
 
 import { ThreeInstance, ThreeProvider, useThree } from '../utils/three-webgpu-provider'
 import { Main } from './main'
@@ -32,7 +32,7 @@ function UnderThree() {
     const span = child.querySelector('span + span') as HTMLDivElement
     const main = Main.current()!
     yield three.ticker.onTick({ order: -1 }, tick => {
-      update3d(div, child, three.camera, main)
+      updatePosition3d(div, child, three.camera, main)
 
       const str = isNaN(hover) ? '0.000"' : `${(tick.time - hover).toFixed(3)}"`
       span.innerHTML = [...str].map(c => `<span>${c}</span>`).join('')

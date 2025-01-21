@@ -1,7 +1,8 @@
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
-import { EquirectangularReflectionMapping, float, Fn, Group, Mesh, MeshPhysicalNodeMaterial, oscTriangle, positionGeometry, TorusGeometry, uniform } from 'three/webgpu'
+import { float, Fn, oscTriangle, positionGeometry, uniform } from 'three/tsl'
+import { EquirectangularReflectionMapping, Group, Mesh, MeshPhysicalNodeMaterial, TorusGeometry } from 'three/webgpu'
 
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
+import { ThreeWebGPUContext } from 'some-utils-three/experimental/contexts/webgpu'
 import { Ticker } from 'some-utils-ts/ticker'
 
 export class Main extends Group {

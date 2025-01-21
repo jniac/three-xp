@@ -1,8 +1,10 @@
 'use client'
 
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
+import { color, float, Fn, If, instanceIndex, mix, mx_noise_float, mx_worley_noise_float, saturation, texture, textureStore, uniform, uvec2, vec3, vec4 } from 'three/tsl'
+import { DoubleSide, Group, Mesh, MeshBasicNodeMaterial, PlaneGeometry, StorageTexture, } from 'three/webgpu'
+
+import { ThreeWebGPUContext } from 'some-utils-three/experimental/contexts/webgpu'
 import { Tick, Ticker } from 'some-utils-ts/ticker'
-import { color, DoubleSide, float, Fn, Group, If, instanceIndex, Mesh, MeshBasicNodeMaterial, mix, mx_noise_float, mx_worley_noise_float, PlaneGeometry, saturation, StorageTexture, texture, textureStore, uniform, uvec2, vec3, vec4 } from 'three/webgpu'
 
 export class Main extends Group {
   static instances: Main[] = []

@@ -20,6 +20,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "some-three-editor": "workspace:*",
     "some-utils-dom": "workspace:*",
+    "some-utils-misc": "workspace:*",
     "some-utils-react": "workspace:*",
     "some-utils-three": "workspace:*",
     "some-utils-ts": "workspace:*",

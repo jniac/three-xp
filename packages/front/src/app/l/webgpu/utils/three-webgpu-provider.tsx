@@ -5,9 +5,9 @@ import { Group, Object3D } from 'three/webgpu'
 
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { useIsClient } from 'some-utils-react/hooks/is-client'
-import { VertigoProps } from 'some-utils-three/webgpu/camera/vertigo'
-import { VertigoControls } from 'some-utils-three/webgpu/camera/vertigo/controls'
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
+import { VertigoProps } from 'some-utils-three/camera/vertigo'
+import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
+import { ThreeWebGPUContext } from 'some-utils-three/experimental/contexts/webgpu'
 import { onTick } from 'some-utils-ts/ticker'
 
 const reactThreeContext = createContext<ThreeWebGPUContext>(null!)

@@ -1,9 +1,10 @@
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
-import { BoxGeometry, BufferGeometry, DirectionalLight, DirectionalLightHelper, EquirectangularReflectionMapping, Fn, Group, HemisphereLight, HemisphereLightHelper, Mesh, MeshPhysicalNodeMaterial, normalGeometry, PlaneGeometry, positionGeometry, Raycaster, TorusKnotGeometry, Vector2, Vector3 } from 'three/webgpu'
+import { Fn, normalGeometry, positionGeometry } from 'three/tsl'
+import { BoxGeometry, BufferGeometry, DirectionalLight, DirectionalLightHelper, EquirectangularReflectionMapping, Group, HemisphereLight, HemisphereLightHelper, Mesh, MeshPhysicalNodeMaterial, PlaneGeometry, Raycaster, TorusKnotGeometry, Vector2, Vector3 } from 'three/webgpu'
 
 import { handlePointer } from 'some-utils-dom/handle/pointer'
-import { ThreeWebGPUContext } from 'some-utils-three/webgpu/experimental/context'
-import { setup } from 'some-utils-three/webgpu/utils/tree'
+import { ThreeWebGPUContext } from 'some-utils-three/experimental/contexts/webgpu'
+import { setup } from 'some-utils-three/utils/tree'
 import { Tick } from 'some-utils-ts/ticker'
 
 import { applyFooBazQux } from './foo-bar-qux'

@@ -1,22 +1,22 @@
 'use client'
-
 import {
   float,
   Fn,
   instanceIndex,
-  Mesh,
-  MeshBasicMaterial,
-  MeshBasicNodeMaterial,
-  PlaneGeometry,
-  StorageTexture,
   texture,
   textureStore,
-  TorusGeometry,
   uvec2,
   vec4
 } from 'three/tsl'
+import {
+  Mesh,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  TorusGeometry
+} from 'three/webgpu'
 
 import { Three, useThree } from '@/tools/three/webgpu'
+import { MeshBasicNodeMaterial, StorageTexture } from 'three/webgpu'
 
 function* create(three: Three) {
   {

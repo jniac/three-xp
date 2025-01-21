@@ -1,4 +1,5 @@
-import { attribute, Fn, If, instanceIndex, MeshNormalNodeMaterial, objectWorldMatrix, storage, StorageBufferAttribute, uniform, vec4 } from 'three/webgpu'
+import { attribute, Fn, If, instanceIndex, objectWorldMatrix, storage, uniform, vec4 } from 'three/tsl'
+import { MeshNormalNodeMaterial, StorageBufferAttribute } from 'three/webgpu'
 
 export function createJelly() {
   const pointerPosition = uniform(vec4(0))
