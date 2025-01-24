@@ -2,7 +2,7 @@
 import { AxesHelper, BufferAttribute, BufferGeometry, ColorRepresentation, DoubleSide, IcosahedronGeometry, InstancedMesh, Mesh, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration } from 'some-utils-three/declaration'
-import { Chunk } from 'some-utils-three/experimental/voxel'
+import { Chunk, createNaiveVoxelGeometry } from 'some-utils-three/experimental/voxel'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
@@ -250,15 +250,15 @@ export class FractalGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
     }
 
     console.time('geometry')
-    const geometry = new BufferGeometry()
-    // const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+    // const geometry = new BufferGeometry()
+    const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
     console.timeEnd('geometry')
     const s = 1 / CHUNK_BLOCK_SIZE
     geometry.scale(s, s, s)
 
     const material = new AutoLitMaterial({ color })
 
-    super(createSlopeGeometry(), new AutoLitMaterial({ color, side: DoubleSide }))
+    super(geometry, new AutoLitMaterial({ color, side: DoubleSide }))
 
     setup(new Mesh(geometry, material), this)
 

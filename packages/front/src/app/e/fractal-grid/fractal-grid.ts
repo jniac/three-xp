@@ -2,6 +2,7 @@
 import { IcosahedronGeometry, Mesh, TorusKnotGeometry, Vector3 } from 'three'
 
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
+import { LineHelper } from 'some-utils-three/helpers/line'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setup } from 'some-utils-three/utils/tree'
@@ -18,6 +19,8 @@ export function FractalGrid() {
   useGroup('fractal-grid', function* (group, three) {
     setup(new SkyMesh({ color: '#110512' }), group)
 
+    setup(new LineHelper(), group).grid2().draw()
+
     const helper = setup(new FractalHelper(), group)
 
     setup(new Mesh(
@@ -27,7 +30,7 @@ export function FractalGrid() {
     PRNG.seed(98763)
     const world = setup(new FractalGridWorld(), group)
     yield world.destroy
-    // world.visible = false
+    world.visible = false
     world.scope.updateScope({ aspect: three.aspect })
     world.ensureScopeChunks()
 

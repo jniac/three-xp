@@ -8,6 +8,8 @@ import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { Tick } from 'some-utils-ts/ticker'
 
+import { FractalGridChunk } from '../voxel/chunk'
+
 class MainGroup extends Group {
   parts = (() => {
     const mesh = setup(new Mesh(new IcosahedronGeometry(), new AutoLitMaterial()), {
@@ -16,8 +18,13 @@ class MainGroup extends Group {
         onPointerTap: () => alert('Hello, world!'),
       }
     })
+
     const line = setup(new LineHelper(), this)
     line.grid2().draw()
+
+    const chunk = new FractalGridChunk()
+    setup(chunk, this)
+
     return { mesh, line }
   })()
 
