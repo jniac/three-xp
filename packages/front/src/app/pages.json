@@ -32,6 +32,10 @@
     "dir": "e/from-earth-to"
   },
   {
+    "page": "e/lady-ethereal/page.tsx",
+    "dir": "e/lady-ethereal"
+  },
+  {
     "page": "e/layout/grids/page.tsx",
     "dir": "e/layout/grids"
   },
@@ -150,13 +154,5 @@
   {
     "page": "t/voxel/world/page.tsx",
     "dir": "t/voxel/world"
-  },
-  {
-    "page": "tmp/compute-normals/page.tsx",
-    "dir": "tmp/compute-normals"
-  },
-  {
-    "page": "tmp/page.tsx",
-    "dir": "tmp"
   }
 ]

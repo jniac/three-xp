@@ -3,6 +3,8 @@ import localFont from 'next/font/local'
 
 import 'some-utils-dom/style/layout.css'
 
+import { Cheat } from './cheat'
+
 import './globals.css'
 
 const geistSans = localFont({
@@ -37,6 +39,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Cheat />
         {children}
       </body>
     </html>

@@ -11,6 +11,7 @@ import * as fourCircles from './four-circles/page'
 import * as fractalGridChunkViewer from './fractal-grid/chunk-viewer/page'
 import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
+import * as ladyEthereal from './lady-ethereal/page'
 import * as layoutGrids from './layout/grids/page'
 import * as pathWithLoop from './path-with-loop/page'
 import * as scatteredPlane from './scattered-plane/page'
@@ -25,6 +26,7 @@ const pages = {
  'fractal-grid/chunk-viewer': fractalGridChunkViewer,
  'fractal-grid': fractalGrid,
  'from-earth-to': fromEarthTo,
+ 'lady-ethereal': ladyEthereal,
  'layout/grids': layoutGrids,
  'path-with-loop': pathWithLoop,
  'scattered-plane': scatteredPlane,

@@ -43,14 +43,18 @@ async function update() {
     absolute: true,
   })
 
-  const pages = pageEntries.slice(1).sort((a, b) => a < b ? -1 : 1).map(page => {
-    const osPagePath = path.relative(pageDir, page)
-    const pagePath = path.posix.join(...osPagePath.split(path.sep))
-    return {
-      page: pagePath,
-      dir: pagePath.replace(/\/page.tsx$/, ''),
-    }
-  })
+  const pages = pageEntries
+    .slice(1)
+    .sort((a, b) => a < b ? -1 : 1)
+    .filter(page => !page.includes('/tmp/')) // Exclude temporary pages
+    .map(page => {
+      const osPagePath = path.relative(pageDir, page)
+      const pagePath = path.posix.join(...osPagePath.split(path.sep))
+      return {
+        page: pagePath,
+        dir: pagePath.replace(/\/page.tsx$/, ''),
+      }
+    })
 
   const str = JSON.stringify(pages, null, 2)
     .replace(/\r\n/g, '\n')
