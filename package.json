@@ -2,7 +2,7 @@
   "name": "three-xp",
   "type": "module",
   "scripts": {
-    "dev": "pnpx tsx scripts/dev.ts",
+    "dev": "tsx scripts/dev.ts",
     "build": "cd packages/front && pnpm build",
     "pages": "pnpm build && git add docs && git commit -m 'deploy (docs)' && git push origin main"
   },
@@ -18,6 +18,9 @@
   "pnpm": {
     "overrides": {
       "three": "0.172"
+    },
+    "patchedDependencies": {
+      "jolt-physics": "patches/jolt-physics.patch"
     }
   }
 }

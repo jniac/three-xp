@@ -1,0 +1,13 @@
+diff --git a/dist/jolt-physics.wasm-compat.js b/dist/jolt-physics.wasm-compat.js
+index 7742c166436a655d1bbe69eeec3090709a702989..56a0dad7976ce9a318303e74482810689b6775f0 100644
+--- a/dist/jolt-physics.wasm-compat.js
++++ b/dist/jolt-physics.wasm-compat.js
+@@ -9,7 +9,7 @@ var Jolt = (() => {
+ async function(moduleArg = {}) {
+   var moduleRtn;
+ 
+-var b=moduleArg,aa,ba,aaa=new Promise((a,c)=>{aa=a;ba=c}),baa="object"==typeof window,ca="undefined"!=typeof WorkerGlobalScope,da="object"==typeof process&&"object"==typeof process.versions&&"string"==typeof process.versions.node&&"renderer"!=process.type;if(da){const {createRequire:a}=await import("module");let c=import.meta.url;c.startsWith("data:")&&(c="/");var require=a(c)}var ea=Object.assign({},b),fa="./this.program",ha="",ia;
++var b=moduleArg,aa,ba,aaa=new Promise((a,c)=>{aa=a;ba=c}),baa="object"==typeof window,ca="undefined"!=typeof WorkerGlobalScope,da=false&&"object"==typeof process&&"object"==typeof process.versions&&"string"==typeof process.versions.node&&"renderer"!=process.type;if(da){const a = () => {};let c=import.meta.url;c.startsWith("data:")&&(c="/");var require=a(c)}var ea=Object.assign({},b),fa="./this.program",ha="",ia;
+ if(da){var fs=require("fs"),ja=require("path");import.meta.url.startsWith("data:")||(ha=ja.dirname(require("url").fileURLToPath(import.meta.url))+"/");ia=a=>{a=caa(a)?new URL(a):ja.normalize(a);return fs.readFileSync(a)};!b.thisProgram&&1<process.argv.length&&(fa=process.argv[1].replace(/\\/g,"/"));process.argv.slice(2)}else if(baa||ca)ca?ha=self.location.href:"undefined"!=typeof document&&document.currentScript&&(ha=document.currentScript.src),_scriptName&&(ha=_scriptName),
+ ha.startsWith("blob:")?ha="":ha=ha.substr(0,ha.replace(/[?#].*/,"").lastIndexOf("/")+1),ca&&(ia=a=>{var c=new XMLHttpRequest;c.open("GET",a,!1);c.responseType="arraybuffer";c.send(null);return new Uint8Array(c.response)});var daa=b.print||console.log.bind(console),ka=b.printErr||console.error.bind(console);Object.assign(b,ea);ea=null;b.thisProgram&&(fa=b.thisProgram);var la=b.wasmBinary,ma,na=!1,oa,pa,qa,ra,sa,ta=[],ua=[],va=[],wa=!1;function eaa(){var a=b.preRun.shift();ta.unshift(a)}
+ var xa=0,ya=null,za=null;function Aa(a){b.onAbort?.(a);a="Aborted("+a+")";ka(a);na=!0;a=new WebAssembly.RuntimeError(a+". Build with -sASSERTIONS for more info.");ba(a);throw a;}var faa=a=>a.startsWith("data:application/octet-stream;base64,"),caa=a=>a.startsWith("file://"),Ba;

@@ -10,6 +10,7 @@
   "dependencies": {
     "@svgr/webpack": "^8.1.0",
     "@zip.js/zip.js": "^2.7.53",
+    "jolt-physics": "^0.31.0",
     "js-yaml": "^4.1.0",
     "katex": "^0.16.11",
     "next": "14.2.15",
