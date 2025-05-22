@@ -1,11 +1,11 @@
 import { Color } from 'three'
 
 import { handlePointer } from 'some-utils-dom/handle/pointer'
-import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 
 import { Dots } from './Dots'
 
-export function* art(three: ThreeWebglContext) {
+export function* art(three: ThreeWebGLContext) {
   three.scene.background = new Color('#1c54e0')
   three.ticker.set({ activeDuration: 30 })
   three.useOrbitControls()

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 
+export const dynamic = 'force-static' // ✅ required for export
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Threejs Experiments',

@@ -1,7 +1,7 @@
 import { IcosahedronGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { TextHelper } from 'some-utils-three/helpers/text-helper'
 import { setup } from 'some-utils-three/utils/tree'
 import { onTick } from 'some-utils-ts/ticker'
@@ -10,7 +10,7 @@ import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { fetchHunger } from './fetch-hunger'
 
-export async function* main(three: ThreeWebglContext) {
+export async function* main(three: ThreeWebGLContext) {
   const controls = new VertigoControls({
     size: 100,
   })

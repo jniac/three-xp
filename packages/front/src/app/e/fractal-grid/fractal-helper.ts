@@ -130,7 +130,7 @@ export class FractalHelper extends Group {
         backgroundColor,
       })
     }
-    text.dataTexture.needsUpdate = true
+    // text.dataTexture.needsUpdate = true
     text.material.needsUpdate = true
 
     pointerText.setTextAt(0, `${coords.x},${coords.y}`, {

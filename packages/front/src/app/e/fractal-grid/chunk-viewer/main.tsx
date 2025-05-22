@@ -39,6 +39,7 @@ export function Main() {
     <ThreeProvider webgl vertigoControls={{ size: 20 }}>
       <div className='Main layer thru flex flex-col items-start justify-start p-4'>
         <h1>Chunk Viewer</h1>
+        {/* @ts-ignore */}
         <ThreeInstance value={MainGroup} />
       </div>
     </ThreeProvider>

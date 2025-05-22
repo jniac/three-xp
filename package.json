@@ -2,6 +2,7 @@
   "name": "three-xp",
   "type": "module",
   "scripts": {
+    "clean:modules": "pnpm -r exec rm -rf node_modules",
     "dev": "tsx scripts/dev.ts",
     "build": "cd packages/front && pnpm build",
     "pages": "pnpm build && git add docs && git commit -m 'deploy (docs)' && git push origin main"
@@ -17,10 +18,17 @@
   },
   "pnpm": {
     "overrides": {
-      "three": "0.172"
+      "three": "0.176",
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
     },
     "patchedDependencies": {
       "jolt-physics": "patches/jolt-physics.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

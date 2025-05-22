@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { Color, FogExp2, Mesh, Object3D, TorusGeometry, Vector3 } from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { TextHelper } from 'some-utils-three/helpers/text-helper'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
@@ -55,7 +55,7 @@ function textRing(parent: Object3D) {
     textCount: 3,
     lineLength: 32,
     lineCount: 4,
-    orientation: TextHelper.Orientation.Normal,
+    // orientation: TextHelper.Orientation.Normal,
   }), parent)
   text.setTextAt(0, ' Hello \n World \n !!! ', {
     y: 0,
@@ -80,7 +80,7 @@ function textGrid(parent: Object3D) {
     textCount: side * side,
     textSize: 1,
     lineLength: 12,
-    orientation: TextHelper.Orientation.Billboard,
+    // orientation: TextHelper.Orientation.Billboard,
   }), parent)
 
   for (const it of loop2(side, side)) {
@@ -104,7 +104,7 @@ function textIcosahedron(parent: Object3D) {
   const text = setup(new TextHelper({
     textCount,
     textSize: 14,
-    orientation: TextHelper.Orientation.Billboard,
+    // orientation: TextHelper.Orientation.Billboard,
   }), parent)
   const v1 = new Vector3()
   const v2 = new Vector3()
@@ -119,7 +119,7 @@ function textIcosahedron(parent: Object3D) {
   return text
 }
 
-export async function* main(three: ThreeWebglContext) {
+export async function* main(three: ThreeWebGLContext) {
   yield () => three.scene.clear()
 
   PRNG.reset()

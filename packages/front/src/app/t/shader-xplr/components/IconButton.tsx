@@ -2,7 +2,7 @@ import IconCopySvg from '@/components/svg/icon-copy.svg'
 
 import s from './IconButton.module.css'
 
-export function IconButton(props: JSX.IntrinsicElements['button']) {
+export function IconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const {
     className,
     children = <IconCopySvg />,
