@@ -116,6 +116,10 @@
     "dir": "t/flexible-layout"
   },
   {
+    "page": "t/hash-grid/page.tsx",
+    "dir": "t/hash-grid"
+  },
+  {
     "page": "t/page.tsx",
     "dir": "t"
   },

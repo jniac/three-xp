@@ -6,6 +6,7 @@ import { SummaryPage } from '@/components/summary'
 import * as css3d from './css-3d/page'
 import * as easingGraph from './easing-graph/page'
 import * as flexibleLayout from './flexible-layout/page'
+import * as hashGrid from './hash-grid/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as template from './template/page'
 import * as textHelperHunger from './text-helper/hunger/page'
@@ -20,6 +21,7 @@ const pages = {
  'css-3d': css3d,
  'easing-graph': easingGraph,
  'flexible-layout': flexibleLayout,
+ 'hash-grid': hashGrid,
  'shader-xplr': shaderXplr,
  'template': template,
  'text-helper/hunger': textHelperHunger,

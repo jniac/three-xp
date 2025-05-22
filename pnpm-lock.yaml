@@ -9,7 +9,7 @@ overrides:
 
 patchedDependencies:
   jolt-physics:
-    hash: tcumgj26dziicxfz6bk3o3ctqu
+    hash: 974efacbbb2d20f46ee55e3f04d5a6c1a4ea7595a454711efd2f9115bbb739c4
     path: patches/jolt-physics.patch
 
 importers:
@@ -48,7 +48,7 @@ importers:
         version: 2.7.53
       jolt-physics:
         specifier: ^0.31.0
-        version: 0.31.0(patch_hash=tcumgj26dziicxfz6bk3o3ctqu)
+        version: 0.31.0(patch_hash=974efacbbb2d20f46ee55e3f04d5a6c1a4ea7595a454711efd2f9115bbb739c4)
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -6410,7 +6410,7 @@ snapshots:
 
   jiti@1.21.6: {}
 
-  jolt-physics@0.31.0(patch_hash=tcumgj26dziicxfz6bk3o3ctqu): {}
+  jolt-physics@0.31.0(patch_hash=974efacbbb2d20f46ee55e3f04d5a6c1a4ea7595a454711efd2f9115bbb739c4): {}
 
   js-tokens@4.0.0: {}
 

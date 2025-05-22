@@ -6,17 +6,17 @@ import { Group, Object3D } from 'three'
 import { useEffects, UseEffectsCallback, UseEffectsDeps, UseEffectsEffect, UseEffectsReturnable, useLayoutEffects } from 'some-utils-react/hooks/effects'
 import { VertigoProps } from 'some-utils-three/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { ThreeWebglContext } from 'some-utils-three/contexts/webgl'
+import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { useIsClient } from '@/utils/is-client'
 
-const reactThreeContext = createContext<ThreeWebglContext>(null!)
+const reactThreeContext = createContext<ThreeWebGLContext>(null!)
 
 export function useThree(
-  effects?: UseEffectsCallback<ThreeWebglContext>,
+  effects?: UseEffectsCallback<ThreeWebGLContext>,
   deps?: UseEffectsDeps,
-): ThreeWebglContext {
+): ThreeWebGLContext {
   const three = useContext(reactThreeContext)
 
   useEffects(async function* (_, state) {
@@ -37,7 +37,7 @@ export function useThree(
 
 export function useGroup(
   name: string,
-  effects?: (group: Group, three: ThreeWebglContext, state: UseEffectsEffect) => UseEffectsReturnable,
+  effects?: (group: Group, three: ThreeWebGLContext, state: UseEffectsEffect) => UseEffectsReturnable,
   deps?: UseEffectsDeps,
 ): Group {
   const group = useMemo(() => new Group(), [])
@@ -70,7 +70,7 @@ export function useGroup(
  */
 export function useThreeInstance<T>(
   _class: new () => (T extends Object3D ? T : never),
-  effects?: (instance: T, three: ThreeWebglContext, state: UseEffectsEffect) => UseEffectsReturnable,
+  effects?: (instance: T, three: ThreeWebGLContext, state: UseEffectsEffect) => UseEffectsReturnable,
   deps?: UseEffectsDeps,
 ): T {
   const instance = useMemo(() => new _class(), [_class])
@@ -132,7 +132,7 @@ type Props = HTMLAttributes<HTMLDivElement> & Partial<typeof defaultProps>
 function ServerProofThreeProvider(props: Props) {
   const { children, className, assetsPath, vertigoControls: vertigo } = { ...defaultProps, ...props }
 
-  const three = useMemo(() => new ThreeWebglContext(), [])
+  const three = useMemo(() => new ThreeWebGLContext(), [])
   three.loader.setPath(assetsPath)
 
   const { ref } = useLayoutEffects<HTMLDivElement>({ debounce: true }, function* (div, effect) {
