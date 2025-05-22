@@ -4,8 +4,8 @@ import { useGroup } from '@/tools/three-provider'
 
 export function Grid({
   plane = 'xz' as 'xz' | 'xy' | 'yz',
-  size = 120,
-  subdivisions = [100, 3],
+  size = 100,
+  subdivisions = [10, 10],
   opacity = [.1, .01],
 }) {
   useGroup('grid', function* (group) {

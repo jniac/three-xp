@@ -175,15 +175,15 @@ function PoissonScene() {
 
     for (const p of poisson.samples)
       debugHelper
-        .point(p, { size: .33, shape: 'circle', color: Rnd.pick(colors) })
+        .point(p, { size: .2, shape: 'circle', color: Rnd.pick(colors) })
 
     for (const [x, y] of poisson.grid.query(18, -8, 1))
       debugHelper
-        .point([x, y], { size: .5, shape: 'ring', color: Rnd.pick(colors) })
+        .point([x, y], { size: .33, shape: 'ring', color: Rnd.pick(colors) })
 
     for (const [x, y] of poisson.grid.query(20, -10, poisson.params.radius * 1.5))
       debugHelper
-        .point([x, y], { size: .5, shape: 'ring', color: Rnd.pick(colors) })
+        .point([x, y], { size: .33, shape: 'ring', color: Rnd.pick(colors) })
 
     {
       const [x, y] = poisson.grid.queryNearest(20, 10, .2)!
@@ -244,10 +244,17 @@ function PoissonScene() {
 export default function HashGridPage() {
   return (
     <>
-      <Grid size={100} subdivisions={[10, 10, 2]} opacity={[.1, .01, .004]} plane='xy' />
-      <div className='p-8'>
-        <RandomScene />
-        <PoissonScene />
+      <Grid
+        plane='xy'
+        size={100}
+        subdivisions={[10, 10, 2]}
+        opacity={[.1, .01, .004]}
+      />
+      <div className='layer thru flex flex-col p-8 items-start'>
+        <div className='p-8 flex flex-col gap-2 backdrop-blur-xl rounded border border-white/10'>
+          <RandomScene />
+          <PoissonScene />
+        </div>
       </div>
     </>
   )
