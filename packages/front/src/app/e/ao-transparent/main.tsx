@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { Message } from 'some-utils-ts/message/index'
+import { Message } from 'some-utils-ts/message'
 
 import { createThree, Three } from './three'
 
