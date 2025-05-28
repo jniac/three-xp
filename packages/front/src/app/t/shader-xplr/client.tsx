@@ -92,7 +92,10 @@ function Internal_Client() {
         const rect = Rectangle
           .from(spans[0].getBoundingClientRect())
           .union(Rectangle.from(spans[spans.length - 1].getBoundingClientRect()))
-        setChunk([chunkName as any, rect])
+        // Wait one frame before displaying the chunk overlay
+        window.requestAnimationFrame(() => {
+          setChunk([chunkName as any, rect])
+        })
       }
       for (const span of spans) {
         span.classList.add(style.Include)
@@ -105,9 +108,9 @@ function Internal_Client() {
     yield handlePointer(div, {
       onTap: info => {
         const overlay = div.querySelector(`.${style.OverlayContentWrapper}`)!
-        if (overlay && overlay.contains(info.orignalDownEvent.target as Node) === false) {
+        const outside = overlay && overlay.contains(info.orignalDownEvent.target as Node) === false
+        if (outside)
           setChunk([null, new Rectangle()])
-        }
       }
     })
   }, [libName, shaderProgram])
@@ -118,6 +121,7 @@ function Internal_Client() {
     program = resolveShaderIncludes(program)
   }
 
+  console.log({ chunkName })
   const highlightRect = rect.area === 0 ? rect : rect.clone().applyPadding([2, 6], 'grow')
   return (
     <div ref={ref} className={makeClassName(style.ShaderXplr, 'absolute-through p-4 flex flex-col gap-4')}>

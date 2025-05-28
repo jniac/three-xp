@@ -3,7 +3,7 @@ import './pages'
 import concurrently from 'concurrently'
 
 const commands = [
-  { command: 'pnpm --filter front dev -p 3000', name: '0 nxt' },
+  { command: 'pnpm --filter front dev', name: '0 nxt' },
 ]
 
 // Run the commands concurrently

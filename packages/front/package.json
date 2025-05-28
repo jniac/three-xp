@@ -2,7 +2,7 @@
   "name": "front",
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 2373",
     "build": "NEXT_DISABLE_ESLINT=true next build && touch ../../docs/.nojekyll",
     "start": "next start",
     "lint": "next lint"

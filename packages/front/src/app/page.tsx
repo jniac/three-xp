@@ -6,6 +6,9 @@ export default function Home() {
       <Link href='e'>
         /e<span style={{ opacity: .33 }}>xperiments</span>
       </Link>
+      <Link href='l'>
+        /l<span style={{ opacity: .33 }}>earning</span>
+      </Link>
       <Link href='t'>
         /t<span style={{ opacity: .33 }}>ools</span>
       </Link>
