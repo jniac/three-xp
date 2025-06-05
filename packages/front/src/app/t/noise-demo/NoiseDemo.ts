@@ -174,42 +174,18 @@ export class NoiseDemo extends Group {
         varying vec3 vWorldPosition;
         uniform float uTime, uTime2;
 
-        float projectNoiseHyper(vec4 p) {
-          float a = dot(p.xy * 0.05, vec2(127.1, 311.7));
-          float b = dot(p.zw * 0.05, vec2(269.5, 183.3));
-          return snoise(vec2(a, b));
-        }
-
-        float fprojectNoiseHyper(vec4 p, int octaves, float persistence) {
-          float total = 0.0;           // Final noise value
-          float amplitude = 1.0;       // Initial amplitude
-          float frequency = 1.0;       // Initial frequency
-          float maxValue = 0.0;        // Used for normalization
-
-          for (int i = 0; i < octaves; i++) {
-            total += snoise(p * frequency) * amplitude;
-
-            maxValue += amplitude;   // Keep track of max amplitude
-            amplitude *= persistence; // Reduce amplitude for next octave
-            frequency *= 2.0;        // Increase frequency for next octave
-          }
-
-          // Normalize the result to stay within the range [0, 1]
-          return total / maxValue;
-        }
-
         float remap1101(in float x) {
           return (x + 1.0) * 0.5;
         }
 
         float noiseA() {
           vec4 p = vec4(vWorldPosition * 0.5, uTime * 0.1);
-          return easeInOut(remap1101(fprojectNoiseHyper(p, 8, 0.5)), 4.0, 0.666);
+          return easeInOut(remap1101(fnoiseFast4D(p, 8, 0.5)), 4.0, 0.666);
         }
 
         float noiseB() {
           vec4 p = vec4(vWorldPosition * 0.5 + 100.0, uTime * 0.01);
-          return mod(remap1101(fprojectNoiseHyper(p, 8, 0.5)) * 10.0, 1.0);
+          return mod(remap1101(fnoiseFast4D(p, 8, 0.5)) * 10.0, 1.0);
         }
 
         void main() {
@@ -227,6 +203,6 @@ export class NoiseDemo extends Group {
       position: [2, 0, 0],
     })
 
-    this.#text([2, 0, .666], 'fprojectNoiseHyper\n(mix of 2 noise2D)')
+    this.#text([2, 0, .666], 'snoiseFast4D\n(hash. 4D into noise2D)')
   }
 }
