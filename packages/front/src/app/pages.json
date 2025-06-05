@@ -120,6 +120,10 @@
     "dir": "t/hash-grid"
   },
   {
+    "page": "t/noise-demo/page.tsx",
+    "dir": "t/noise-demo"
+  },
+  {
     "page": "t/page.tsx",
     "dir": "t"
   },
