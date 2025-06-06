@@ -1,17 +1,20 @@
 import { SummaryPage } from '@/components/summary'
-import { Metadata } from 'next'
+import { XpMetadata } from '@/types'
 
 import { voxelPages } from './pages'
 
-export const metadata: Metadata = {
-  title: 'Threejs Tools',
-}
+export const metadata = new XpMetadata({
+  slug: 't/voxel',
+  title: 'Voxel Tools',
+  status: 'done',
+})
+
 
 export default function ToolsPage() {
   return (
     <SummaryPage
       className='ToolsPage'
-      path='t'
+      path='voxel'
       metadata={metadata}
       pages={voxelPages}
     />

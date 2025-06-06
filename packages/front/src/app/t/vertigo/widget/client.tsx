@@ -5,7 +5,8 @@ import { IcosahedronGeometry, Mesh } from 'three'
 import { EditorProvider, ThreeProvider, useThree } from 'some-three-editor/editor-provider'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
-import { VertigoWidget } from '../vertigo/VertigoWidget'
+
+import { VertigoWidget } from '../general/VertigoWidget'
 
 function MyScene() {
   useThree(function* (three) {

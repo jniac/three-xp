@@ -1,15 +1,21 @@
+import { SummaryPage } from '@/components/summary'
 import { XpMetadata } from '@/types'
-import { Client } from './client'
+
+import { voxelPages } from './pages'
 
 export const metadata = new XpMetadata({
-  slug: 'vertigo',
+  slug: 't/vertigo',
+  title: 'Vertigo Tool',
   status: 'done',
 })
 
-export default function VertigoWidgetPage() {
+export default function Page() {
   return (
-    <div className='VertigoWidgetPage page'>
-      <Client />
-    </div>
+    <SummaryPage
+      className='ToolsPage'
+      path='vertigo'
+      metadata={metadata}
+      pages={voxelPages}
+    />
   )
 }

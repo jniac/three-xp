@@ -144,12 +144,16 @@
     "dir": "t/text-helper"
   },
   {
-    "page": "t/vertigo-widget/page.tsx",
-    "dir": "t/vertigo-widget"
+    "page": "t/vertigo/general/page.tsx",
+    "dir": "t/vertigo/general"
   },
   {
     "page": "t/vertigo/page.tsx",
     "dir": "t/vertigo"
+  },
+  {
+    "page": "t/vertigo/widget/page.tsx",
+    "dir": "t/vertigo/widget"
   },
   {
     "page": "t/voxel/chunk/page.tsx",
