@@ -12,29 +12,21 @@ import * as shaderXplr from './shader-xplr/page'
 import * as template from './template/page'
 import * as textHelperHunger from './text-helper/hunger/page'
 import * as textHelper from './text-helper/page'
-import * as vertigoGeneral from './vertigo/general/page'
 import * as vertigo from './vertigo/page'
-import * as vertigoWidget from './vertigo/widget/page'
-import * as voxelChunk from './voxel/chunk/page'
 import * as voxel from './voxel/page'
-import * as voxelWorld from './voxel/world/page'
 
 const pages = {
- 'css-3d': css3d,
- 'easing-graph': easingGraph,
- 'flexible-layout': flexibleLayout,
- 'hash-grid': hashGrid,
- 'noise-demo': noiseDemo,
- 'shader-xplr': shaderXplr,
- 'template': template,
- 'text-helper/hunger': textHelperHunger,
- 'text-helper': textHelper,
- 'vertigo/general': vertigoGeneral,
- 'vertigo': vertigo,
- 'vertigo/widget': vertigoWidget,
- 'voxel/chunk': voxelChunk,
- 'voxel': voxel,
- 'voxel/world': voxelWorld,
+  'css-3d': css3d,
+  'easing-graph': easingGraph,
+  'flexible-layout': flexibleLayout,
+  'hash-grid': hashGrid,
+  'noise-demo': noiseDemo,
+  'shader-xplr': shaderXplr,
+  'template': template,
+  'text-helper/hunger': textHelperHunger,
+  'text-helper': textHelper,
+  'vertigo': vertigo,
+  'voxel': voxel,
 }
 
 export const metadata: Metadata = {
