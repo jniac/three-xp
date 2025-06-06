@@ -43,7 +43,7 @@ async function update() {
     absolute: true,
   })
 
-  const pages = pageEntries
+  const allPages = pageEntries
     .slice(1)
     .sort((a, b) => a < b ? -1 : 1)
     .filter(page => !page.includes('/tmp/')) // Exclude temporary pages
@@ -56,9 +56,16 @@ async function update() {
       }
     })
 
-  const str = JSON.stringify(pages, null, 2)
-    .replace(/\r\n/g, '\n')
+  const pages = allPages
+    .filter(page => {
+      const parentDir = page.dir.split('/').slice(0, -1).join('/')
+      if (!parentDir)
+        return true // Top-level pages are always included
+      const hasParent = !!allPages.find(page => page.dir === parentDir)
+      return hasParent === false || parentDir.length === 1 // Include root-level pages
+    })
 
+  const str = JSON.stringify(pages, null, 2)
   const filePath = path.join(pageDir, 'pages.json')
   await writeFile(filePath, str)
   console.log(`Updated pages.json (${path.relative(process.cwd(), filePath)})`)

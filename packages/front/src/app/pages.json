@@ -20,10 +20,6 @@
     "dir": "e/four-circles"
   },
   {
-    "page": "e/fractal-grid/chunk-viewer/page.tsx",
-    "dir": "e/fractal-grid/chunk-viewer"
-  },
-  {
     "page": "e/fractal-grid/page.tsx",
     "dir": "e/fractal-grid"
   },
@@ -76,24 +72,8 @@
     "dir": "l/webgpu-old"
   },
   {
-    "page": "l/webgpu/compute-geometry/page.tsx",
-    "dir": "l/webgpu/compute-geometry"
-  },
-  {
-    "page": "l/webgpu/context-texture-uniform/page.tsx",
-    "dir": "l/webgpu/context-texture-uniform"
-  },
-  {
-    "page": "l/webgpu/nurbs/page.tsx",
-    "dir": "l/webgpu/nurbs"
-  },
-  {
     "page": "l/webgpu/page.tsx",
     "dir": "l/webgpu"
-  },
-  {
-    "page": "l/webgpu/tsl-demo/page.tsx",
-    "dir": "l/webgpu/tsl-demo"
   },
   {
     "page": "m/context-test/page.tsx",
@@ -136,35 +116,15 @@
     "dir": "t/template"
   },
   {
-    "page": "t/text-helper/hunger/page.tsx",
-    "dir": "t/text-helper/hunger"
-  },
-  {
     "page": "t/text-helper/page.tsx",
     "dir": "t/text-helper"
-  },
-  {
-    "page": "t/vertigo/general/page.tsx",
-    "dir": "t/vertigo/general"
   },
   {
     "page": "t/vertigo/page.tsx",
     "dir": "t/vertigo"
   },
   {
-    "page": "t/vertigo/widget/page.tsx",
-    "dir": "t/vertigo/widget"
-  },
-  {
-    "page": "t/voxel/chunk/page.tsx",
-    "dir": "t/voxel/chunk"
-  },
-  {
     "page": "t/voxel/page.tsx",
     "dir": "t/voxel"
-  },
-  {
-    "page": "t/voxel/world/page.tsx",
-    "dir": "t/voxel/world"
   }
 ]
