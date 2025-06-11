@@ -8,6 +8,7 @@ import * as easingGraph from './easing-graph/page'
 import * as flexibleLayout from './flexible-layout/page'
 import * as hashGrid from './hash-grid/page'
 import * as noiseDemo from './noise-demo/page'
+import * as randomUtils from './random-utils/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as template from './template/page'
 import * as textHelper from './text-helper/page'
@@ -20,6 +21,7 @@ const pages = {
  'flexible-layout': flexibleLayout,
  'hash-grid': hashGrid,
  'noise-demo': noiseDemo,
+ 'random-utils': randomUtils,
  'shader-xplr': shaderXplr,
  'template': template,
  'text-helper': textHelper,

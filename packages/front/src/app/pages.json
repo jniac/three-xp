@@ -108,6 +108,10 @@
     "dir": "t"
   },
   {
+    "page": "t/random-utils/page.tsx",
+    "dir": "t/random-utils"
+  },
+  {
     "page": "t/shader-xplr/page.tsx",
     "dir": "t/shader-xplr"
   },
