@@ -3,7 +3,7 @@ import { BufferGeometry, CapsuleGeometry, Color, DirectionalLight, DoubleSide, G
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { setvertexColors } from 'some-utils-three/utils/geometry'
+import { setVertexColors } from 'some-utils-three/utils/geometry'
 import { computeTangentMatrixFromNormal } from 'some-utils-three/utils/matrix'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
@@ -22,13 +22,13 @@ class InstanceMatrixHelper extends InstancedMesh {
     const geometryX = new CapsuleGeometry(.05, 1, 1, 6)
       .rotateZ(Math.PI / 2)
       .translate(.5, 0, 0)
-    setvertexColors(geometryX, '#c60613')
+    setVertexColors(geometryX, '#c60613')
     const geometryY = geometryX.clone()
       .rotateZ(Math.PI / 2)
-    setvertexColors(geometryY, '#01b35a')
+    setVertexColors(geometryY, '#01b35a')
     const geometryZ = geometryX.clone()
       .rotateY(-Math.PI / 2)
-    setvertexColors(geometryZ, '#321bc7')
+    setVertexColors(geometryZ, '#321bc7')
 
     InstanceMatrixHelper._geometry = mergeGeometries([geometryX, geometryY, geometryZ])
 

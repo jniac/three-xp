@@ -3,7 +3,7 @@ import { ColorRepresentation, Mesh, PlaneGeometry } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { setvertexColors } from 'some-utils-three/utils/geometry'
+import { setVertexColors } from 'some-utils-three/utils/geometry'
 
 const blockSize = 4
 
@@ -43,6 +43,6 @@ export class BasicGrid extends Mesh {
 
     super(geometry, material)
 
-    setvertexColors(this.geometry, color)
+    setVertexColors(this.geometry, color)
   }
 }
