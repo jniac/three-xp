@@ -121,7 +121,6 @@ function Internal_Client() {
     program = resolveShaderIncludes(program)
   }
 
-  console.log({ chunkName })
   const highlightRect = rect.area === 0 ? rect : rect.clone().applyPadding([2, 6], 'grow')
   return (
     <div ref={ref} className={makeClassName(style.ShaderXplr, 'absolute-through p-4 flex flex-col gap-4')}>
@@ -156,6 +155,17 @@ function Internal_Client() {
               checked={showFinalProgram}
               onChange={event => setShowFinalProgram(event.target.checked)}
             />
+          </div>
+
+          <div>
+            <IconButton
+              label='Copy program'
+              onClick={() => {
+                navigator.clipboard.writeText(program)
+              }}
+            >
+              <IconCopySvg />
+            </IconButton>
           </div>
         </div>
 

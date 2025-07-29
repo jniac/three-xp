@@ -3,6 +3,10 @@
   background-color: #fff1;
   border-radius: .25em;
   /* backdrop-filter: blur(4px); */
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  align-items: center;
 }
 
 .IconButton:hover {
