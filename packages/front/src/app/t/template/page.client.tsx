@@ -8,7 +8,7 @@ import { onTick } from 'some-utils-ts/ticker'
 
 import { ThreeProvider, useThree } from './three-provider'
 
-import s from './client.module.css'
+import s from './page.client.module.css'
 
 export function Setup() {
   useThree(function* (three) {

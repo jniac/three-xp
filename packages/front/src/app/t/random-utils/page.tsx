@@ -1,5 +1,5 @@
 import { XpMetadata } from '@/types'
-import { Client } from './client'
+import { Client } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'template',
