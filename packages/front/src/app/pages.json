@@ -124,6 +124,10 @@
     "dir": "t/text-helper"
   },
   {
+    "page": "t/three-provider/page.tsx",
+    "dir": "t/three-provider"
+  },
+  {
     "page": "t/vertigo/page.tsx",
     "dir": "t/vertigo"
   },

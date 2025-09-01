@@ -12,21 +12,23 @@ import * as randomUtils from './random-utils/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as template from './template/page'
 import * as textHelper from './text-helper/page'
+import * as threeProvider from './three-provider/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
 
 const pages = {
- 'css-3d': css3d,
- 'easing-graph': easingGraph,
- 'flexible-layout': flexibleLayout,
- 'hash-grid': hashGrid,
- 'noise-demo': noiseDemo,
- 'random-utils': randomUtils,
- 'shader-xplr': shaderXplr,
- 'template': template,
- 'text-helper': textHelper,
- 'vertigo': vertigo,
- 'voxel': voxel,
+  'css-3d': css3d,
+  'easing-graph': easingGraph,
+  'flexible-layout': flexibleLayout,
+  'hash-grid': hashGrid,
+  'noise-demo': noiseDemo,
+  'random-utils': randomUtils,
+  'shader-xplr': shaderXplr,
+  'template': template,
+  'text-helper': textHelper,
+  'three-provider': threeProvider,
+  'vertigo': vertigo,
+  'voxel': voxel,
 }
 
 export const metadata: Metadata = {
