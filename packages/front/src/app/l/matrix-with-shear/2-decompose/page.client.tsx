@@ -29,7 +29,7 @@ function MyTest1() {
       scale: [1, 2, 3],
       // scale: [4, 1, 2],
       // euler: [0, 1, -1],
-      shear: [1, 1, 0],
+      shear: [.1, .2, .3],
     })
     const ok = RoundTripTest.transformToTransform(transform)
     const obj = setup(new MyObject(ok ? 'white' : 'red'), group)
@@ -57,13 +57,13 @@ function MyTest2() {
         position: [-2, -4, 0],
         scale: [2, 4, 1],
         euler: [1, 0, 2],
-        shear: [1, 1, 0],
+        shear: [1, .5, .1],
       }),
       createTransform({
         position: [2, -4, 0],
         scale: [4, 1, 2],
         euler: [0, 1, -1],
-        shear: [0, 1, 0],
+        shear: [-.5, 1, .25],
       }),
     ]
 

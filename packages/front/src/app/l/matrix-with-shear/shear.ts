@@ -119,10 +119,12 @@ export function decomposeMatrixWithShear(matrix: Matrix4): TransformWithShear {
     scale,
     shear: {
       // ry: r01,
-      xy: r01 / scaleY, // <--- (jnc) normalize by scaleX to get actual shear factor
       // xz: r02,
-      xz: r02 / scaleZ, // <--- (jnc) normalize by scaleZ to get actual shear factor
-      yz: r12,
+      // yz: r12,
+      // Note: shear factors need to be normalized by scale to get actual shear
+      xy: r01 / scaleY, // <--- (jnc) normalize to get actual shear factor
+      xz: r02 / scaleZ, // <--- (jnc) normalize to get actual shear factor
+      yz: r12 / scaleZ, // <--- (jnc) normalize to get actual shear factor
     }
   }
 }
