@@ -56,8 +56,13 @@
     "dir": "l/depth-offset"
   },
   {
-    "page": "l/matrix-with-shear/0/page.tsx",
-    "dir": "l/matrix-with-shear/0"
+    "page": "l/matrix-with-shear/0-intro/page.tsx",
+    "dir": "l/matrix-with-shear/0-intro"
+  },
+  {
+    "page": "l/matrix-with-shear/1-shear/page.tsx",
+    "dir": "l/matrix-with-shear/1-shear"
+  },
   },
   {
     "page": "l/occluded-lines/page.tsx",
