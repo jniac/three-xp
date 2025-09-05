@@ -100,6 +100,10 @@
     "dir": "t/hash-grid"
   },
   {
+    "page": "t/matrix-with-shear/page.tsx",
+    "dir": "t/matrix-with-shear"
+  },
+  {
     "page": "t/noise-demo/page.tsx",
     "dir": "t/noise-demo"
   },
@@ -114,6 +118,10 @@
   {
     "page": "t/shader-xplr/page.tsx",
     "dir": "t/shader-xplr"
+  },
+  {
+    "page": "t/template-2/page.tsx",
+    "dir": "t/template-2"
   },
   {
     "page": "t/template/page.tsx",
