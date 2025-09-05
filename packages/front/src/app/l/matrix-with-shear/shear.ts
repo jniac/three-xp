@@ -1,3 +1,5 @@
+import { EulerDeclaration, fromEulerDeclaration, fromVector3Declaration } from 'some-utils-three/declaration'
+import { Vector3Declaration } from 'some-utils-ts/declaration'
 import { Matrix4, Quaternion, Vector3 } from 'three'
 
 interface TransformWithShear {
@@ -43,9 +45,10 @@ export function composeMatrixWithShear(
 
   // Combine: result = T * R * H * S
   // Build from right to left: ((S * H) * R) * T
-  out.copy(S)
+  out.identity()
   out.multiply(R)
   out.multiply(H)
+  out.multiply(S)
   out.premultiply(T)
 
   return out
@@ -115,47 +118,95 @@ export function decomposeMatrixWithShear(matrix: Matrix4): TransformWithShear {
     rotation,
     scale,
     shear: {
-      xy: r01,
-      xz: r02,
+      // ry: r01,
+      xy: r01 / scaleY, // <--- (jnc) normalize by scaleX to get actual shear factor
+      // xz: r02,
+      xz: r02 / scaleZ, // <--- (jnc) normalize by scaleZ to get actual shear factor
       yz: r12,
     }
   }
 }
 
-// Helper function to create a shear transform
-export function createShearTransform(
-  position: Vector3 = new Vector3(),
-  rotation: Quaternion = new Quaternion(),
-  scale: Vector3 = new Vector3(1, 1, 1),
-  shearXY: number = 0,
-  shearXZ: number = 0,
-  shearYZ: number = 0
+export function lerpTransforms(
+  a: TransformWithShear,
+  b: TransformWithShear,
+  t: number,
+  out: TransformWithShear = {
+    position: new Vector3(),
+    rotation: new Quaternion(),
+    scale: new Vector3(),
+    shear: { xy: 0, xz: 0, yz: 0 }
+  }
 ): TransformWithShear {
+  // Lerp position
+  out.position.lerpVectors(a.position, b.position, t)
+
+  // Slerp rotation
+  out.rotation.slerpQuaternions(a.rotation, b.rotation, t)
+
+  // Lerp scale
+  out.scale.lerpVectors(a.scale, b.scale, t)
+
+  // Lerp shear components
+  out.shear.xy = a.shear.xy + (b.shear.xy - a.shear.xy) * t
+  out.shear.xz = a.shear.xz + (b.shear.xz - a.shear.xz) * t
+  out.shear.yz = a.shear.yz + (b.shear.yz - a.shear.yz) * t
+
+  return out
+}
+
+// Helper function to create a shear transform
+export function createTransform({
+  position = <Vector3Declaration>0,
+  euler = <EulerDeclaration>[0, 0, 0],
+  scale = <Vector3Declaration>1,
+  shear = <Vector3Declaration>0,
+} = {}): TransformWithShear {
+  const [xy, xz, yz] = fromVector3Declaration(shear)
   return {
-    position: position.clone(),
-    rotation: rotation.clone(),
-    scale: scale.clone(),
-    shear: {
-      xy: shearXY,
-      xz: shearXZ,
-      yz: shearYZ
-    }
+    position: fromVector3Declaration(position),
+    rotation: new Quaternion().setFromEuler(fromEulerDeclaration(euler)),
+    scale: fromVector3Declaration(scale),
+    shear: { xy, xz, yz }
   }
 }
 
 // Helper function to check if decomposition/composition round-trip works
-export function testRoundTrip(originalMatrix: Matrix4, tolerance: number = 1e-12): boolean {
-  const decomposed = decomposeMatrixWithShear(originalMatrix)
-  const recomposed = composeMatrixWithShear(decomposed)
+export class RoundTripTest {
+  static matrixToMatrix(originalMatrix: Matrix4, tolerance: number = 1e-12): boolean {
+    const decomposed = decomposeMatrixWithShear(originalMatrix)
+    const recomposed = composeMatrixWithShear(decomposed)
 
-  // Compare matrices element by element
-  for (let i = 0; i < 16; i++) {
-    const diff = Math.abs(originalMatrix.elements[i] - recomposed.elements[i])
-    if (diff > tolerance) {
-      return false
+    // Compare matrices element by element
+    for (let i = 0; i < 16; i++) {
+      const diff = Math.abs(originalMatrix.elements[i] - recomposed.elements[i])
+      if (diff > tolerance) {
+        return false
+      }
     }
+    return true
   }
-  return true
+
+  static transformToTransform(original: TransformWithShear, tolerance: number = 1e-12): boolean {
+    const matrix = composeMatrixWithShear(original)
+    const decomposed = decomposeMatrixWithShear(matrix)
+
+    // Compare position
+    if (original.position.distanceTo(decomposed.position) > tolerance) return false
+
+    // Compare rotation (quaternion)
+    if (1 - Math.abs(original.rotation.dot(decomposed.rotation)) > tolerance) return false
+
+    // Compare scale
+    if (original.scale.distanceTo(decomposed.scale) > tolerance) return false
+
+    // Compare shear
+    if (Math.abs(original.shear.xy - decomposed.shear.xy) > tolerance) return false
+    if (Math.abs(original.shear.xz - decomposed.shear.xz) > tolerance) return false
+    if (Math.abs(original.shear.yz - decomposed.shear.yz) > tolerance) return false
+
+    return true
+  }
 }
 
 // Debug helper
@@ -180,7 +231,7 @@ export function debugDecomposition(matrix: Matrix4): void {
     }
   }
 
-  console.log('Round-trip success:', testRoundTrip(matrix))
+  console.log('Round-trip success:', RoundTripTest.matrixToMatrix(matrix))
 }
 
 export type { TransformWithShear }

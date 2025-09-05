@@ -63,6 +63,9 @@
     "page": "l/matrix-with-shear/1-shear/page.tsx",
     "dir": "l/matrix-with-shear/1-shear"
   },
+  {
+    "page": "l/matrix-with-shear/2-decompose/page.tsx",
+    "dir": "l/matrix-with-shear/2-decompose"
   },
   {
     "page": "l/occluded-lines/page.tsx",

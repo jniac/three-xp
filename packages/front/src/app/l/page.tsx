@@ -4,6 +4,9 @@ import { Metadata } from 'next'
 import { SummaryPage } from '@/components/summary'
 
 import * as depthOffset from './depth-offset/page'
+import * as matrixWithShear0Intro from './matrix-with-shear/0-intro/page'
+import * as matrixWithShear1Shear from './matrix-with-shear/1-shear/page'
+import * as matrixWithShear2Decompose from './matrix-with-shear/2-decompose/page'
 import * as occludedLines from './occluded-lines/page'
 import * as translateScale from './translate+scale/page'
 import * as webgpuOld from './webgpu-old/page'
@@ -11,6 +14,9 @@ import * as webgpu from './webgpu/page'
 
 const pages = {
  'depth-offset': depthOffset,
+ 'matrix-with-shear/0-intro': matrixWithShear0Intro,
+ 'matrix-with-shear/1-shear': matrixWithShear1Shear,
+ 'matrix-with-shear/2-decompose': matrixWithShear2Decompose,
  'occluded-lines': occludedLines,
  'translate+scale': translateScale,
  'webgpu-old': webgpuOld,

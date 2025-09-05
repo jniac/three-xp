@@ -1,13 +1,13 @@
 'use client'
+import { Quaternion, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
-
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
-import { Quaternion, Vector3 } from 'three'
+
 import { MyObject } from '../shared'
-import { composeMatrixWithShear } from './shear'
+import { composeMatrixWithShear, RoundTripTest } from '../shear'
 import { UI } from './ui'
 
 function MyScene() {
@@ -39,26 +39,30 @@ function MyScene() {
     }]
 
     for (const { x, y, z, xy, xz, yz } of simpleEntries) {
-      const obj = setup(new MyObject(), group)
-      obj.matrixAutoUpdate = false
-      composeMatrixWithShear({
+      const transform = {
         position: new Vector3(x, y, z),
         scale: new Vector3(1, 1, 1),
         rotation: new Quaternion(),
         shear: { xy, xz, yz },
-      }, obj.matrix)
+      }
+      const ok = RoundTripTest.transformToTransform(transform)
+      const obj = setup(new MyObject(ok ? 'white' : 'red'), group)
+      obj.matrixAutoUpdate = false
+      composeMatrixWithShear(transform, obj.matrix)
     }
 
     R.setRandom('parkmiller', 5678)
     for (const { x, y, z, xy, xz, yz } of simpleEntries) {
-      const obj = setup(new MyObject(), group)
-      obj.matrixAutoUpdate = false
-      composeMatrixWithShear({
+      const transform = {
         position: new Vector3(x, y - 6, z),
         scale: new Vector3(R.number(.1, 2), R.number(.1, 2), R.number(.1, 2)),
         rotation: R.quaternion(new Quaternion()),
         shear: { xy, xz, yz },
-      }, obj.matrix)
+      }
+      const ok = RoundTripTest.transformToTransform(transform)
+      const obj = setup(new MyObject(ok ? 'white' : 'red'), group)
+      obj.matrixAutoUpdate = false
+      composeMatrixWithShear(transform, obj.matrix)
     }
 
   }, [])

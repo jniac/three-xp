@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 
 import * as highOrder from 'some-utils-ts/iteration/high-order'
+import { waveform } from 'some-utils-ts/math/waveform'
 import * as observables from 'some-utils-ts/observables'
 import { PRNG } from 'some-utils-ts/random/prng'
 
@@ -14,6 +15,7 @@ export function leak(leakedProps: Record<string, any>) {
       ...highOrder,
       ...leakedProps,
       PRNG,
+      waveform,
     })
   }
 }

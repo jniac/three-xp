@@ -3,6 +3,7 @@ import { Client } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'matrix-with-shear',
+  status: 'done',
 })
 
 export default function MatrixWithShearPage() {
