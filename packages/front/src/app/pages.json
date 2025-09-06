@@ -56,28 +56,28 @@
     "dir": "l/depth-offset"
   },
   {
-    "page": "l/matrix-with-shear/0-intro/page.tsx",
-    "dir": "l/matrix-with-shear/0-intro"
-  },
-  {
-    "page": "l/matrix-with-shear/1-shear/page.tsx",
-    "dir": "l/matrix-with-shear/1-shear"
-  },
-  {
-    "page": "l/matrix-with-shear/2-decompose/page.tsx",
-    "dir": "l/matrix-with-shear/2-decompose"
-  },
-  {
-    "page": "l/matrix-with-shear/3-transform-with-shear/page.tsx",
-    "dir": "l/matrix-with-shear/3-transform-with-shear"
-  },
-  {
     "page": "l/occluded-lines/page.tsx",
     "dir": "l/occluded-lines"
   },
   {
     "page": "l/page.tsx",
     "dir": "l"
+  },
+  {
+    "page": "l/transform-with-shear/0-intro/page.tsx",
+    "dir": "l/transform-with-shear/0-intro"
+  },
+  {
+    "page": "l/transform-with-shear/1-shear/page.tsx",
+    "dir": "l/transform-with-shear/1-shear"
+  },
+  {
+    "page": "l/transform-with-shear/2-decompose/page.tsx",
+    "dir": "l/transform-with-shear/2-decompose"
+  },
+  {
+    "page": "l/transform-with-shear/3-transform-with-shear/page.tsx",
+    "dir": "l/transform-with-shear/3-transform-with-shear"
   },
   {
     "page": "l/translate+scale/page.tsx",
