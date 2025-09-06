@@ -68,6 +68,10 @@
     "dir": "l/matrix-with-shear/2-decompose"
   },
   {
+    "page": "l/matrix-with-shear/3-transform-with-shear/page.tsx",
+    "dir": "l/matrix-with-shear/3-transform-with-shear"
+  },
+  {
     "page": "l/occluded-lines/page.tsx",
     "dir": "l/occluded-lines"
   },

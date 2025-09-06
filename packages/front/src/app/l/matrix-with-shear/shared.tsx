@@ -93,3 +93,25 @@ export class TwinObject extends Group {
     this.basisC.toMatrix4(this.objC.matrix)
   }
 }
+
+export function UIWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={`ui layer thru p-8 flex flex-col gap-4 items-start`}>
+      <div className='max-w-md flex flex-col gap-2 items-start p-4 backdrop-blur rounded-xl border border-white/10 bg-white/2' >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export function Button({ label = 'Button', onClick = () => { } }) {
+  return (
+    <button
+      className='btn border rounded px-4 py-2'
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  )
+}
+

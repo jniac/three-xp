@@ -3,23 +3,12 @@
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { Message } from 'some-utils-ts/message'
 
+import { Button, UIWrapper } from '../shared'
 import { Params } from './page.client'
-import s from './page.client.module.css'
-
-function Button({ label = 'Button', onClick = () => { } }) {
-  return (
-    <button
-      className='btn border rounded px-4 py-2'
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  )
-}
 
 export function UI() {
   return (
-    <div className={`${s.Client} ui layer thru p-8 flex flex-col gap-4 items-start`}>
+    <UIWrapper>
       <h1 className='text-2xl font-bold mb-8'>
         Some Shear Examples
       </h1>
@@ -55,7 +44,6 @@ export function UI() {
           params.rotate = !params.rotate
         }}
       />
-
-    </div>
+    </UIWrapper>
   )
 }

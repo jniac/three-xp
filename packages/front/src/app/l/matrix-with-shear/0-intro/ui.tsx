@@ -3,11 +3,9 @@
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { Message } from 'some-utils-ts/message'
 
-import s from './page.client.module.css'
-
 export function UI() {
   return (
-    <div className={`${s.Client} ui layer thru p-8 flex flex-col gap-4 items-start`}>
+    <div className={`ui layer thru p-8 flex flex-col gap-4 items-start`}>
       <h1 className='text-2xl font-bold mb-8'>
         Matrix with Shear
       </h1>
