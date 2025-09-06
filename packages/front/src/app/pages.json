@@ -64,20 +64,8 @@
     "dir": "l"
   },
   {
-    "page": "l/transform-with-shear/0-intro/page.tsx",
-    "dir": "l/transform-with-shear/0-intro"
-  },
-  {
-    "page": "l/transform-with-shear/1-shear/page.tsx",
-    "dir": "l/transform-with-shear/1-shear"
-  },
-  {
-    "page": "l/transform-with-shear/2-decompose/page.tsx",
-    "dir": "l/transform-with-shear/2-decompose"
-  },
-  {
-    "page": "l/transform-with-shear/3-transform-with-shear/page.tsx",
-    "dir": "l/transform-with-shear/3-transform-with-shear"
+    "page": "l/transform-with-shear/page.tsx",
+    "dir": "l/transform-with-shear"
   },
   {
     "page": "l/translate+scale/page.tsx",
@@ -116,10 +104,6 @@
     "dir": "t/hash-grid"
   },
   {
-    "page": "t/matrix-with-shear/page.tsx",
-    "dir": "t/matrix-with-shear"
-  },
-  {
     "page": "t/noise-demo/page.tsx",
     "dir": "t/noise-demo"
   },
@@ -150,6 +134,10 @@
   {
     "page": "t/three-provider/page.tsx",
     "dir": "t/three-provider"
+  },
+  {
+    "page": "t/transform-with-shear/page.tsx",
+    "dir": "t/transform-with-shear"
   },
   {
     "page": "t/vertigo/page.tsx",

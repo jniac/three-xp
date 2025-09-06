@@ -7,7 +7,6 @@ import * as css3d from './css-3d/page'
 import * as easingGraph from './easing-graph/page'
 import * as flexibleLayout from './flexible-layout/page'
 import * as hashGrid from './hash-grid/page'
-import * as matrixWithShear from './matrix-with-shear/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
 import * as shaderXplr from './shader-xplr/page'
@@ -15,24 +14,25 @@ import * as template2 from './template-2/page'
 import * as template from './template/page'
 import * as textHelper from './text-helper/page'
 import * as threeProvider from './three-provider/page'
+import * as transformWithShear from './transform-with-shear/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
 
 const pages = {
- 'css-3d': css3d,
- 'easing-graph': easingGraph,
- 'flexible-layout': flexibleLayout,
- 'hash-grid': hashGrid,
- 'matrix-with-shear': matrixWithShear,
- 'noise-demo': noiseDemo,
- 'random-utils': randomUtils,
- 'shader-xplr': shaderXplr,
- 'template-2': template2,
- 'template': template,
- 'text-helper': textHelper,
- 'three-provider': threeProvider,
- 'vertigo': vertigo,
- 'voxel': voxel,
+  'css-3d': css3d,
+  'easing-graph': easingGraph,
+  'flexible-layout': flexibleLayout,
+  'hash-grid': hashGrid,
+  'noise-demo': noiseDemo,
+  'random-utils': randomUtils,
+  'shader-xplr': shaderXplr,
+  'template-2': template2,
+  'template': template,
+  'text-helper': textHelper,
+  'three-provider': threeProvider,
+  'transform-with-shear': transformWithShear,
+  'vertigo': vertigo,
+  'voxel': voxel,
 }
 
 export const metadata: Metadata = {
