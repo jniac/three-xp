@@ -6,7 +6,7 @@ import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-pr
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { TransformWithShear } from 'some-utils-three/experimental/transform-with-shear'
+import { Transform } from 'some-utils-three/experimental/transform-with-shear'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
 import { LineGeometryUtils } from 'some-utils-three/geometries/line-utils'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -25,7 +25,7 @@ const style = {
 
 export class Params {
   useMatrixInterpolation = false
-  transform = new TransformWithShear()
+  transform = new Transform()
 }
 
 class MyObject extends Group {
@@ -36,7 +36,7 @@ class MyObject extends Group {
   box = setup(new LineSegments(LineGeometryUtils.setAsBounds(null, -1, 1), new LineBasicMaterial()), this)
   axes = setup(new Mesh(MyObject.shared.axesGeometry, new AutoLitMaterial({ vertexColors: true })), this)
   knot = setup(new Mesh(MyObject.shared.knotGeometry, new AutoLitMaterial()), this)
-  transform = new TransformWithShear()
+  transform = new Transform()
   constructor(color?: ColorRepresentation) {
     super()
     if (color)
@@ -48,7 +48,7 @@ class MyObject extends Group {
     this.knot.material.color.set(color)
     return this
   }
-  setTransform(arg: Parameters<TransformWithShear['setTransform']>[0]): this {
+  setTransform(arg: Parameters<Transform['setTransform']>[0]): this {
     this.matrixAutoUpdate = false
     this.transform
       .setTransform(arg)
@@ -71,7 +71,7 @@ class MyTween extends Group {
     const t = transition.inOut3(inverseLerp(.05, 1 - .05, waveform.triangle(tick.time, { f: 1 / 5 })))
     this.objC.matrixAutoUpdate = false
     if (this.useMatrixInterpolation) {
-      TransformWithShear.lerpMatrixes(
+      Transform.lerpMatrixes(
         this.objA.matrix,
         this.objB.matrix,
         t,

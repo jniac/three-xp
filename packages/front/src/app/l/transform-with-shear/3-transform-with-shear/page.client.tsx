@@ -3,7 +3,7 @@
 import { ColorRepresentation, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
-import { TransformWithShear } from 'some-utils-three/experimental/transform-with-shear'
+import { Transform } from 'some-utils-three/experimental/transform-with-shear'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { inverseLerp } from 'some-utils-ts/math/basic'
@@ -18,12 +18,12 @@ import { MyObject } from '../shared'
 import { UI } from './ui'
 
 class MySuperObject extends MyObject {
-  transform = new TransformWithShear()
+  transform = new Transform()
   constructor(color = 'white' as ColorRepresentation) {
     super(color)
     this.matrixAutoUpdate = false
   }
-  setTransform(arg: Parameters<TransformWithShear['from']>[0]): this {
+  setTransform(arg: Parameters<Transform['from']>[0]): this {
     this.transform.from(arg)
     this.transform.toMatrix(this.matrix)
     return this
