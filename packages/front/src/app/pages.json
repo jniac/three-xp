@@ -64,8 +64,20 @@
     "dir": "l"
   },
   {
-    "page": "l/transform-with-shear/page.tsx",
-    "dir": "l/transform-with-shear"
+    "page": "l/transform-with-shear/0-intro/page.tsx",
+    "dir": "l/transform-with-shear/0-intro"
+  },
+  {
+    "page": "l/transform-with-shear/1-shear/page.tsx",
+    "dir": "l/transform-with-shear/1-shear"
+  },
+  {
+    "page": "l/transform-with-shear/2-decompose/page.tsx",
+    "dir": "l/transform-with-shear/2-decompose"
+  },
+  {
+    "page": "l/transform-with-shear/3-transform-with-shear/page.tsx",
+    "dir": "l/transform-with-shear/3-transform-with-shear"
   },
   {
     "page": "l/translate+scale/page.tsx",

@@ -19,20 +19,20 @@ import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
 
 const pages = {
-  'css-3d': css3d,
-  'easing-graph': easingGraph,
-  'flexible-layout': flexibleLayout,
-  'hash-grid': hashGrid,
-  'noise-demo': noiseDemo,
-  'random-utils': randomUtils,
-  'shader-xplr': shaderXplr,
-  'template-2': template2,
-  'template': template,
-  'text-helper': textHelper,
-  'three-provider': threeProvider,
-  'transform-with-shear': transformWithShear,
-  'vertigo': vertigo,
-  'voxel': voxel,
+ 'css-3d': css3d,
+ 'easing-graph': easingGraph,
+ 'flexible-layout': flexibleLayout,
+ 'hash-grid': hashGrid,
+ 'noise-demo': noiseDemo,
+ 'random-utils': randomUtils,
+ 'shader-xplr': shaderXplr,
+ 'template-2': template2,
+ 'template': template,
+ 'text-helper': textHelper,
+ 'three-provider': threeProvider,
+ 'transform-with-shear': transformWithShear,
+ 'vertigo': vertigo,
+ 'voxel': voxel,
 }
 
 export const metadata: Metadata = {

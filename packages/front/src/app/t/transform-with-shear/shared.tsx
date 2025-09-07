@@ -107,7 +107,7 @@ export function UIWrapper({ children }: { children: React.ReactNode }) {
 export function Button({ label = 'Button', onClick = () => { } }) {
   return (
     <button
-      className='btn border rounded px-4 py-2'
+      className='btn border rounded px-2 py-1 hover:bg-white/10 active:bg-white/20'
       onClick={onClick}
     >
       {label}

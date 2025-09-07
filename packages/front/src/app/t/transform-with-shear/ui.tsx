@@ -61,16 +61,16 @@ export function UI() {
       </p>
       <ul className='list-disc list-inside'>
         <li>
-          <a href='/l/transform-with-shear/0-intro'>0-intro</a>
+          <a className='underline hover:text-[cyan]' href='/l/transform-with-shear/0-intro'>0-intro</a>
         </li>
         <li>
-          <a href='/l/transform-with-shear/1-shear'>1-shear</a>
+          <a className='underline hover:text-[cyan]' href='/l/transform-with-shear/1-shear'>1-shear</a>
         </li>
         <li>
-          <a href='/l/transform-with-shear/2-decompose'>2-decompose</a>
+          <a className='underline hover:text-[cyan]' href='/l/transform-with-shear/2-decompose'>2-decompose</a>
         </li>
         <li>
-          <a href='/l/transform-with-shear/3-transform-with-shear'>3-transform-with-shear</a>
+          <a className='underline hover:text-[cyan]' href='/l/transform-with-shear/3-transform-with-shear'>3-transform-with-shear</a>
         </li>
       </ul>
 
@@ -82,8 +82,9 @@ export function UI() {
           const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
           controls.vertigo.set({
             perspective: 0,
-            zoom: 1,
-            rotation: [0, 0, 0],
+            zoom: .98,
+            focus: 0,
+            rotation: 0,
           })
         }}
       />

@@ -10,7 +10,7 @@ export function UI() {
   return (
     <UIWrapper>
       <h1 className='text-2xl font-bold mb-8'>
-        Some Shear Examples
+        Decompose Matrix4 with Shear
       </h1>
 
       <Button
@@ -20,6 +20,7 @@ export function UI() {
           controls.vertigo.set({
             perspective: 0,
             zoom: 1,
+            focus: 0,
             rotation: [0, 0, 0],
           })
         }}
