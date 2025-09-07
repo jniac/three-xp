@@ -88,19 +88,11 @@ class MyTween extends Group {
   }
 }
 
-function MyScene() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
-
-  useGroup('my-scene', function* (group, three) {
+function Demo1() {
+  useGroup('demo-1', function* (group) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 8, subdivisions: [2, 4], opacity: [1, .1] })
-
-    setup(new DebugHelper(), {
-      parent: group,
-      position: [0, 0, 3],
-    })
+      .text(0, 'matrix-to-matrix', { color: 'white' })
 
     const tween = setup(new MyTween(), group)
     tween.objA.setTransform({
@@ -136,6 +128,38 @@ function MyScene() {
 
   return null
 }
+function Demo2() {
+  useGroup('demo-2', function* (group) {
+    setup(group, { x: 12 })
+
+    setup(new DebugHelper(), group)
+      .regularGrid({ size: 8, subdivisions: [2, 4], opacity: [1, .1] })
+      .text(0, 'scaleFactor', { color: 'white' })
+
+    const tween = setup(new MyTween(), group)
+    tween.objA.setTransform({
+      rotation: [0, '-90deg', 0],
+    })
+    tween.objB.setTransform({
+      rotation: [0, '90deg', 0],
+      shear: [1, 1, 0],
+      scaleFactor: 1.5,
+    })
+  }, [])
+
+  return null
+}
+
+function MyScene() {
+  useThreeWebGL(function* (three) {
+    three.pipeline.basicPasses.fxaa.enabled = false
+  })
+
+  useGroup('my-scene', function* (group, three) {
+  }, [])
+
+  return null
+}
 
 export function Client() {
   return (
@@ -148,8 +172,10 @@ export function Client() {
         focus: [0, 0, 1.5],
       }}
     >
-      <MyScene />
       <UI />
+      <MyScene />
+      <Demo1 />
+      <Demo2 />
     </ThreeProvider>
   )
 }
