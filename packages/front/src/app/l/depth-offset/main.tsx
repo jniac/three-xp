@@ -39,6 +39,7 @@ class DepthOffsetTest extends Group {
         attribute vec4 aRand;
       `)
       .vertex.after('project_vertex', /* glsl */`
+        // Move the vertex a bit based on aRand, and that's all!!!!
         gl_Position.z += aRand.x * .1;
       `)
 

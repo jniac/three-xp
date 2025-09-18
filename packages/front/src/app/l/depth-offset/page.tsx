@@ -7,6 +7,7 @@ export const metadata = new XpMetadata({
   description: `
     # Depth offset experiment
   `,
+  status: 'done',
 })
 
 export default function DepthOffsetPage() {
