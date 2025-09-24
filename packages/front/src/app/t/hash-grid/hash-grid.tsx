@@ -168,7 +168,7 @@ function PoissonScene() {
       radiusRatioMax: 1.4,
     })
     const elapsed = performance.now() - now
-    logLines.push(`Poisson sampling took ${elapsed.toFixed(2)}ms`)
+    logLines.push(`Poisson sampling took ${elapsed.toFixed(2)}ms (${poisson.samples.length} samples, radius: ${poisson.params.radius} to ${(poisson.params.radius * poisson.params.radiusRatioMax).toFixed(2)})`)
 
     debugHelper
       .circle({ center: start, radius: .1 })
@@ -228,7 +228,7 @@ function PoissonScene() {
 
       const elapsed = performance.now() - now
 
-      logLines.push(`A* pathfinding took ${elapsed.toFixed(2)}ms (${path.length} nodes)`)
+      logLines.push(`A* pathfinding took ${elapsed.toFixed(2)}ms (path: ${path.length} nodes)`)
 
       setInfo(logLines.join('\n'))
     }
