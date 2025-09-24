@@ -29,7 +29,7 @@ export function SummaryPage(props: Props) {
                   fontStyle: (value.metadata as XpMetadata)?.status === 'done' ? 'normal' : 'italic',
                 }}
               >
-                {key}
+                {key.replace(/\//g, ' / ')}
               </Link>
             </span>
           </div>

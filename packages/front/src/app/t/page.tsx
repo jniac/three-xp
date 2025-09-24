@@ -13,7 +13,8 @@ import * as shaderXplr from './shader-xplr/page'
 import * as template2 from './template-2/page'
 import * as template from './template/page'
 import * as textHelper from './text-helper/page'
-import * as threeProvider from './three-provider/page'
+import * as threeProviderColor from './three-provider/color/page'
+import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
 import * as transformWithShear from './transform-with-shear/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
@@ -29,7 +30,8 @@ const pages = {
  'template-2': template2,
  'template': template,
  'text-helper': textHelper,
- 'three-provider': threeProvider,
+ 'three-provider/color': threeProviderColor,
+ 'three-provider/free-vertigo': threeProviderFreeVertigo,
  'transform-with-shear': transformWithShear,
  'vertigo': vertigo,
  'voxel': voxel,

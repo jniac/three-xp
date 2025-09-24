@@ -4,6 +4,7 @@
   "scripts": {
     "clean:modules": "pnpm -r exec rm -rf node_modules",
     "dev": "tsx scripts/dev.ts",
+    "some-builds": "pnpm --filter some-utils-ts run build && pnpm --filter some-utils-three run build && pnpm --filter some-utils-dom run build",
     "build": "cd packages/front && pnpm build",
     "test:build": "tsx scripts/serve-docs.ts",
     "pages": "pnpm build && git add docs && git commit -m 'deploy (docs)' && git push origin main"

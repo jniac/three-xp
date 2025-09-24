@@ -1,10 +1,11 @@
 'use client'
 
+import { Mesh, TorusKnotGeometry } from 'three'
+
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { SimpleGridHelper } from 'some-utils-three/helpers/grid'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
-import { Mesh, TorusKnotGeometry } from 'three'
 
 function MyScene() {
   useGroup('my-scene', function* (group) {
@@ -22,7 +23,9 @@ export function PageClient() {
       }}
     >
       <div className='PageClient p-16'>
-        <h1>Page Client</h1>
+        <h1 className='mb-4 text-3xl font-bold'>
+          Free Vertigo!
+        </h1>
         <p>
           Press [alt + Tab] to enable the &quot;free&quot; vertigo control mode.
         </p>
