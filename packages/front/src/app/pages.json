@@ -36,6 +36,10 @@
     "dir": "e/layout/grids"
   },
   {
+    "page": "e/ovvo-layers/page.tsx",
+    "dir": "e/ovvo-layers"
+  },
+  {
     "page": "e/page.tsx",
     "dir": "e"
   },
