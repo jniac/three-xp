@@ -1,24 +1,46 @@
-'use client'
+import { Color, ColorRepresentation, Group, InstancedMesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
-import { Group, InstancedMesh, MeshBasicMaterial, PlaneGeometry } from 'three'
-
-import { FpsMeter } from 'some-utils-misc/fps-meter'
-import { ThreeProvider, useGroup, } from 'some-utils-misc/three-provider'
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
-import { setup } from 'some-utils-three/utils/tree'
+import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import { Ticker } from 'some-utils-ts/ticker'
 
-class OvvoLayers extends Group {
-  timescale = 1
+type ColorArgument =
+  | ColorRepresentation
+  | ColorRepresentation[]
+  | ((index: number) => ColorRepresentation)
+
+function solveColorArgument(arg: ColorArgument): (index: number) => Color {
+  const color = new Color()
+
+  if (typeof arg === 'function')
+    return index => color.set(arg(index))
+
+  if (Array.isArray(arg))
+    return index => color.set(arg[index % arg.length])
+
+  color.set(arg)
+  return () => color
+}
+
+function defaultColorArgument() {
+  const color = new Color()
+  const r = RandomUtils.new('parkmiller', 123456)
+  return () => {
+    return color.set(r.int(0x1000000))
+  }
+}
+
+export class ShadowHillPlanes extends Group {
+  timescale = 1;
 
   constructor({
     count = 8,
+    color = <ColorArgument>defaultColorArgument(),
   } = {}) {
     super()
-    this.name = 'OvvoLayers'
+    this.name = 'ShadowHillPlanes'
 
     const geometry = new PlaneGeometry()
 
@@ -28,6 +50,7 @@ class OvvoLayers extends Group {
 
     const uniforms = {
       uTime: { value: 0 },
+      uShadowColor: { value: new Color(0x000000) },
     }
     material.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines('USE_UV')
@@ -36,7 +59,7 @@ class OvvoLayers extends Group {
         vHash: 'vec4',
       })
       .top(glsl_utils)
-      .vertex.mainAfterAll(/* glsl */`
+      .vertex.mainAfterAll(/* glsl */ `
         // Push each layer back a little bit to avoid z-fighting
         gl_Position.z += -0.0001 * float(gl_InstanceID);
 
@@ -47,7 +70,7 @@ class OvvoLayers extends Group {
           hash(float(gl_InstanceID) * 23.9)
         );
       `)
-      .fragment.after('map_fragment', /* glsl */`
+      .fragment.after('map_fragment', /* glsl */ `
         vec2 uv = vUv;
         float threshold0 = 0.5;
         float amplitude = 0.1;
@@ -85,44 +108,12 @@ class OvvoLayers extends Group {
     }
     this.add(mesh)
 
-    RandomUtils.setRandom('parkmiller', 123456)
+    const colorGetter = solveColorArgument(color)
     for (let i = 0; i < count; i++) {
       mesh.setMatrixAt(i, makeMatrix4({
         y: (i - (count - 1) / 2) * 0.1,
       }))
-      mesh.setColorAt(i, makeColor(RandomUtils.int(0x1000000)))
-      mesh.setColorAt(i, makeColor('#535360ff'))
+      mesh.setColorAt(i, colorGetter(i))
     }
   }
-}
-
-function MyScene() {
-  useGroup('my-scene', function* (group) {
-    setup(new OvvoLayers(), group)
-  }, [])
-  return null
-}
-
-export function PageClient() {
-  return (
-    <ThreeProvider
-      vertigoControls={{
-        size: 1,
-        zoom: 2,
-      }}
-    >
-      <div className='PageClient layer thru p-16'>
-        <h1 className='mb-4 text-3xl font-bold'>
-          OVVO Layers
-        </h1>
-        <p>
-          This is a test page for the &quot;OVVO&quot; layers.
-        </p>
-        <FpsMeter />
-      </div>
-
-
-      <MyScene />
-    </ThreeProvider>
-  )
 }

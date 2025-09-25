@@ -12,7 +12,7 @@ import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
 import * as ladyEthereal from './lady-ethereal/page'
 import * as layoutGrids from './layout/grids/page'
-import * as ovvoLayers from './ovvo-layers/page'
+import * as ovvoLayers from './ovvo/layers/page'
 import * as pathWithLoop from './path-with-loop/page'
 import * as scatteredPlane from './scattered-plane/page'
 import * as twoEnvDemo from './two-env-demo/page'
@@ -27,7 +27,7 @@ const pages = {
  'from-earth-to': fromEarthTo,
  'lady-ethereal': ladyEthereal,
  'layout/grids': layoutGrids,
- 'ovvo-layers': ovvoLayers,
+ 'ovvo/layers': ovvoLayers,
  'path-with-loop': pathWithLoop,
  'scattered-plane': scatteredPlane,
  'two-env-demo': twoEnvDemo,
