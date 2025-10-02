@@ -116,6 +116,10 @@
     "dir": "t/flexible-layout"
   },
   {
+    "page": "t/fuzzy-range/page.tsx",
+    "dir": "t/fuzzy-range"
+  },
+  {
     "page": "t/hash-grid/page.tsx",
     "dir": "t/hash-grid"
   },

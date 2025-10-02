@@ -6,6 +6,7 @@ import { SummaryPage } from '@/components/summary'
 import * as css3d from './css-3d/page'
 import * as easingGraph from './easing-graph/page'
 import * as flexibleLayout from './flexible-layout/page'
+import * as fuzzyRange from './fuzzy-range/page'
 import * as hashGrid from './hash-grid/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
@@ -23,6 +24,7 @@ const pages = {
  'css-3d': css3d,
  'easing-graph': easingGraph,
  'flexible-layout': flexibleLayout,
+ 'fuzzy-range': fuzzyRange,
  'hash-grid': hashGrid,
  'noise-demo': noiseDemo,
  'random-utils': randomUtils,
