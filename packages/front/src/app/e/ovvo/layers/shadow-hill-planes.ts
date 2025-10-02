@@ -1,4 +1,4 @@
-import { Color, ColorRepresentation, Group, InstancedMesh, MeshBasicMaterial, PlaneGeometry } from 'three'
+import { Color, ColorRepresentation, DoubleSide, Group, InstancedMesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
@@ -46,6 +46,7 @@ export class ShadowHillPlanes extends Group {
 
     const material = new MeshBasicMaterial({
       transparent: true,
+      side: DoubleSide,
     })
 
     const uniforms = {

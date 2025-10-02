@@ -11,6 +11,8 @@ function MyScene() {
   useGroup('my-scene', function* (group, three) {
     const shadow = setup(new ShadowHillPlanes(), group)
 
+    shadow.rotation.z = -Math.PI / 4
+
     yield handlePointer(three.domElement, {
       onDown: () => {
         shadow.timescale = 10
@@ -30,15 +32,13 @@ export function PageClient() {
         size: 1,
         zoom: 2,
       }}
+      fullscreenKey={{ code: 'KeyF', modifiers: 'shift' }}
     >
-      <div className='PageClient layer thru p-16'>
-        <h1 className='mb-4 text-3xl font-bold'>
+      <div className='PageClient layer thru p-16 border-[32px] border-[white] flex flex-col items-start'>
+        <h1 className='text-6xl font-bold'>
           OVVO Layers
         </h1>
-        <p>
-          This is a test page for the &quot;OVVO&quot; layers.
-        </p>
-        <FpsMeter />
+        <FpsMeter precision={0} className='mt-2 px-2 py-1 rounded text-[black] bg-[#fff] text-xs' />
       </div>
 
 
