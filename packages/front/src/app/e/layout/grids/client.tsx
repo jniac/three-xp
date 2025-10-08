@@ -8,9 +8,9 @@ import { AspectAlignDemo } from './demo/aspect-align'
 import { BasicLayoutDemo } from './demo/basic-layout'
 import { BasicMarginDemo } from './demo/basic-margin'
 import { MarginCollapseDemo } from './demo/margin-collapse'
+import { PositioningDemo } from './demo/positioning'
 
 import s from './client.module.css'
-import { PositioningDemo } from './demo/positioning'
 
 export function Client() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
