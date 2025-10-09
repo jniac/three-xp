@@ -40,6 +40,10 @@
     "dir": "e/layout/grids"
   },
   {
+    "page": "e/me/page.tsx",
+    "dir": "e/me"
+  },
+  {
     "page": "e/ovvo/layers/page.tsx",
     "dir": "e/ovvo/layers"
   },
