@@ -9,6 +9,8 @@ import { setup } from 'some-utils-three/utils/tree'
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
+import { leak } from '@/utils/leak'
+
 function MyScene() {
   const three = useThreeWebGL()!
 
@@ -36,6 +38,7 @@ function MyScene() {
 }
 
 export function PageClient() {
+  leak()
   return (
     <ThreeProvider
       vertigoControls={{
