@@ -249,6 +249,9 @@ importers:
         specifier: workspace:*
         version: link:../some-utils-ts
     devDependencies:
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
       tsc-watch:
         specifier: ^6.2.1
         version: 6.3.1(typescript@5.8.3)
@@ -267,6 +270,12 @@ importers:
       '@types/three':
         specifier: '>=0.176.0'
         version: 0.176.0
+      change-case:
+        specifier: ^5.4.4
+        version: 5.4.4
+      mathjs:
+        specifier: ^14.5.3
+        version: 14.8.2
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
@@ -335,19 +344,19 @@ importers:
         version: 0.176.0
       tsc-watch:
         specifier: ^6.2.1
-        version: 6.3.1(typescript@5.8.3)
+        version: 6.3.1(typescript@5.9.3)
       typescript:
-        specifier: ^5.5.4
-        version: 5.8.3
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/some-utils-ts:
     devDependencies:
       tsc-watch:
         specifier: ^6.2.1
-        version: 6.3.1(typescript@5.8.3)
+        version: 6.3.1(typescript@5.9.3)
       typescript:
-        specifier: ^5.5.4
-        version: 5.8.3
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^3.0.8
         version: 3.1.4(@types/debug@4.1.12)(@types/node@20.17.50)(jiti@1.21.7)(terser@5.39.2)(tsx@4.19.4)(yaml@2.8.0)
@@ -2878,6 +2887,9 @@ packages:
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
+  fraction.js@5.3.4:
+    resolution: {integrity: sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==}
+
   fresh@2.0.0:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
@@ -3382,6 +3394,11 @@ packages:
 
   mathjs@13.2.3:
     resolution: {integrity: sha512-I67Op0JU7gGykFK64bJexkSAmX498x0oybxfVXn1rroEMZTmfxppORhnk8mEUnPrbTfabDKCqvm18vJKMk2UJQ==}
+    engines: {node: '>= 18'}
+    hasBin: true
+
+  mathjs@14.8.2:
+    resolution: {integrity: sha512-QbiGLoNwd/UazrpWTn3nnmIo51Es4X93cbKoKJP6/SBcNOX9sOOGu5ZTC7bI7SuK2Uy0oIhVKFyezG6LuAxrfQ==}
     engines: {node: '>= 18'}
     hasBin: true
 
@@ -4398,6 +4415,11 @@ packages:
 
   typescript@5.8.3:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -7407,6 +7429,8 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
+  fraction.js@5.3.4: {}
+
   fresh@2.0.0: {}
 
   from@0.1.7: {}
@@ -7937,6 +7961,18 @@ snapshots:
       decimal.js: 10.5.0
       escape-latex: 1.2.0
       fraction.js: 4.3.7
+      javascript-natural-sort: 0.7.1
+      seedrandom: 3.0.5
+      tiny-emitter: 2.1.0
+      typed-function: 4.2.1
+
+  mathjs@14.8.2:
+    dependencies:
+      '@babel/runtime': 7.27.1
+      complex.js: 2.4.2
+      decimal.js: 10.5.0
+      escape-latex: 1.2.0
+      fraction.js: 5.3.4
       javascript-natural-sort: 0.7.1
       seedrandom: 3.0.5
       tiny-emitter: 2.1.0
@@ -9175,6 +9211,14 @@ snapshots:
       string-argv: 0.3.2
       typescript: 5.8.3
 
+  tsc-watch@6.3.1(typescript@5.9.3):
+    dependencies:
+      cross-spawn: 7.0.6
+      node-cleanup: 2.1.2
+      ps-tree: 1.2.0
+      string-argv: 0.3.2
+      typescript: 5.9.3
+
   tsconfig-paths@3.15.0:
     dependencies:
       '@types/json5': 0.0.29
@@ -9239,6 +9283,8 @@ snapshots:
   typed-function@4.2.1: {}
 
   typescript@5.8.3: {}
+
+  typescript@5.9.3: {}
 
   unbox-primitive@1.1.0:
     dependencies:

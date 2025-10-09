@@ -12,6 +12,10 @@
     "dir": "e/art-2"
   },
   {
+    "page": "e/depth-play/page.tsx",
+    "dir": "e/depth-play"
+  },
+  {
     "page": "e/dots-and-falloffs/page.tsx",
     "dir": "e/dots-and-falloffs"
   },
