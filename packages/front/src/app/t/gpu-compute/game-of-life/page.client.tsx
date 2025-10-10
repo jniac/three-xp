@@ -55,7 +55,9 @@ export function PageClient() {
       }}
     >
       <div className='layer thru flex flex-col p-12'>
-        <h1 className='text-4xl font-bold'>GPU Compute - Game of Life Demo</h1>
+        <h1 className='text-4xl font-bold'>
+          GPU Compute - Game of Life Demo
+        </h1>
       </div>
 
       <MyScene />

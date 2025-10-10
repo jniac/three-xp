@@ -70,10 +70,10 @@ export function PageClient() {
           GPU Compute - Pen Demo
         </h1>
         <p>
-          Simple demo of a "pen" drawing on a canvas using GPU compute shaders.
+          Simple demo of a &quot;pen&quot; drawing on a canvas using GPU compute shaders.
         </p>
         <p>
-          Currently using a heavy non-optimized (one-pass) kernel 11x11 gaussian blur for the pen "diffuse" effect.
+          Currently using a heavy non-optimized (one-pass) kernel 11x11 gaussian blur for the pen &quot;diffuse&quot; effect.
         </p>
         <FullscreenButton />
         <FpsMeter />
