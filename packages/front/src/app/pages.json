@@ -136,6 +136,10 @@
     "dir": "t/gpu-compute/pen"
   },
   {
+    "page": "t/gpu-compute/water/page.tsx",
+    "dir": "t/gpu-compute/water"
+  },
+  {
     "page": "t/hash-grid/page.tsx",
     "dir": "t/hash-grid"
   },

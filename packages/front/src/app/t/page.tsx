@@ -9,6 +9,7 @@ import * as flexibleLayout from './flexible-layout/page'
 import * as fuzzyRange from './fuzzy-range/page'
 import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
 import * as gpuComputePen from './gpu-compute/pen/page'
+import * as gpuComputeWater from './gpu-compute/water/page'
 import * as hashGrid from './hash-grid/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
@@ -29,6 +30,7 @@ const pages = {
  'fuzzy-range': fuzzyRange,
  'gpu-compute/game-of-life': gpuComputeGameOfLife,
  'gpu-compute/pen': gpuComputePen,
+ 'gpu-compute/water': gpuComputeWater,
  'hash-grid': hashGrid,
  'noise-demo': noiseDemo,
  'random-utils': randomUtils,
