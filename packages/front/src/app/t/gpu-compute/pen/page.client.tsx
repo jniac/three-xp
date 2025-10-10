@@ -3,7 +3,7 @@
 import { Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three'
 
 import { FpsMeter } from 'some-utils-misc/fps-meter'
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { GpuComputePenDemo } from 'some-utils-three/experimental/gpu-compute/demo/pen'
 import { setup } from 'some-utils-three/utils/tree'
 import { inverseLerp, lerp } from 'some-utils-ts/math/basic'
@@ -52,6 +52,18 @@ function MyScene() {
   return null
 }
 
+function FullscreenButton() {
+  const three = useThree()
+  return (
+    <button
+      className='absolute top-12 right-12 z-10 border border-white/50 hover:bg-black/10 hover:border-white text-white px-2 py-1 rounded transition'
+      onClick={() => three.setFullscreen('canvas')}
+    >
+      Fullscreen
+    </button>
+  )
+}
+
 export function PageClient() {
   leak()
   return (
@@ -74,6 +86,7 @@ export function PageClient() {
         <p>
           Currently using a heavy non-optimized (one-pass) kernel 11x11 gaussian blur for the pen "diffuse" effect.
         </p>
+        <FullscreenButton />
         <FpsMeter />
       </div>
 
