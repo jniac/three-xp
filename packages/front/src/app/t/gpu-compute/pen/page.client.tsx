@@ -5,12 +5,13 @@ import { Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three'
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { GpuComputePenDemo } from 'some-utils-three/experimental/gpu-compute/demo/pen'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { inverseLerp, lerp } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
-import { DebugHelper } from 'some-utils-three/helpers/debug'
+
 import { FullscreenButton } from '../shared'
 
 function MyScene() {
@@ -26,7 +27,10 @@ function MyScene() {
       .regularGrid({ size: 10, subdivisions: [2, 5] })
       .onTop()
 
-    const penDemo = new GpuComputePenDemo({ size: 2 ** 11 })
+    const penDemo = new GpuComputePenDemo({
+      size: 2 ** 11,
+      // colors: ['#ddd', '#f00', '#0fa50f'],
+    })
       .initialize(three.renderer)
 
     const previousPen = new Vector2()
