@@ -10,13 +10,20 @@ import { inverseLerp } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
 
 function MyScene() {
   const three = useThreeWebGL()!
 
   useGroup('my-scene', function* (group) {
+    three.pipeline.basicPasses.fxaa.enabled = false
+
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), group)
     plane.scale.setScalar(10)
+
+    setup(new DebugHelper(), group)
+      .regularGrid({ size: 10, subdivisions: [2, 5] })
+      .onTop()
 
     const gpuCompute = new GpuComputePenDemo({ size: 2 ** 11 })
       .initialize(three.renderer)
@@ -26,10 +33,11 @@ function MyScene() {
       if (i.intersected) {
         const x = inverseLerp(-5, 5, i.point.x)
         const y = inverseLerp(-5, 5, i.point.y)
-        gpuCompute.pen(x, y, 0.1)
+        gpuCompute.penMove(x, y, 0.2)
       }
+      gpuCompute.update(0)
       plane.material.map = gpuCompute.currentTexture()
-      gpuCompute.update(tick.deltaTime)
+      plane.material.needsUpdate = true
     })
 
   }, [])
@@ -42,7 +50,8 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 10,
+        fixed: true,
+        size: 10.5,
         eventTarget: 'canvas',
       }}
     >
