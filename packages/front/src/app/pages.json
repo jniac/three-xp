@@ -56,6 +56,10 @@
     "dir": "e/path-with-loop"
   },
   {
+    "page": "e/procedural-tree/page.tsx",
+    "dir": "e/procedural-tree"
+  },
+  {
     "page": "e/scattered-plane/page.tsx",
     "dir": "e/scattered-plane"
   },
