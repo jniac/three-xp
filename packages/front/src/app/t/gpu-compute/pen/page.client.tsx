@@ -2,6 +2,7 @@
 
 import { Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three'
 
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { GpuComputePenDemo } from 'some-utils-three/experimental/gpu-compute/demo/pen'
@@ -34,22 +35,45 @@ function MyScene() {
       .initialize(three.renderer)
 
     const previousPen = new Vector2()
+    const pen = new Vector2()
+
+    let play = true
     let radius = 0.2
-    yield onTick('three', tick => {
+
+    const update = () => {
       const i = three.pointer.intersectPlane('xy')
       if (i.intersected) {
-        const pen = new Vector2(
+        pen.set(
           inverseLerp(-5, 5, i.point.x),
           inverseLerp(-5, 5, i.point.y))
         const dist = pen.distanceTo(previousPen)
-        const radiusTarget = lerp(.2, .05, dist * 500)
+        const radiusTarget = lerp(.2, .05, dist * 100)
         radius = lerp(radius, radiusTarget, 0.01)
-        penDemo.penMove(pen.x, pen.y, radius)
         previousPen.copy(pen)
       }
+    }
+
+    yield onTick('three', tick => {
+      if (!play)
+        return
+
+      update()
+      penDemo.penMove(pen.x, pen.y, radius)
       penDemo.update(tick.deltaTime)
       plane.material.map = penDemo.currentTexture()
       plane.material.needsUpdate = true
+    })
+
+    yield handlePointer(three.domElement, {
+      onDown: () => {
+        play = !play
+
+        if (play) {
+          // Jump immediately to the pen position (skip line)
+          update()
+          penDemo.penAt(pen.x, pen.y, radius)
+        }
+      },
     })
 
   }, [])

@@ -2,18 +2,19 @@
 
 import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { GpuComputeWaterDemo } from 'some-utils-three/experimental/gpu-compute/demo/water'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { setup } from 'some-utils-three/utils/tree'
+import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
 
-import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { FullscreenButton } from '../shared'
 
 function MyScene() {
@@ -39,19 +40,29 @@ function MyScene() {
       .regularGrid({ size: 10, subdivisions: [2, 5] })
       .onTop()
 
-    const gpuCompute = new GpuComputeWaterDemo({ size: 2 ** 11, viscosity: .99 })
+    const gpuCompute = new GpuComputeWaterDemo({
+      size: 2 ** 10,
+      viscosity: .98,
+      cellScale: 7.0,
+    })
       .initialize(three.renderer)
+
+    let strength = 1
 
     yield onTick('three', tick => {
       const i = three.pointer.intersectPlane('xy')
       if (i.intersected) {
         const x = inverseLerp(-5, 5, i.point.x)
         const y = inverseLerp(-5, 5, i.point.y)
-        gpuCompute.pointer(x, y, 0.02, 1)
+        gpuCompute.pointer(x, y, .02, strength)
       }
       gpuCompute.update(tick.deltaTime)
       plane.material.map = gpuCompute.currentTexture()
       plane.material.needsUpdate = true
+    })
+
+    yield handlePointer(three.domElement, {
+      onDown: () => strength = -strength,
     })
 
   }, [])
