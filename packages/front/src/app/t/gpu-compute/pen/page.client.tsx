@@ -47,7 +47,7 @@ function MyScene() {
           inverseLerp(-5, 5, i.point.x),
           inverseLerp(-5, 5, i.point.y))
         const dist = pen.distanceTo(previousPen)
-        const radiusTarget = lerp(.2, .05, dist * 100)
+        const radiusTarget = lerp(.15, .5, dist * 100)
         radius = lerp(radius, radiusTarget, 0.01)
         previousPen.copy(pen)
       }
@@ -65,7 +65,7 @@ function MyScene() {
     })
 
     yield handlePointer(three.domElement, {
-      onDown: () => {
+      onTap: () => {
         play = !play
 
         if (play) {
