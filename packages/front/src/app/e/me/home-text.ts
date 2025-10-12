@@ -114,11 +114,11 @@ export class HomeText extends Group {
   }
 
   initialize(three: ThreeWebGLContext): this {
-    const WATER_SIZE = 300
+    const WATER_SIZE = 100
 
     const waterPointer = new Vector2()
     const waterSize = applyAspect(1, WATER_SIZE)
-    const water = new GpuComputeWaterDemo({ size: waterSize })
+    const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: 0.995 })
       .initialize(three.renderer)
 
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), this)
@@ -146,9 +146,9 @@ export class HomeText extends Group {
         float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
         vec4 water = texture2D(uWater, vUv + 0.05 * inside);
 
-        Vec3Ramp r = ramp(0.5 + water.r * 0.05, ${vec3('#eadc73ff')}, ${vec3('#000000')}, ${vec3('#71ebcaff')});
+        Vec3Ramp r = ramp(0.5 + spow(water.r * 0.1, 4.0) * 0.2, ${vec3('#eadc73ff')}, ${vec3('#000000')}, ${vec3('#71ebcaff')});
         diffuseColor.rgb = mix(r.a, r.b, r.t);
-        diffuseColor.rgb = screenBlending(diffuseColor.rgb, clamp01(vec3(stroke.a) * pow(abs(water.r), 3.0) * 0.05));
+        diffuseColor.rgb = screenBlending(diffuseColor.rgb, clamp01(vec3(stroke.a) * pow(abs(water.r) * 0.2, 8.0) * 0.05));
         diffuseColor.a = 1.0;
       `)
 
@@ -168,7 +168,7 @@ export class HomeText extends Group {
 
       applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
       water.setSize(waterSize)
-      water.pointer(waterPointer.x, waterPointer.y, 20, three.pointer.buttonDown() ? 1 : 0)
+      water.pointer(waterPointer.x, waterPointer.y, 5, three.pointer.buttonDown() ? 1 : 0)
       water.update(tick.deltaTime)
       uniforms.uWater.value = water.currentTexture()
 
