@@ -1,39 +1,20 @@
-import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
-import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
-import { GpuComputeGameOfLifeDemo } from 'some-utils-three/experimental/gpu-compute/demo/game-of-life'
-import { DebugTexture } from 'some-utils-three/textures/debug'
 import { setup } from 'some-utils-three/utils/tree'
-import { onTick } from 'some-utils-ts/ticker'
+
+import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { HomeText } from './home-text'
 
 export function MyScene() {
   const three = useThreeWebGL()!
 
   useGroup('my-scene', function* (group) {
+    three.pipeline.basicPasses.fxaa.enabled = false
 
-    const material = new MeshBasicMaterial({
-      map: new DebugTexture(),
-    })
-    const plane = setup(new Mesh(new PlaneGeometry(), material), group)
-    plane.scale.setScalar(10)
+    setup(new DebugHelper(), group)
+      .regularGrid()
 
-    const gpuCompute = new GpuComputeGameOfLifeDemo({ size: 2 ** 8 })
-      .initialize(three.renderer)
-
-    let play = true
-
-    yield onTick('three', tick => {
-      plane.material.map = gpuCompute.currentTexture()
-      if (play)
-        gpuCompute.update(tick.deltaTime)
-    })
-
-    yield handlePointer(document.body, {
-      onTap: () => {
-        play = !play
-      },
-    })
+    setup(new HomeText().initialize(three), group)
 
   }, [])
 

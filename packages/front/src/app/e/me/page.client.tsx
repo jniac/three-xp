@@ -8,7 +8,8 @@ export function ClientPage() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 10,
+        fixed: true,
+        size: 12,
         eventTarget: 'canvas',
       }}
     >
