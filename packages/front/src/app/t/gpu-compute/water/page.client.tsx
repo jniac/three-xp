@@ -2,6 +2,7 @@
 
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three'
 
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
@@ -32,6 +33,13 @@ class WaterDemo extends Group {
       .regularGrid({ size: 10, subdivisions: [2, 10] })
       .onTop()
 
+  state = {
+    playing: true,
+    autoRotate: false,
+    strength: 1,
+    direction: 1,
+  }
+
   constructor() {
     super()
     this.name = 'water-demo'
@@ -58,13 +66,19 @@ class WaterDemo extends Group {
       m.setPayload(this)
     })
 
-    let strength = 1
     let drag = false
     let time = 0
 
     const pointer = new Vector2(.5, .5)
 
     yield onTick('three', { timeInterval: 1 / 60 }, tick => {
+      const { playing, autoRotate } = this.state
+
+      if (!playing)
+        return
+
+      this.state.strength *= 0.9
+
       if (drag) {
         const i = three.pointer.intersectPlane('xy')
         if (i.intersected) {
@@ -72,28 +86,34 @@ class WaterDemo extends Group {
             inverseLerp(-5, 5, i.point.x),
             inverseLerp(-5, 5, i.point.y))
         }
+        this.state.strength = 1
       }
 
-      else {
+      if (autoRotate && !drag) {
         time += tick.deltaTime
         const radius = .3
         const angle = time * 2 * Math.PI * .4
         pointer.set(
           0.5 + Math.cos(angle) * radius,
           0.5 + Math.sin(angle) * radius)
+        this.state.strength = 1
       }
 
-      water.pointer(pointer.x, pointer.y, 40, strength)
+      water.pointer(pointer.x, pointer.y, 40, this.state.strength * this.state.direction)
       water.update(tick.deltaTime)
       this.plane.material.map = water.currentTexture()
       this.plane.material.needsUpdate = true
     })
 
     yield handlePointer(three.domElement, {
-      onTap: () => strength = -strength,
+      onTap: () => this.state.direction *= -1,
       onDragStart: () => drag = true,
       onDragStop: () => drag = false,
     })
+
+    yield handleKeyboard([
+      [{ key: ' ' }, () => { this.state.playing = !this.state.playing }],
+    ])
 
     return this
   }
@@ -143,6 +163,16 @@ export function PageClient() {
           Classic water simulation using a height map and GPU Compute.
         </p>
         <div className='flex gap-2'>
+          <button
+            className='px-2 py-1 border rounded bg-white/10 hover:bg-white/20 transition'
+            onClick={() => {
+              const demo = Message.send<WaterDemo>(WaterDemo).assertPayload()
+              demo.state.playing = !demo.state.playing
+            }}>
+            Play / Pause [space]
+          </button>
+        </div>
+        <div className='flex gap-2'>
           {[
             new Vector2(512, 512),
             new Vector2(256, 512),
@@ -155,11 +185,15 @@ export function PageClient() {
                 const demo = Message.send<WaterDemo>(WaterDemo).assertPayload()
 
                 demo.water.setSize(size)
-                applyAspect(size.x / size.y, 10, demo.plane.scale)
+                const aspect = size.x / size.y
+                applyAspect(aspect, 10, demo.plane.scale)
 
-                demo.grid
-                  .clear()
-                  .rect({ center: 0, size: demo.plane.scale })
+                if (aspect === 1)
+                  demo.grid.clear().regularGrid({ size: 10, subdivisions: [2, 10] })
+
+                else
+                  demo.grid.clear().rect({ center: 0, size: demo.plane.scale })
+
               }}
             >
               {size.x}x{size.y}

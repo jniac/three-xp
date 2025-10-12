@@ -12,7 +12,7 @@ export function MyScene() {
     three.pipeline.basicPasses.fxaa.enabled = false
 
     setup(new DebugHelper(), group)
-      .regularGrid()
+    // .regularGrid({ size: 20, subdivisions: [200], opacity: [.01] })
 
     setup(new HomeText().initialize(three), group)
 
