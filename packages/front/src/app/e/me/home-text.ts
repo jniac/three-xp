@@ -19,6 +19,9 @@ import { promisify } from 'some-utils-ts/misc/promisify'
 
 import { homeTextSvg } from './home-text.svg'
 
+const WATER_SIZE_HORIZONTAL = 150
+const WATER_SIZE_VERTICAL = 100
+
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
   const url = URL.createObjectURL(blob)
@@ -111,6 +114,8 @@ export class HomeText extends Group {
   imageFill: Texture
   imageStroke: Texture
 
+  state = { playing: true }
+
   constructor() {
     super()
     this.name = 'home-text'
@@ -139,9 +144,8 @@ export class HomeText extends Group {
   }
 
   initialize(three: ThreeWebGLContext): this {
-    const WATER_SIZE = 150
-
     const waterPointer = new Vector2()
+    const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
     const waterSize = applyAspect(1, WATER_SIZE)
     const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: 0.995 })
       .initialize(three.renderer)
@@ -210,6 +214,9 @@ export class HomeText extends Group {
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
 
     three.onTick({ frameDelay: 2 }, tick => {
+      if (this.state.playing === false)
+        return
+
       const scale = three.aspect >= 1 ? 1 : .7
       uniforms.uScale.value = scale
 
@@ -225,7 +232,9 @@ export class HomeText extends Group {
           inverseLerp(-realSize.height / 2, realSize.height / 2, i.point.y))
       }
 
+      const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
       applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
+
       water.setSize(waterSize)
       water.pointer(waterPointer.x, waterPointer.y, 5, three.pointer.buttonDown() ? 1 : 0)
       water.update(tick.deltaTime)
