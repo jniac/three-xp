@@ -155,7 +155,7 @@ export class HomeText extends Group {
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
       uScale: { value: .7 },
-      uNormalMap: { value: anyLoader.loadTexture('/assets/textures/paper002_1K_NormalGL.jpg') },
+      uNormalMap: { value: anyLoader.loadTexture('../assets/textures/paper002_1K_NormalGL.jpg') },
     }
 
     uniforms.uNormalMap.value.wrapS = uniforms.uNormalMap.value.wrapT = RepeatWrapping
