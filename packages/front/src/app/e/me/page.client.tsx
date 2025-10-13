@@ -9,13 +9,13 @@ export function ClientPage() {
     <ThreeProvider
       vertigoControls={{
         fixed: true,
-        size: 12,
+        size: 10,
         eventTarget: 'canvas',
       }}
     >
-      <div className='ClientPage layer thru flex flex-col p-12'>
+      <div className='ClientPage layer thru flex flex-col p-8'>
         <div>
-          Client Page
+          Joseph M.
         </div>
       </div>
 

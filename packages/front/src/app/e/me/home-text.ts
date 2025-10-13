@@ -1,14 +1,17 @@
-import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, ShapeGeometry, Texture, Vector2 } from 'three'
+import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2 } from 'three'
 import { BufferGeometryUtils, SVGLoader } from 'three/examples/jsm/Addons.js'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { GpuComputeWaterDemo } from 'some-utils-three/experimental/gpu-compute/demo/water'
+import { anyLoader } from 'some-utils-three/loaders/any-loader'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { flipNormals } from 'some-utils-three/utils/geometry/normals'
 import { setup } from 'some-utils-three/utils/tree'
 import { glsl_blending } from 'some-utils-ts/glsl/blending'
+import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
+import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
@@ -64,6 +67,46 @@ function applyAspect<T extends { x: number, y: number } = Vector2>(aspect: numbe
   return out
 }
 
+/**
+ * Process the svg document to create a texture with only the "fill" parts.
+ */
+function getFillTexture(svg: SVGSVGElement, size: number) {
+  svg = svg.cloneNode(true) as SVGSVGElement
+  for (const element of svg.querySelectorAll('line')) {
+    element.remove()
+  }
+  for (const path of svg.querySelectorAll('#visual *')) {
+    path.setAttribute('stroke', 'none')
+    path.setAttribute('fill', '#f00')
+  }
+  for (const path of svg.querySelectorAll('#tech *')) {
+    path.setAttribute('stroke', 'none')
+    path.setAttribute('fill', '#0f0')
+  }
+  for (const path of svg.querySelectorAll('#baseline *')) {
+    path.remove()
+  }
+  return svgToTexture(svg.outerHTML, size, size)
+}
+
+/**
+ * 
+ */
+function getStrokeTexture(svg: SVGSVGElement, size: number) {
+  svg = svg.cloneNode(true) as SVGSVGElement
+  const strokeWidth = (.5).toString()
+  for (const element of svg.querySelectorAll('line, path')) {
+    element.setAttribute('stroke', '#fff')
+    element.setAttribute('fill', 'none')
+    element.setAttribute('stroke-width', strokeWidth)
+  }
+  for (const path of svg.querySelectorAll('#baseline *')) {
+    path.setAttribute('stroke', 'none')
+    path.setAttribute('fill', '#fff')
+  }
+  return svgToTexture(svg.outerHTML, size, size)
+}
+
 export class HomeText extends Group {
   imageFill: Texture
   imageStroke: Texture
@@ -91,30 +134,12 @@ export class HomeText extends Group {
     flipNormals(geometry)
 
     const IMAGE_SIZE = 2048 * 2
-    const [path0, path1] = svg.querySelectorAll('path')
-    {
-      // fill
-      path0.setAttribute('stroke', 'none')
-      path0.setAttribute('fill', '#f00')
-      path1.setAttribute('stroke', 'none')
-      path1.setAttribute('fill', '#00f')
-      this.imageFill = svgToTexture(svg.outerHTML, IMAGE_SIZE, IMAGE_SIZE)
-    }
-    {
-      // stroke
-      const strokeWidth = (.5).toString()
-      path0.setAttribute('stroke', '#000')
-      path0.setAttribute('fill', 'none')
-      path0.setAttribute('stroke-width', strokeWidth)
-      path1.setAttribute('stroke', '#000')
-      path1.setAttribute('fill', 'none')
-      path1.setAttribute('stroke-width', strokeWidth)
-      this.imageStroke = svgToTexture(svg.outerHTML, IMAGE_SIZE, IMAGE_SIZE)
-    }
+    this.imageFill = getFillTexture(svg, IMAGE_SIZE)
+    this.imageStroke = getStrokeTexture(svg, IMAGE_SIZE)
   }
 
   initialize(three: ThreeWebGLContext): this {
-    const WATER_SIZE = 100
+    const WATER_SIZE = 150
 
     const waterPointer = new Vector2()
     const waterSize = applyAspect(1, WATER_SIZE)
@@ -124,11 +149,16 @@ export class HomeText extends Group {
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), this)
 
     const uniforms = {
+      uTime: { value: 0 },
       uViewportSize: { value: new Vector2() },
       uWater: { value: water.currentTexture() },
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
+      uScale: { value: .7 },
+      uNormalMap: { value: anyLoader.loadTexture('/assets/textures/paper002_1K_NormalGL.jpg') },
     }
+
+    uniforms.uNormalMap.value.wrapS = uniforms.uNormalMap.value.wrapT = RepeatWrapping
 
     plane.material.onBeforeCompile = shader => ShaderForge.with(shader)
       .uniforms(uniforms)
@@ -137,18 +167,42 @@ export class HomeText extends Group {
         glsl_utils,
         glsl_ramp,
         glsl_blending,
+        glsl_stegu_snoise,
+        glsl_easings,
       )
       .fragment.after('map_fragment', /* glsl */`
         float aspect = uViewportSize.x / uViewportSize.y;
-        vec2 imageUv = (vUv - 0.5) / vec2(1.0, aspect) + 0.5;
+        // vec2 imageUv = (vUv - 0.5) / vec2(1.0, aspect) + 0.5;
+        vec2 imageUv = (vUv - 0.5) * vec2(aspect, 1.0) / uScale + 0.5;
         vec4 stroke = texture2D(uImageStroke, imageUv);
         vec4 fill = texture2D(uImageFill, imageUv);
         float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
         vec4 water = texture2D(uWater, vUv + 0.05 * inside);
 
-        Vec3Ramp r = ramp(0.5 + spow(water.r * 0.1, 4.0) * 0.2, ${vec3('#eadc73ff')}, ${vec3('#000000')}, ${vec3('#71ebcaff')});
+        float variation = spow(water.r * 0.1, 4.0) * 0.4;
+        variation = slimited(variation, 1.0);
+        Vec3Ramp r = ramp(0.5 + variation * 0.5, 
+          ${vec3('#ff773dff')} * 4.0, 
+          ${vec3('#eadc73ff')}, 
+          ${vec3('#000000')}, 
+          ${vec3('#71ebcaff')},
+          ${vec3('#7aa4ffff')} * 1.5);
         diffuseColor.rgb = mix(r.a, r.b, r.t);
-        diffuseColor.rgb = screenBlending(diffuseColor.rgb, clamp01(vec3(stroke.a) * pow(abs(water.r) * 0.2, 8.0) * 0.05));
+
+        float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 4.0);
+        float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.05);
+        float strokeVisibility = stroke.a * max(strokeVisibilityIdle, strokeVisibilityMove);
+        diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
+        diffuseColor.a = 1.0;
+
+        // Add some fake lighting
+        vec3 normalMap = texture2D(uNormalMap, imageUv * 1.0).xyz * 2.0 - 1.0;
+        normalMap.y *= -1.0;
+        vec3 normal = normalize(vec3(normalMap.x, normalMap.y, 1.0));
+        vec3 lightDir = normalize(vec3(-1.0, 1.0, -1.0));
+        float light = clamp01(dot(normal, lightDir) * 0.5 + 0.5);
+        light = easeInOut(light, 10.0, 1.0);
+        diffuseColor.rgb += vec3(light);
         diffuseColor.a = 1.0;
       `)
 
@@ -156,6 +210,11 @@ export class HomeText extends Group {
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
 
     three.onTick({ frameDelay: 2 }, tick => {
+      const scale = three.aspect >= 1 ? 1 : .7
+      uniforms.uScale.value = scale
+
+      uniforms.uTime.value += tick.deltaTime
+
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
 
