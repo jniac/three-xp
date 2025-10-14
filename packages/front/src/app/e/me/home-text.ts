@@ -12,15 +12,18 @@ import { glsl_blending } from 'some-utils-ts/glsl/blending'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
+import { glsl_texture_bicubic } from 'some-utils-ts/glsl/texture-bicubic'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { inverseLerp } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
 import { promisify } from 'some-utils-ts/misc/promisify'
 
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
+import { Destroyable } from 'some-utils-ts/types'
 import { homeTextSvg } from './home-text.svg'
 
 const WATER_SIZE_HORIZONTAL = 150
-const WATER_SIZE_VERTICAL = 100
+const WATER_SIZE_VERTICAL = 80
 
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
@@ -143,7 +146,7 @@ export class HomeText extends Group {
     this.imageStroke = getStrokeTexture(svg, IMAGE_SIZE)
   }
 
-  initialize(three: ThreeWebGLContext): this {
+  *initialize(three: ThreeWebGLContext): Generator<Destroyable, this> {
     const waterPointer = new Vector2()
     const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
     const waterSize = applyAspect(1, WATER_SIZE)
@@ -155,7 +158,7 @@ export class HomeText extends Group {
     const uniforms = {
       uTime: { value: 0 },
       uViewportSize: { value: new Vector2() },
-      uWater: { value: water.currentTexture() },
+      uWaterMap: { value: water.currentTexture() },
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
       uScale: { value: .7 },
@@ -173,6 +176,7 @@ export class HomeText extends Group {
         glsl_blending,
         glsl_stegu_snoise,
         glsl_easings,
+        glsl_texture_bicubic,
       )
       .fragment.after('map_fragment', /* glsl */`
         float aspect = uViewportSize.x / uViewportSize.y;
@@ -181,9 +185,11 @@ export class HomeText extends Group {
         vec4 stroke = texture2D(uImageStroke, imageUv);
         vec4 fill = texture2D(uImageFill, imageUv);
         float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
-        vec4 water = texture2D(uWater, vUv + 0.05 * inside);
 
-        float variation = spow(water.r * 0.1, 4.0) * 0.4;
+        // water is sampled with bicubic filtering for smoother look
+        vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
+
+        float variation = spow(water.r * 0.1, 8.0) * 0.4;
         variation = slimited(variation, 1.0);
         Vec3Ramp r = ramp(0.5 + variation * 0.5, 
           ${vec3('#ff773dff')} * 4.0, 
@@ -193,27 +199,32 @@ export class HomeText extends Group {
           ${vec3('#7aa4ffff')} * 1.5);
         diffuseColor.rgb = mix(r.a, r.b, r.t);
 
-        float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 4.0);
-        float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.05);
-        float strokeVisibility = stroke.a * max(strokeVisibilityIdle, strokeVisibilityMove);
-        diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
-        diffuseColor.a = 1.0;
-
         // Add some fake lighting
-        vec3 normalMap = texture2D(uNormalMap, imageUv * 1.0).xyz * 2.0 - 1.0;
+        vec3 normalMap = texture2D(uNormalMap, imageUv * 2.0).xyz * 2.0 - 1.0;
         normalMap.y *= -1.0;
         vec3 normal = normalize(vec3(normalMap.x, normalMap.y, 1.0));
         vec3 lightDir = normalize(vec3(-1.0, 1.0, -1.0));
         float light = clamp01(dot(normal, lightDir) * 0.5 + 0.5);
-        light = easeInOut(light, 10.0, 1.0);
-        diffuseColor.rgb += vec3(light);
+        light = easeInOut(light, 10.0, 0.95) * oneMinus(length(imageUv - 0.5));
+        diffuseColor.rgb *= vec3(1.0 - light * 100.0);
+        diffuseColor.rgb += light;
+
+        float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 4.0);
+        float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.05);
+        float strokeVisibility = stroke.a * max(strokeVisibilityIdle, strokeVisibilityMove);
+        diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
+
         diffuseColor.a = 1.0;
       `)
 
 
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
 
-    three.onTick({ frameDelay: 2 }, tick => {
+    yield handleKeyboard([
+      [{ code: 'Space' }, () => this.state.playing = !this.state.playing],
+    ])
+
+    yield three.onTick(tick => {
       if (this.state.playing === false)
         return
 
@@ -225,20 +236,26 @@ export class HomeText extends Group {
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
 
-      const i = three.pointer.intersectPlane('xy')
-      if (i.intersected) {
-        waterPointer.set(
-          inverseLerp(-realSize.width / 2, realSize.width / 2, i.point.x),
-          inverseLerp(-realSize.height / 2, realSize.height / 2, i.point.y))
+      /**
+       * Sub-sampling the water simulation for constant behavior at different framerate.
+       */
+      const SUBSAMPLING = Math.round(80 / three.averageFps)
+      for (let index = 0; index < SUBSAMPLING; index++) {
+        const i = three.pointer.intersectPlane('xy', { oldFactor: index / SUBSAMPLING })
+        if (i.intersected) {
+          waterPointer.set(
+            inverseLerp(-realSize.width / 2, realSize.width / 2, i.point.x),
+            inverseLerp(-realSize.height / 2, realSize.height / 2, i.point.y))
+        }
+
+        const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
+        applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
+
+        water.setSize(waterSize)
+        water.pointer(waterPointer.x, waterPointer.y, 5, three.pointer.buttonDown() ? 1 : 0)
+        water.update(tick.deltaTime / SUBSAMPLING)
       }
-
-      const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
-      applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
-
-      water.setSize(waterSize)
-      water.pointer(waterPointer.x, waterPointer.y, 5, three.pointer.buttonDown() ? 1 : 0)
-      water.update(tick.deltaTime)
-      uniforms.uWater.value = water.currentTexture()
+      uniforms.uWaterMap.value = water.currentTexture()
 
       plane.scale.set(realSize.width, realSize.height, 1)
     })

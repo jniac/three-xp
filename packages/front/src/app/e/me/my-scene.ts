@@ -14,7 +14,8 @@ export function MyScene() {
     setup(new DebugHelper(), group)
     // .regularGrid({})
 
-    setup(new HomeText().initialize(three), group)
+    setup(yield* new HomeText()
+      .initialize(three), group)
 
   }, [])
 

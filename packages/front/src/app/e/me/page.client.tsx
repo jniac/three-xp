@@ -1,5 +1,6 @@
 'use client'
 
+import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider } from 'some-utils-misc/three-provider'
 
 import { MyScene } from './my-scene'
@@ -17,6 +18,7 @@ export function ClientPage() {
         <div>
           Joseph M.
         </div>
+        <FpsMeter />
       </div>
 
       <MyScene />
