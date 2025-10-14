@@ -14,10 +14,11 @@ export function ClientPage() {
         eventTarget: 'canvas',
       }}
     >
-      <div className='ClientPage layer thru flex flex-col p-8'>
+      <div className='ClientPage layer thru flex flex-col p-8 text-[blue]'>
         <div>
           Joseph M.
         </div>
+        <div className='flex-1 pointer-events-none' />
         <FpsMeter />
       </div>
 

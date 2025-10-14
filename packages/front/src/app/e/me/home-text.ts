@@ -252,7 +252,7 @@ export class HomeText extends Group {
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
 
-      water.damping = three.pointer.buttonDown() ? 1 : .98
+      water.damping = three.pointer.buttonDown() ? 1 : .985
 
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
