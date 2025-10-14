@@ -150,7 +150,7 @@ export class HomeText extends Group {
     const waterPointer = new Vector2()
     const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
     const waterSize = applyAspect(1, WATER_SIZE)
-    const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: 0.995 })
+    const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: 0.988 })
       .initialize(three.renderer)
 
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), this)
@@ -189,9 +189,9 @@ export class HomeText extends Group {
         // water is sampled with bicubic filtering for smoother look
         vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
 
-        float variation = spow(water.r * 0.1, 8.0) * 0.4;
+        float variation = spow(water.r * 0.1, 8.0) * 0.01;
         variation = slimited(variation, 1.0);
-        Vec3Ramp r = ramp(0.5 + variation * 0.5, 
+        Vec3Ramp r = ramp(0.5 + variation * 0.45, 
           ${vec3('#ff773dff')} * 4.0, 
           ${vec3('#eadc73ff')}, 
           ${vec3('#000000')}, 
