@@ -22,8 +22,8 @@ import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { Destroyable } from 'some-utils-ts/types'
 import { homeTextSvg } from './home-text.svg'
 
-const WATER_SIZE_HORIZONTAL = 150
-const WATER_SIZE_VERTICAL = 80
+const WATER_SIZE_DESKTOP = 120
+const WATER_SIZE_MOBILE = 80
 
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
@@ -148,7 +148,7 @@ export class HomeText extends Group {
 
   *initialize(three: ThreeWebGLContext): Generator<Destroyable, this> {
     const waterPointer = new Vector2()
-    const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
+    const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
     const waterSize = applyAspect(1, WATER_SIZE)
     const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: 0.995 })
       .initialize(three.renderer)
@@ -206,7 +206,7 @@ export class HomeText extends Group {
         vec3 lightDir = normalize(vec3(-1.0, 1.0, -1.0));
         float light = clamp01(dot(normal, lightDir) * 0.5 + 0.5);
         light = easeInOut(light, 10.0, 0.95) * oneMinus(length(imageUv - 0.5));
-        diffuseColor.rgb *= vec3(1.0 - light * 100.0);
+        diffuseColor.rgb *= vec3(1.0 - light * 150.0);
         diffuseColor.rgb += light;
 
         float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 4.0);
@@ -248,7 +248,7 @@ export class HomeText extends Group {
             inverseLerp(-realSize.height / 2, realSize.height / 2, i.point.y))
         }
 
-        const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_HORIZONTAL : WATER_SIZE_VERTICAL
+        const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
         applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
 
         water.setSize(waterSize)
