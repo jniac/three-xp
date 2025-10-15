@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo } from 'react'
 
-import { Orientation, Responsive, ScreenSize } from './responsive'
+import { Orientation, PointerType, Responsive, ScreenSize } from './responsive'
 
 const context = createContext<Responsive>(null!)
 
@@ -25,12 +25,19 @@ class ResponsiveBundle {
 
     const { innerWidth: width, innerHeight: height } = window
     const { layoutObs, viewportObs } = this.responsive
+    const pointerType = navigator.maxTouchPoints > 0
+      ? PointerType.Touch
+      : PointerType.Mouse
 
-    if (width === viewportObs.value.width && height === viewportObs.value.height)
+    if (width === viewportObs.value.width
+      && height === viewportObs.value.height
+      && pointerType === layoutObs.value.pointerType)
       return
 
     viewportObs.mutate({ width, height })
-    layoutObs.mutate(viewportObs.value.computeLayout())
+    layoutObs.enqueueMutation(viewportObs.value.computeLayout())
+    layoutObs.enqueueMutation({ pointerType })
+    layoutObs.flushMutations()
 
     document.documentElement.style.setProperty('--viewport-width', `${width}px`)
     document.documentElement.style.setProperty('--viewport-height', `${height}px`)
@@ -40,6 +47,9 @@ class ResponsiveBundle {
 
     for (const orientation of Object.values(Orientation))
       document.documentElement.classList.toggle(orientation, layoutObs.value.orientation === orientation)
+
+    for (const type of Object.values(PointerType))
+      document.documentElement.classList.toggle(type, layoutObs.value.pointerType === type)
   }
 
   destroy = () => {

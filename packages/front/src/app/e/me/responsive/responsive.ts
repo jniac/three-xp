@@ -21,9 +21,15 @@ export enum Orientation {
   Landscape = 'landscape',
 }
 
+export enum PointerType {
+  Touch = 'touch',
+  Mouse = 'mouse',
+}
+
 export class Layout {
   screenSize = ScreenSize.Desktop
   orientation = Orientation.Landscape
+  pointerType = PointerType.Mouse
 }
 
 export class Viewport {

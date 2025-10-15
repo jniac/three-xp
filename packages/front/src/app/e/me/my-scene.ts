@@ -5,9 +5,11 @@ import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
 import { HomeText } from './home-text'
+import { useResponsive } from './responsive'
 
 export function MyScene() {
   const three = useThreeWebGL()!
+  const responsive = useResponsive()
 
   useGroup('my-scene', function* (group) {
     three.pipeline.basicPasses.fxaa.enabled = false
@@ -18,7 +20,7 @@ export function MyScene() {
     // .regularGrid({})
 
     setup(yield* new HomeText()
-      .initialize(three), group)
+      .initialize(three, responsive), group)
 
   }, [])
 

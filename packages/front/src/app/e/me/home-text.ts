@@ -1,6 +1,7 @@
-import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2 } from 'three'
+import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2, Vector3 } from 'three'
 import { BufferGeometryUtils, SVGLoader } from 'three/examples/jsm/Addons.js'
 
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { GpuComputeWaterDemo } from 'some-utils-three/experimental/gpu-compute/demo/water'
@@ -14,13 +15,13 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_texture_bicubic } from 'some-utils-ts/glsl/texture-bicubic'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
-import { inverseLerp } from 'some-utils-ts/math/basic'
+import { inverseLerp, inverseLerpUnclamped, lerpUnclamped } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
 import { promisify } from 'some-utils-ts/misc/promisify'
-
-import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { Destroyable } from 'some-utils-ts/types'
+
 import { homeTextSvg } from './home-text.svg'
+import { Responsive } from './responsive'
 
 const WATER_SIZE_DESKTOP = 120
 const WATER_SIZE_MOBILE = 80
@@ -156,7 +157,7 @@ export class HomeText extends Group {
     this.imageStroke = getStrokeTexture(svg, IMAGE_SIZE)
   }
 
-  *initialize(three: ThreeWebGLContext): Generator<Destroyable, this> {
+  *initialize(three: ThreeWebGLContext, responsive: Responsive): Generator<Destroyable, this> {
     const waterPointer = new Vector2()
     const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
     const waterSize = applyAspect(1, WATER_SIZE)
@@ -240,6 +241,9 @@ export class HomeText extends Group {
       [{ code: /Arrow/ }, () => this.state.nextFrame = true],
     ])
 
+    const delta = new Vector3()
+    const p0 = three.pointer.intersectPlane('xy', { oldFactor: 1 }).clone()
+    const p1 = three.pointer.intersectPlane('xy', { oldFactor: 0 }).clone()
     yield three.onTick(tick => {
       if (this.state.playing === false && this.state.nextFrame === false)
         return
@@ -256,6 +260,15 @@ export class HomeText extends Group {
 
       water.damping = three.pointer.buttonDown() ? 1 : .988
 
+      p0.copy(three.pointer.intersectPlane('xy', { oldFactor: 1 }))
+      p1.copy(three.pointer.intersectPlane('xy', { oldFactor: 0 }))
+      if (p0.intersected && p1.intersected) {
+        delta.subVectors(p1.point!, p0.point!)
+      } else {
+        delta.set(0, 0, 0)
+      }
+      const velocity = delta.length() / tick.deltaTime
+
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
        */
@@ -271,8 +284,15 @@ export class HomeText extends Group {
         const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
         applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
 
+        const isTouch = responsive.layoutObs.value.pointerType === 'touch'
+        const radius = isTouch || three.pointer.buttonDown()
+          ? WATER_SIZE / 6
+          : lerpUnclamped(0, WATER_SIZE / 4, inverseLerpUnclamped(3, 40, velocity))
+        const strength = isTouch
+          ? (three.pointer.buttonDown() ? 1 : 0)
+          : 1
         water.setSize(waterSize)
-        water.pointer(waterPointer.x, waterPointer.y, WATER_SIZE / 8, three.pointer.buttonDown() ? -1 : 0)
+        water.pointer(waterPointer.x, waterPointer.y, radius, -strength)
         water.update(tick.deltaTime / SUBSAMPLING)
       }
       uniforms.uWaterMap.value = water.currentTexture()
