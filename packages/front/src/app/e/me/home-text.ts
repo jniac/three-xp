@@ -199,9 +199,9 @@ export class HomeText extends Group {
         // water is sampled with bicubic filtering for smoother look
         vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
 
-        float variation = spow(water.r * 0.1, 8.0) * 0.01;
+        float variation = spow(water.r * 0.1, 5.0) / 400.0;
         variation = slimited(variation, 1.0);
-        Vec3Ramp r = ramp(0.5 + variation * 0.4, 
+        Vec3Ramp r = ramp(0.5 + variation * 0.5, 
           ${vec3('#ff773dff')} * 4.0, 
           ${vec3('#eadc73ff')}, 
           ${vec3('#000000')}, 
@@ -210,14 +210,15 @@ export class HomeText extends Group {
         diffuseColor.rgb = mix(r.a, r.b, r.t);
 
         // Add some fake lighting
-        vec3 normalMap = texture2D(uNormalMap, imageUv * 1.0).xyz * 2.0 - 1.0;
+        vec2 normalUvOffset = vec2(hash(uTime), hash(uTime * 2.0));
+        vec3 normalMap = texture2D(uNormalMap, imageUv * 1.0 + normalUvOffset).xyz * 2.0 - 1.0;
         normalMap.y *= -1.0;
-        vec3 normal = normalize(vec3(normalMap.x, normalMap.y, 1.0));
+        vec3 normal = normalize(vec3(normalMap.xy, 1.0));
         vec3 lightDir = normalize(vec3(-1.0, 1.0, -1.0));
         float light = clamp01(dot(normal, lightDir) * 0.5 + 0.5);
-        light = easeInOut(light, 10.0, 0.95) * oneMinus(length(imageUv - 0.5));
-        diffuseColor.rgb *= vec3(1.0 - light * 150.0);
-        diffuseColor.rgb += light;
+        float dimLight = easeInOut(light, 10.0, 0.95) * oneMinus(length(imageUv - 0.5));
+        diffuseColor.rgb *= vec3(1.0 - dimLight * 150.0);
+        diffuseColor.rgb += dimLight;
 
         float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) 
           * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 2.0);
@@ -226,6 +227,7 @@ export class HomeText extends Group {
         diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
 
         diffuseColor.rgb = pow(oneMinus(diffuseColor.rgb), vec3(6.0));
+        diffuseColor.rgb *= vec3(light);
 
         diffuseColor.a = 1.0;
       `)
@@ -252,7 +254,7 @@ export class HomeText extends Group {
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
 
-      water.damping = three.pointer.buttonDown() ? 1 : .985
+      water.damping = three.pointer.buttonDown() ? 1 : .988
 
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
@@ -270,7 +272,7 @@ export class HomeText extends Group {
         applyAspect(realSize.x / realSize.y, WATER_SIZE, waterSize)
 
         water.setSize(waterSize)
-        water.pointer(waterPointer.x, waterPointer.y, WATER_SIZE / 10, three.pointer.buttonDown() ? -1 : 0)
+        water.pointer(waterPointer.x, waterPointer.y, WATER_SIZE / 8, three.pointer.buttonDown() ? -1 : 0)
         water.update(tick.deltaTime / SUBSAMPLING)
       }
       uniforms.uWaterMap.value = water.currentTexture()

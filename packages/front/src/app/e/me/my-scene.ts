@@ -11,6 +11,8 @@ export function MyScene() {
   useGroup('my-scene', function* (group) {
     three.pipeline.basicPasses.fxaa.enabled = false
 
+    document.querySelector<HTMLElement>('nextjs-portal')?.remove()
+
     setup(new DebugHelper(), group)
     // .regularGrid({})
 
