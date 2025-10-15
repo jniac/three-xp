@@ -1,0 +1,12 @@
+body {
+  font-family: "Barlow";
+  font-weight: 500;
+}
+
+:root:not(.desktop) .screen-size-desktop {
+  display: none;
+}
+
+:root:not(.mobile) .screen-size-mobile {
+  display: none;
+}

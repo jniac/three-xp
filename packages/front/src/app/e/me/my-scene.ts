@@ -1,8 +1,8 @@
 
 import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { HomeText } from './home-text'
 
 export function MyScene() {
