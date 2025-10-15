@@ -15,7 +15,7 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_texture_bicubic } from 'some-utils-ts/glsl/texture-bicubic'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
-import { inverseLerp, inverseLerpUnclamped, lerpUnclamped } from 'some-utils-ts/math/basic'
+import { clamp, inverseLerp, inverseLerpUnclamped, lerpUnclamped } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
 import { promisify } from 'some-utils-ts/misc/promisify'
 import { Destroyable } from 'some-utils-ts/types'
@@ -267,7 +267,7 @@ export class HomeText extends Group {
       } else {
         delta.set(0, 0, 0)
       }
-      const velocity = delta.length() / tick.deltaTime
+      const velocity = clamp(delta.length() / tick.deltaTime, 0, 50)
 
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
@@ -286,7 +286,7 @@ export class HomeText extends Group {
 
         const isTouch = responsive.layoutObs.value.pointerType === 'touch'
         const radius = isTouch || three.pointer.buttonDown()
-          ? WATER_SIZE / 6
+          ? WATER_SIZE / 10
           : lerpUnclamped(0, WATER_SIZE / 4, inverseLerpUnclamped(3, 40, velocity))
         const strength = isTouch
           ? (three.pointer.buttonDown() ? 1 : 0)
