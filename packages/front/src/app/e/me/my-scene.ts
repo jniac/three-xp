@@ -1,3 +1,4 @@
+'use client'
 
 import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'

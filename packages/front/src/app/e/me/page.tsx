@@ -1,6 +1,6 @@
 import { XpMetadata } from '@/types'
 
-import { ClientPage } from './page.client'
+import { JosephM } from './josephm'
 
 export const metadata = new XpMetadata({
   slug: 'me',
@@ -18,6 +18,6 @@ export const metadata = new XpMetadata({
 
 export default function FractalGridPage() {
   return (
-    <ClientPage />
+    <JosephM />
   )
 }

@@ -8,6 +8,7 @@ import { mapWithSeparator } from 'some-utils-ts/iteration/map-with-separator'
 
 import { RDiv } from './atoms/rdiv'
 import { Spacer } from './atoms/spacer'
+import { VERSION } from './config'
 import { MyScene } from './my-scene'
 import { ResponsiveProvider } from './responsive'
 
@@ -70,12 +71,19 @@ export function JosephM() {
     >
       <ResponsiveProvider>
         <RDiv
+          data-info={`Joseph M. — Visual Tech Artist — v${VERSION}`}
           className='ClientPage layer thru flex flex-col p-8 text-[#2500AD]'
           mobile={{ className: 'p-4' }}
         >
           <Header />
           <div className='flex-1 pointer-events-none' />
-          <FpsMeter className='text-[#3333] text-xs' />
+          <div className='flex row gap-2 text-[#3333] text-xs'>
+            <span>
+              {VERSION}
+            </span>
+            <span> — </span>
+            <FpsMeter />
+          </div>
         </RDiv>
 
         <MyScene />

@@ -41,7 +41,6 @@ export function RDiv(props: Props) {
             }
           }
           finalProps.className = [...sourceTokens, ...overrideTokens].join(' ')
-          console.log('finalProps.className', finalProps.className)
           break
 
         case 'style': {
