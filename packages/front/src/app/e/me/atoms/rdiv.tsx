@@ -1,6 +1,7 @@
 'use client'
 
 import { useObservableValue } from 'some-utils-react/hooks/observables'
+
 import { useResponsive } from '../responsive'
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -23,7 +24,7 @@ export function RDiv(props: Props) {
   if (override) {
     for (const key of Object.keys(override)) {
       if (supportedOverrides.has(key) === false) {
-        console.warn(`RDiv does not support overriding '${key}'`)
+        console.warn(`RDiv does not support overriding '${key}' (for the moment?)`)
         continue
       }
 
