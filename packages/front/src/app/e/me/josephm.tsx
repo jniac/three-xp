@@ -6,7 +6,8 @@ import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider } from 'some-utils-misc/three-provider'
 import { mapWithSeparator } from 'some-utils-ts/iteration/map-with-separator'
 
-import { Spacer } from './atoms'
+import { RDiv } from './atoms/rdiv'
+import { Spacer } from './atoms/spacer'
 import { MyScene } from './my-scene'
 import { ResponsiveProvider } from './responsive'
 
@@ -68,11 +69,14 @@ export function JosephM() {
       }}
     >
       <ResponsiveProvider>
-        <div className='ClientPage layer thru flex flex-col p-8 text-[#2500AD]'>
+        <RDiv
+          className='ClientPage layer thru flex flex-col p-8 text-[#2500AD]'
+          mobile={{ className: 'p-4' }}
+        >
           <Header />
           <div className='flex-1 pointer-events-none' />
           <FpsMeter className='text-[#3333] text-xs' />
-        </div>
+        </RDiv>
 
         <MyScene />
       </ResponsiveProvider>
