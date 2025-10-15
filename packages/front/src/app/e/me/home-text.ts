@@ -228,7 +228,7 @@ export class HomeText extends Group {
         diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
 
         diffuseColor.rgb = pow(oneMinus(diffuseColor.rgb), vec3(6.0));
-        diffuseColor.rgb *= vec3(light);
+        diffuseColor.rgb *= vec3(oneMinus(pow(oneMinus(light), 1.75)));
 
         diffuseColor.a = 1.0;
       `)
