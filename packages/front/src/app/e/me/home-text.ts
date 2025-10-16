@@ -23,9 +23,10 @@ import { Destroyable } from 'some-utils-ts/types'
 import { homeTextSvg } from './home-text.svg'
 import { Responsive } from './responsive'
 
-const WATER_SIZE_DESKTOP = 120
-const WATER_SIZE_MOBILE = 80
-const VISCOSITY = 0.995
+const WATER_SIZE_DESKTOP = 120 * 3
+const WATER_SIZE_MOBILE = 80 * 3
+const VISCOSITY = .995
+const DAMPING_IDLE = .995
 
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
@@ -161,7 +162,7 @@ export class HomeText extends Group {
     const waterPointer = new Vector2()
     const WATER_SIZE = three.aspect >= 1 ? WATER_SIZE_DESKTOP : WATER_SIZE_MOBILE
     const waterSize = applyAspect(1, WATER_SIZE)
-    const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: VISCOSITY })
+    const water = new GpuComputeWaterDemo({ size: waterSize, viscosity: VISCOSITY, damping: 1 })
       .initialize(three.renderer)
 
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), this)
@@ -258,7 +259,7 @@ export class HomeText extends Group {
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
 
-      water.damping = three.pointer.buttonDown() ? 1 : .988
+      water.damping = three.pointer.buttonDown() ? 1 : DAMPING_IDLE
 
       p0.copy(three.pointer.intersectPlane('xy', { oldFactor: 1 }))
       p1.copy(three.pointer.intersectPlane('xy', { oldFactor: 0 }))
