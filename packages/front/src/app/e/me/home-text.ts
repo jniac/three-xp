@@ -28,6 +28,30 @@ const WATER_SIZE_MOBILE = 80 * 3
 const VISCOSITY = .995
 const DAMPING_IDLE = .995
 
+const words = `
+Procedural Graphics
+Dynamic Shaders
+GPU Simulations
+Interactive Experiences
+WebGL Experiments
+Three.js Adventures
+Creative Coding
+Visual Storytelling
+Digital Artistry
+Real-time Rendering
+Shader Development
+Generative Art
+3D Visualization
+Multimedia Installations
+Immersive Environments
+Augmented Reality
+Virtual Reality
+Web-based Creativity
+Computational Design
+Algorithmic Art
+Experimental Interfaces
+`
+
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
   const url = URL.createObjectURL(blob)
@@ -199,7 +223,8 @@ export class HomeText extends Group {
         float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
 
         // water is sampled with bicubic filtering for smoother look
-        vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
+        // vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
+        vec4 water = textureBicubic(uWaterMap, mix(vUv, oneMinus(scaleAround(vUv, vec2(0.5), 2.0)), fill.a));
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
         variation = slimited(variation, 1.0);
