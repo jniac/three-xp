@@ -28,30 +28,6 @@ const WATER_SIZE_MOBILE = 80 * 3
 const VISCOSITY = .995
 const DAMPING_IDLE = .995
 
-const words = `
-Procedural Graphics
-Dynamic Shaders
-GPU Simulations
-Interactive Experiences
-WebGL Experiments
-Three.js Adventures
-Creative Coding
-Visual Storytelling
-Digital Artistry
-Real-time Rendering
-Shader Development
-Generative Art
-3D Visualization
-Multimedia Installations
-Immersive Environments
-Augmented Reality
-Virtual Reality
-Web-based Creativity
-Computational Design
-Algorithmic Art
-Experimental Interfaces
-`
-
 function svgToTexture(svg: any, width = 512, height = 512) {
   const blob = new Blob([svg], { type: 'image/svg+xml' })
   const url = URL.createObjectURL(blob)
@@ -298,7 +274,7 @@ export class HomeText extends Group {
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
        */
-      const SUBSAMPLING = Math.round(80 / three.averageFps)
+      const SUBSAMPLING = clamp(Math.round(80 / three.averageFps), 1, 5)
       for (let index = 0; index < SUBSAMPLING; index++) {
         const i = three.pointer.intersectPlane('xy', { oldFactor: index / SUBSAMPLING })
         if (i.intersected) {
