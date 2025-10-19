@@ -1,6 +1,6 @@
 import { XpMetadata } from '@/types'
 
-import { JosephM } from './josephm'
+import { JosephM } from './home'
 
 export const metadata = new XpMetadata({
   slug: 'me',

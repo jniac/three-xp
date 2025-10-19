@@ -11,9 +11,38 @@ import { Ticker } from 'some-utils-ts/ticker'
 
 import { config } from '@/config'
 
+import { glsl_utils } from 'some-utils-ts/glsl/utils'
+import { Logo } from '../components/logo'
 import './about.css'
 
 const fontUrl = config.assetsPath + 'fonts/Lithops-Regular.woff2'
+
+const glsl_compute_sdf_2D = /* glsl */`
+  const int MAX_KERNEL_RADIUS = 20;
+  float signedDistanceField(sampler2D uTexture, vec2 vUv, vec2 uTexelSize, int uKernelRadius) {
+    float centerValue = texture2D(uTexture, vUv).r;
+    bool inside = centerValue > 0.5;
+
+    float minDistance = 1e20;
+
+    for (int dy = -MAX_KERNEL_RADIUS; dy <= MAX_KERNEL_RADIUS; dy++) {
+        for (int dx = -MAX_KERNEL_RADIUS; dx <= MAX_KERNEL_RADIUS; dx++) {
+            if (abs(dx) > uKernelRadius || abs(dy) > uKernelRadius) continue;
+
+            vec2 offset = vec2(float(dx), float(dy)) * uTexelSize;
+            vec2 sampleUv = vUv + offset;
+            float sampleValue = texture2D(uTexture, sampleUv).r;
+
+            if ((inside && sampleValue <= 0.5) || (!inside && sampleValue > 0.5)) {
+                float dist = length(offset);
+                minDistance = min(minDistance, dist);
+            }
+        }
+    }
+
+    return inside ? -minDistance : minDistance;
+  }
+`
 
 async function createTexture(renderer: WebGLRenderer) {
   const size = new Vector2(1024, 1024)
@@ -23,6 +52,7 @@ async function createTexture(renderer: WebGLRenderer) {
 
   const font = new FontFace('Lithops', `url(${fontUrl})`)
   await font.load()
+  await document.fonts.ready
 
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = '#000'
@@ -44,36 +74,13 @@ async function createTexture(renderer: WebGLRenderer) {
         uniforms: {
           uStencilMap: { value: stencilMap },
         },
-        fragmentTop: /* glsl */`
-          const int MAX_KERNEL_RADIUS = 20;
-          float distanceToNearestWhitePixel(sampler2D map, vec2 uv, vec2 uTexelSize, int uKernelRadius) {
-            float minDistance = 1e20;
-
-            for (int dy = -MAX_KERNEL_RADIUS; dy <= MAX_KERNEL_RADIUS; dy++) {
-              for (int dx = -MAX_KERNEL_RADIUS; dx <= MAX_KERNEL_RADIUS; dx++) {
-                // only run loop within the dynamic kernel size
-                if (abs(dx) > uKernelRadius || abs(dy) > uKernelRadius) continue;
-
-                vec2 offset = vec2(float(dx), float(dy)) * uTexelSize;
-                vec2 sampleUv = uv + offset;
-                vec3 color = texture2D(map, sampleUv).rgb;
-
-                if (color == vec3(1.0)) {
-                  float dist = length(offset);
-                  minDistance = min(minDistance, dist);
-                }
-              }
-            }
-
-            return minDistance;
-          }
-        `,
+        fragmentTop: glsl_compute_sdf_2D,
         fragmentColor: /* glsl */`
           vec4 stencilTexel = texture2D(uStencilMap, vUv);
           int kernelRadius = 20;
           vec2 texelSize = 1.0 / uTextureSize;
           float dist = 
-            distanceToNearestWhitePixel(uStencilMap, vUv, texelSize, kernelRadius)
+            signedDistanceField(uStencilMap, vUv, texelSize, kernelRadius)
             / length(texelSize * float(kernelRadius) / 1.414213); // normalize by max distance in kernel
           gl_FragColor = vec4(dist, stencilTexel.r, 0.0, 1.0);
           // gl_FragColor = vec4(stencilTexel.r, 1.0, 1.0, 1.0);
@@ -94,12 +101,15 @@ function MyScene() {
       .uniforms({
         uTime: Ticker.get('three').uTime,
       })
-      .fragment.top(glsl_stegu_snoise)
+      .fragment.top(
+        glsl_utils,
+        glsl_stegu_snoise,
+      )
       .fragment.after('map_fragment', /* glsl */`
-        float n = snoise(vec3(vUv * 1.0, uTime * 0.5));
-        n = n * 0.5 + 0.5;
+        float n = fnoise(vec3(vUv * 1.0, uTime * 0.15), 3);
+        // n = spow(n, 2.0);
         float d = diffuseColor.r;
-        d += -(n * n * n) * 0.5;
+        d += n * 0.75;
         // d += -0.5 * (sin(uTime) * 0.5 + 0.5);
         d = smoothstep(0.0, 0.05, d);
         diffuseColor.rgb = mix(${vec3('#979687')}, ${vec3('#220793')}, d);
@@ -114,17 +124,23 @@ function MyScene() {
 
 export function AboutPage() {
   return (
-    <div className='layer'>
+    <div className='layer bg-[#220793]'>
       <ThreeProvider
         vertigoControls={{
           size: 1.4,
         }}
       >
-        <div
-          style={{
-            // fontFamily: 'Lithops',
-          }}
-        >About Page</div>
+        <div className='layer thru p-4'>
+          <Logo
+            colors={{
+              diamondTop: '#FAF392',
+              diamondSides: '#ECDE0D',
+              diamondBottom: '#B6AD1B',
+              text: '#ECDE0D',
+            }}
+          />
+        </div>
+        <div style={{ position: 'fixed', fontFamily: 'Lithops', visibility: 'hidden' }}>About Page</div>
         <MyScene />
       </ThreeProvider>
     </div>
