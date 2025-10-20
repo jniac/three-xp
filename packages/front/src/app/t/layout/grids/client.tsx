@@ -4,11 +4,11 @@ import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interac
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Ticker } from 'some-utils-ts/ticker'
 
-import { AspectAlignDemo } from './demo/aspect-align'
-import { BasicLayoutDemo } from './demo/basic-layout'
-import { BasicMarginDemo } from './demo/basic-margin'
-import { MarginCollapseDemo } from './demo/margin-collapse'
-import { PositioningDemo } from './demo/positioning'
+import { BasicLayoutDemo } from './demo/d0-basic-layout'
+import { BasicMarginDemo } from './demo/d1-basic-margin'
+import { MarginCollapseDemo } from './demo/d2-margin-collapse'
+import { AspectAlignDemo } from './demo/d3-aspect-align'
+import { PositioningDemo } from './demo/d4-positioning'
 
 import s from './client.module.css'
 
