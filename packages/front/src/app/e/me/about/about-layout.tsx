@@ -12,9 +12,9 @@ class AboutLayout {
     new Space({ name: 'header', size: ['1rel', 64] }),
     new Space({ size: ['1rel', 2] }),
     new Space({ name: 'bottom', size: ['1rel', '1fr'] }).add(
-      // new Space({ name: 'left', size: ['1fr', '1rel'] }),
-      // new Space({ size: [2, '1rel'] }),
-      // new Space({ size: ['1fr', '1rel'] }),
+      new Space({ name: 'left', size: ['1fr', '1rel'] }),
+      new Space({ size: [2, '1rel'] }),
+      new Space({ size: ['1fr', '1rel'] }),
     ),
   )
   header = this.root.find('header')!
@@ -37,6 +37,10 @@ export function AboutLayoutProvider({ children }: { children?: React.ReactNode }
         aboutLayout.root.setSize(info.size.x, info.size.y)
         aboutLayout.root.computeLayout()
         aboutLayout.changeObs.value++
+        window.requestAnimationFrame(() => {
+          // because camera update after this
+          aboutLayout.changeObs.value++
+        })
       },
     })
   }, [])

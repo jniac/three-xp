@@ -9,6 +9,7 @@ import { BasicMarginDemo } from './demo/d1-basic-margin'
 import { MarginCollapseDemo } from './demo/d2-margin-collapse'
 import { AspectAlignDemo } from './demo/d3-aspect-align'
 import { PositioningDemo } from './demo/d4-positioning'
+import { LayoutInsideFractionDemo } from './demo/d5-layout-inside-fraction'
 
 import s from './client.module.css'
 
@@ -30,6 +31,7 @@ export function Client() {
       <MarginCollapseDemo />
       <AspectAlignDemo />
       <PositioningDemo />
+      <LayoutInsideFractionDemo />
     </div>
   )
 }

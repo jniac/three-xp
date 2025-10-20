@@ -22,25 +22,25 @@ const glsl_compute_sdf_2D = /* glsl */`
     float minDistance = 1e20;
 
     for (int dy = -MAX_KERNEL_RADIUS; dy <= MAX_KERNEL_RADIUS; dy++) {
-        for (int dx = -MAX_KERNEL_RADIUS; dx <= MAX_KERNEL_RADIUS; dx++) {
-            if (abs(dx) > uKernelRadius || abs(dy) > uKernelRadius) continue;
+      for (int dx = -MAX_KERNEL_RADIUS; dx <= MAX_KERNEL_RADIUS; dx++) {
+        if (abs(dx) > uKernelRadius || abs(dy) > uKernelRadius) continue;
 
-            vec2 offset = vec2(float(dx), float(dy)) * uTexelSize;
-            vec2 sampleUv = vUv + offset;
-            float sampleValue = texture2D(uTexture, sampleUv).r;
+        vec2 offset = vec2(float(dx), float(dy)) * uTexelSize;
+        vec2 sampleUv = vUv + offset;
+        float sampleValue = texture2D(uTexture, sampleUv).r;
 
-            if ((inside && sampleValue <= 0.5) || (!inside && sampleValue > 0.5)) {
-                float dist = length(offset);
-                minDistance = min(minDistance, dist);
-            }
+        if ((inside && sampleValue <= 0.5) || (!inside && sampleValue > 0.5)) {
+          float dist = length(offset);
+          minDistance = min(minDistance, dist);
         }
+      }
     }
 
     return inside ? -minDistance : minDistance;
   }
 `
 
-export async function createTexture(renderer: WebGLRenderer) {
+export async function createSdfTexture(renderer: WebGLRenderer) {
   const size = new Vector2(1024, 1024)
   const canvas = document.createElement('canvas')
   canvas.width = size.x
@@ -64,7 +64,7 @@ export async function createTexture(renderer: WebGLRenderer) {
   const stencilMap = new CanvasTexture(canvas)
   stencilMap.colorSpace = SRGBColorSpace
 
-  const distanceCompute = new GpuCompute({ size, filter: 'linear' })
+  const distanceCompute = new GpuCompute({ size, filter: 'linear', generateMipmaps: true })
     .shaders({
       initial: {
         uniforms: {
