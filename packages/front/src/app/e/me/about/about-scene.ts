@@ -17,8 +17,8 @@ import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
-import { createSdfTexture } from './about'
 import { useAboutLayout } from './about-layout'
+import { createSdfTexture } from './about-texture'
 
 class LayoutDebugHelper extends DebugHelper {
   #inner = { rect: new Rectangle() }
@@ -46,7 +46,7 @@ export function AboutScene() {
     three.pipeline.basicPasses.fxaa.enabled = false
 
     const uniforms = {
-      uMap: { value: await createSdfTexture(three.renderer) },
+      uAboutMap: { value: await createSdfTexture(three.renderer) },
       uPlaneSize: { value: new Vector2() },
       uTime: Ticker.get('three').uTime,
     }
@@ -65,18 +65,20 @@ export function AboutScene() {
       )
       .fragment.after('map_fragment', /* glsl */ `
         vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, 1.0);
-        float d = texture(uMap, uv).r;
-        float n = fnoise(vec3(uv * 0.5, uTime * 0.15), 3);
+        float d = texture(uAboutMap, uv).r;
+        float n = fnoise(vec3(uv * 0.5 * vec2(1.0, 8.0), uTime * 0.15), 3);
         // n = spow(n, 2.0);
         d += n * 0.75;
         // d += -0.5 * (sin(uTime) * 0.5 + 0.5);
         d = smoothstep(0.0, 0.05, d);
         // diffuseColor.rgb = mix(${vec3('#979687')}, ${vec3('#220793')}, d);
         diffuseColor.rgb = ${vec3('#979687')};
+        // diffuseColor.rgb = ${vec3('#00f')};
 
         // gamma correction
         diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
-        diffuseColor.a = oneMinus(d);
+        diffuseColor.a *= oneMinus(d);
+        diffuseColor.a *= 0.9;
       `)
 
     const plane = setup(new Mesh(new PlaneGeometry(), material), group)
