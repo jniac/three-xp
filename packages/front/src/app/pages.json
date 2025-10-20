@@ -36,10 +36,6 @@
     "dir": "e/lady-ethereal"
   },
   {
-    "page": "e/layout/grids/page.tsx",
-    "dir": "e/layout/grids"
-  },
-  {
     "page": "e/me/page.tsx",
     "dir": "e/me"
   },
@@ -146,6 +142,10 @@
   {
     "page": "t/hash-grid/page.tsx",
     "dir": "t/hash-grid"
+  },
+  {
+    "page": "t/layout/grids/page.tsx",
+    "dir": "t/layout/grids"
   },
   {
     "page": "t/noise-demo/page.tsx",

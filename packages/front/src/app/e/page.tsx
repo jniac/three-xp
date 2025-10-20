@@ -12,7 +12,6 @@ import * as fourCircles from './four-circles/page'
 import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
 import * as ladyEthereal from './lady-ethereal/page'
-import * as layoutGrids from './layout/grids/page'
 import * as me from './me/page'
 import * as ovvoLayers from './ovvo/layers/page'
 import * as pathWithLoop from './path-with-loop/page'
@@ -30,7 +29,6 @@ const pages = {
  'fractal-grid': fractalGrid,
  'from-earth-to': fromEarthTo,
  'lady-ethereal': ladyEthereal,
- 'layout/grids': layoutGrids,
  'me': me,
  'ovvo/layers': ovvoLayers,
  'path-with-loop': pathWithLoop,

@@ -11,6 +11,7 @@ import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
 import * as gpuComputePen from './gpu-compute/pen/page'
 import * as gpuComputeWater from './gpu-compute/water/page'
 import * as hashGrid from './hash-grid/page'
+import * as layoutGrids from './layout/grids/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
 import * as shaderXplr from './shader-xplr/page'
@@ -32,6 +33,7 @@ const pages = {
  'gpu-compute/pen': gpuComputePen,
  'gpu-compute/water': gpuComputeWater,
  'hash-grid': hashGrid,
+ 'layout/grids': layoutGrids,
  'noise-demo': noiseDemo,
  'random-utils': randomUtils,
  'shader-xplr': shaderXplr,
