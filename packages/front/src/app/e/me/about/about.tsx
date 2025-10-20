@@ -1,18 +1,14 @@
-'use client'
+import { CanvasTexture, SRGBColorSpace, Vector2, WebGLRenderer } from 'three'
 
-import { CanvasTexture, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Vector2, WebGLRenderer } from 'three'
-
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider } from 'some-utils-misc/three-provider'
 import { GpuCompute } from 'some-utils-three/experimental/gpu-compute/gpu-compute'
-import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
-import { setup } from 'some-utils-three/utils/tree'
-import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
-import { Ticker } from 'some-utils-ts/ticker'
 
 import { config } from '@/config'
 
-import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { Logo } from '../components/logo'
+import { AboutLayoutProvider } from './about-layout'
+import { AboutScene } from './scene'
+
 import './about.css'
 
 const fontUrl = config.assetsPath + 'fonts/Lithops-Regular.woff2'
@@ -44,7 +40,7 @@ const glsl_compute_sdf_2D = /* glsl */`
   }
 `
 
-async function createTexture(renderer: WebGLRenderer) {
+export async function createTexture(renderer: WebGLRenderer) {
   const size = new Vector2(1024, 1024)
   const canvas = document.createElement('canvas')
   canvas.width = size.x
@@ -92,57 +88,43 @@ async function createTexture(renderer: WebGLRenderer) {
   return distanceCompute.currentTexture()
 }
 
-function MyScene() {
-  const three = useThreeWebGL()!
-  useGroup('my-scene', async function* (group) {
-    const material = new MeshBasicMaterial({ map: await createTexture(three.renderer) })
-    material.onBeforeCompile = shader => ShaderForge.with(shader)
-      .defines('USE_UV')
-      .uniforms({
-        uTime: Ticker.get('three').uTime,
-      })
-      .fragment.top(
-        glsl_utils,
-        glsl_stegu_snoise,
-      )
-      .fragment.after('map_fragment', /* glsl */`
-        float n = fnoise(vec3(vUv * 1.0, uTime * 0.15), 3);
-        // n = spow(n, 2.0);
-        float d = diffuseColor.r;
-        d += n * 0.75;
-        // d += -0.5 * (sin(uTime) * 0.5 + 0.5);
-        d = smoothstep(0.0, 0.05, d);
-        diffuseColor.rgb = mix(${vec3('#979687')}, ${vec3('#220793')}, d);
-
-        // gamma correction
-        diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
-      `)
-    setup(new Mesh(new PlaneGeometry(), material), group)
-  }, [])
-  return null
+function Header() {
+  return (
+    <div className='relative flex p-4'>
+      <Logo
+        colors={{
+          diamondTop: '#FAF392',
+          diamondSides: '#ECDE0D',
+          diamondBottom: '#B6AD1B',
+          text: '#ECDE0D',
+        }}
+      />
+    </div>
+  )
 }
 
 export function AboutPage() {
   return (
     <div className='layer bg-[#220793]'>
-      <ThreeProvider
-        vertigoControls={{
-          size: 1.4,
-        }}
-      >
-        <div className='layer thru p-4'>
-          <Logo
-            colors={{
-              diamondTop: '#FAF392',
-              diamondSides: '#ECDE0D',
-              diamondBottom: '#B6AD1B',
-              text: '#ECDE0D',
-            }}
-          />
-        </div>
-        <div style={{ position: 'fixed', fontFamily: 'Lithops', visibility: 'hidden' }}>About Page</div>
-        <MyScene />
-      </ThreeProvider>
+      <AboutLayoutProvider>
+        <ThreeProvider
+          vertigoControls={{
+            size: 1.4,
+          }}
+        >
+          <div className='layer thru flex flex-col'>
+            <Header />
+            <div className='mx-4 h-[2px] bg-[blue] rounded-[1px]' />
+            <div className='flex-1 flex flex-row'>
+              <div className='flex-1' />
+              <div className='my-4 w-[2px] bg-[blue] rounded-[1px]' />
+              <div className='flex-1' />
+            </div>
+          </div>
+          <div style={{ position: 'fixed', fontFamily: 'Lithops', visibility: 'hidden' }}>About Page</div>
+          <AboutScene />
+        </ThreeProvider>
+      </AboutLayoutProvider>
     </div>
   )
 }
