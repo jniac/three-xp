@@ -289,7 +289,7 @@ export class HomeText extends Group {
         const isTouch = responsive.layoutObs.value.pointerType === 'touch'
         const radius = isTouch || three.pointer.buttonDown()
           ? WATER_SIZE / 10
-          : lerpUnclamped(0, WATER_SIZE / 4, inverseLerpUnclamped(3, 40, velocity))
+          : lerpUnclamped(0, WATER_SIZE / 10, inverseLerpUnclamped(3, 40, velocity))
         const strength = isTouch
           ? (three.pointer.buttonDown() ? 1 : 0)
           : 1

@@ -48,12 +48,13 @@ export async function createSdfTexture(renderer: WebGLRenderer) {
   ctx.fillStyle = '#000'
   ctx.fillRect(0, 0, size.x, size.y)
   ctx.fillStyle = '#ffffff'
-  ctx.font = '400px Lithops'
+  ctx.font = '430px Lithops'
 
-  let y = 60
-  ctx.fillText('Procedural Design', -100, y += 300)
-  ctx.fillText('Algorithmic Art', -300, y += 300)
-  ctx.fillText('Generative Art', -300, y += 300)
+  let y = 10
+  const stepY = 330
+  ctx.fillText('Procedural Design', -100, y += stepY)
+  ctx.fillText('Algorithmic Art', -300, y += stepY)
+  ctx.fillText('Generative Art', -300, y += stepY)
 
   const stencilMap = new CanvasTexture(canvas)
   stencilMap.colorSpace = SRGBColorSpace

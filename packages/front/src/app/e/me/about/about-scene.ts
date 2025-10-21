@@ -16,9 +16,12 @@ import { Ticker } from 'some-utils-ts/ticker'
 import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { Vector2Declaration } from 'some-utils-ts/declaration'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
+import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
+import { FilmPass } from 'three/examples/jsm/Addons.js'
 import { useAboutLayout } from './about-layout'
 import { createSdfTexture } from './about-texture'
+import { Plant } from './plant'
 
 class LayoutDebugHelper extends DebugHelper {
   #inner = { rect: new Rectangle() }
@@ -44,6 +47,11 @@ export function AboutScene() {
   const aboutLayout = useAboutLayout()
   useGroup('my-scene', async function* (group) {
     three.pipeline.basicPasses.fxaa.enabled = false
+    three.pipeline.basicPasses.output
+
+    const grainPass = new FilmPass(.5, false)
+    three.pipeline.composer.addPass(grainPass)
+    yield () => three.pipeline.composer.removePass(grainPass)
 
     const uniforms = {
       uAboutMap: { value: await createSdfTexture(three.renderer) },
@@ -62,23 +70,37 @@ export function AboutScene() {
         glsl_utils,
         glsl_stegu_snoise,
         glsl_uv_size,
+        glsl_ramp,
       )
+      .fragment.top(/* glsl */ `
+        float siiiin(float x) {
+          return sin(x * 3.14159265);
+        }
+      `)
       .fragment.after('map_fragment', /* glsl */ `
+        float timeScale = 0.05;
         vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, 1.0);
         float d = texture(uAboutMap, uv).r;
-        float n = fnoise(vec3(uv * 0.5 * vec2(1.0, 8.0), uTime * 0.15), 3);
+        float n = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), uTime * timeScale), 3);
+        float n2 = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), (uTime + 1.3) * timeScale), 3);
         // n = spow(n, 2.0);
         d += n * 0.75;
         // d += -0.5 * (sin(uTime) * 0.5 + 0.5);
         d = smoothstep(0.0, 0.05, d);
         // diffuseColor.rgb = mix(${vec3('#979687')}, ${vec3('#220793')}, d);
-        diffuseColor.rgb = ${vec3('#979687')};
-        // diffuseColor.rgb = ${vec3('#00f')};
+        // diffuseColor.rgb = ${vec3('#979687')};
+        // diffuseColor.rgb = ${vec3('#220793')};
+
+        n2 = n2 * 0.8 + 0.5;
+
+        // diffuseColor.rgb = mix(${vec3('#0993efff')}, ${vec3('#220793')}, mix(n2, siiiin(n2 * 5.0), 0.15));
+        float t = mix(n2, siiiin(n2 * 5.0), 0.15);
+        Vec3Ramp r = ramp(t, ${vec3('#0993efff')}, ${vec3('#2556d2ff')}, ${vec3('#220793')});
+        diffuseColor.rgb = mix(r.a, r.b, r.t);
 
         // gamma correction
         diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
         diffuseColor.a *= oneMinus(d);
-        diffuseColor.a *= 0.9;
       `)
 
     const plane = setup(new Mesh(new PlaneGeometry(), material), group)
@@ -87,7 +109,13 @@ export function AboutScene() {
     const helper = setup(new LayoutDebugHelper(), group)
     helper.visible = false
 
-    yield aboutLayout.changeObs.onChange({ executeImmediately: true }, () => {
+    const plant1 = setup(new Plant(), group)
+      .setPositionOnScene(size => {
+        plant1.position.set(-size.x * .16, -size.y * .48, .75)
+        plant1.rotation.set(0, .25, 0)
+      })
+
+    yield aboutLayout.changeObs.onChange({ executeImmediately: true }, tick => {
       if (aboutLayout.isReady === false)
         return
 
@@ -99,6 +127,8 @@ export function AboutScene() {
       plane.position.set(rect.centerX, rect.centerY, 0)
       plane.scale.set(rect.width, rect.height, 1)
       uniforms.uPlaneSize.value.set(rect.width, rect.height)
+
+      plant1.positionOnScene?.(controls.dampedVertigo.state.realSize)
     })
   }, [])
 
