@@ -275,7 +275,7 @@ export class Umbellifer extends Group {
           start = applyBend(start, uBendFactor, uBendMatrix, uBendMatrixInverse);
           end = applyBend(end, uBendFactor, uBendMatrix, uBendMatrixInverse);
 
-          float time = uTime * 0.5;
+          float time = uTime * 0.15;
           float noiseScale = 0.825;
           float startNoise = snoise(vec4(start.xyz * noiseScale, time)) * instanceStart.y;
           float endNoise = snoise(vec4(end.xyz * noiseScale, time)) * instanceEnd.y;
@@ -305,7 +305,7 @@ export class Umbellifer extends Group {
     this.uTime.value += deltaTime
     if (this.bendUniforms) {
       const time = this.uTime.value
-      this.bendUniforms.uBendFactor.value = 0.25 * (
+      this.bendUniforms.uBendFactor.value = 0.33 * (
         Math.sin(time * 1.5) * .1
         + Math.sin(time * 3.34) * .03
         + Math.sin(time * 4.732) * .01
