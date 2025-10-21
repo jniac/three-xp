@@ -14,6 +14,7 @@ import * as hashGrid from './hash-grid/page'
 import * as layoutGrids from './layout/grids/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
+import * as shaderForgeInstances from './shader-forge/instances/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as slerpVectors from './slerp-vectors/page'
 import * as template2 from './template-2/page'
@@ -22,6 +23,7 @@ import * as textHelper from './text-helper/page'
 import * as threeProviderColor from './three-provider/color/page'
 import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
 import * as transformWithShear from './transform-with-shear/page'
+import * as vertexBendBasic from './vertex-bend/basic/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
 
@@ -37,6 +39,7 @@ const pages = {
  'layout/grids': layoutGrids,
  'noise-demo': noiseDemo,
  'random-utils': randomUtils,
+ 'shader-forge/instances': shaderForgeInstances,
  'shader-xplr': shaderXplr,
  'slerp-vectors': slerpVectors,
  'template-2': template2,
@@ -45,6 +48,7 @@ const pages = {
  'three-provider/color': threeProviderColor,
  'three-provider/free-vertigo': threeProviderFreeVertigo,
  'transform-with-shear': transformWithShear,
+ 'vertex-bend/basic': vertexBendBasic,
  'vertigo': vertigo,
  'voxel': voxel,
 }
