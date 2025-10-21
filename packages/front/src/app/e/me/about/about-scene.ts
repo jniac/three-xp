@@ -1,27 +1,27 @@
 'use client'
 
 import { Color, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three'
+import { FilmPass } from 'three/examples/jsm/Addons.js'
 
 import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
+import { fromVector2Declaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { setup } from 'some-utils-three/utils/tree'
+import { Vector2Declaration } from 'some-utils-ts/declaration'
+import { Space } from 'some-utils-ts/experimental/layout/flex'
+import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
+import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Message } from 'some-utils-ts/message'
 import { Ticker } from 'some-utils-ts/ticker'
 
-import { fromVector2Declaration } from 'some-utils-three/declaration'
-import { Vector2Declaration } from 'some-utils-ts/declaration'
-import { Space } from 'some-utils-ts/experimental/layout/flex'
-import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
-import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
-import { FilmPass } from 'three/examples/jsm/Addons.js'
 import { useAboutLayout } from './about-layout'
 import { createSdfTexture } from './about-texture'
-import { Plant } from './plant'
+import { Umbellifer } from './umbellifer'
 
 class LayoutDebugHelper extends DebugHelper {
   #inner = { rect: new Rectangle() }
@@ -46,8 +46,7 @@ export function AboutScene() {
   const three = useThreeWebGL()!
   const aboutLayout = useAboutLayout()
   useGroup('my-scene', async function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-    three.pipeline.basicPasses.output
+    // three.pipeline.basicPasses.fxaa.enabled = false
 
     const grainPass = new FilmPass(.5, false)
     three.pipeline.composer.addPass(grainPass)
@@ -109,13 +108,22 @@ export function AboutScene() {
     const helper = setup(new LayoutDebugHelper(), group)
     helper.visible = false
 
-    const plant1 = setup(new Plant(), group)
+    const umbellifer1 = setup(new Umbellifer(), group)
       .setPositionOnScene(size => {
-        plant1.position.set(-size.x * .16, -size.y * .48, .75)
-        plant1.rotation.set(0, .25, 0)
+        umbellifer1.position.set(-size.x * .16, -size.y * .48, .75)
+        umbellifer1.rotation.set(0, .25, 0)
       })
+      .enableBend()
+    yield three.ticker.onTick(tick => {
+      umbellifer1.updateBendTransform({
+        position: umbellifer1.position,
+        rotationZ: '90deg',
+        rotationY: '20deg',
+      })
+      umbellifer1.update(tick.deltaTime)
+    })
 
-    yield aboutLayout.changeObs.onChange({ executeImmediately: true }, tick => {
+    yield aboutLayout.changeObs.onChange({ executeImmediately: true }, () => {
       if (aboutLayout.isReady === false)
         return
 
@@ -128,7 +136,7 @@ export function AboutScene() {
       plane.scale.set(rect.width, rect.height, 1)
       uniforms.uPlaneSize.value.set(rect.width, rect.height)
 
-      plant1.positionOnScene?.(controls.dampedVertigo.state.realSize)
+      umbellifer1.positionOnScene?.(controls.dampedVertigo.state.realSize)
     })
   }, [])
 

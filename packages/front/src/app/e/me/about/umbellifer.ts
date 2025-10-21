@@ -1,10 +1,16 @@
-import { fromVector3Declaration } from 'some-utils-three/declaration/vector'
-import { slerpVectors } from 'some-utils-three/math/slerp-vectors'
-import { setup } from 'some-utils-three/utils/tree'
-import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some-utils-ts/declaration'
-import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 import { Color, Group, Vector2, Vector3 } from 'three'
 import { LineMaterial, LineSegments2, LineSegmentsGeometry } from 'three/examples/jsm/Addons.js'
+
+import { TransformDeclaration } from 'some-utils-three/declaration'
+import { fromVector3Declaration } from 'some-utils-three/declaration/vector'
+import { createBendUniforms, glsl_bend } from 'some-utils-three/glsl/transform/bend'
+import { slerpVectors } from 'some-utils-three/math/slerp-vectors'
+import { ShaderForge } from 'some-utils-three/shader-forge'
+import { makeMatrix4 } from 'some-utils-three/utils/make'
+import { setup } from 'some-utils-three/utils/tree'
+import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some-utils-ts/declaration'
+import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
+import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
 class Segment {
   static #shared = { _v: new Vector3() }
@@ -147,7 +153,11 @@ class Segment {
   }
 }
 
-export class Plant extends Group {
+export class Umbellifer extends Group {
+  material: LineMaterial
+
+  uTime = { value: 0 }
+
   constructor(seed = 256789, {
     splitIndices = <number[][]>[
       [2],
@@ -217,11 +227,90 @@ export class Plant extends Group {
     setup(new LineSegments2(geometry, material), this)
 
     this.scale.setScalar(0.25)
+
+    this.material = material
   }
 
   positionOnScene?: (sceneSize: Vector2) => void
   setPositionOnScene(fn: (sceneSize: Vector2) => void): this {
     this.positionOnScene = fn
+    return this
+  }
+
+  bendUniforms: null | ReturnType<typeof createBendUniforms> = null
+  bendTransform: null | TransformDeclaration = null
+  enableBend(): this {
+    const glslPatterns = [
+      'vec4 start = modelViewMatrix * vec4( instanceStart, 1.0 );',
+      'vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );',
+    ]
+    const bendTransform: TransformDeclaration = {
+      rotationZ: '90deg',
+      rotationY: '20deg',
+    }
+    const bendUniforms = createBendUniforms(makeMatrix4(bendTransform))
+    this.material.onBeforeCompile = shader => {
+      ShaderForge.with(shader)
+        .uniforms({
+          ...bendUniforms,
+          uTime: this.uTime,
+        })
+        .vertex.top(
+          glsl_bend,
+          glsl_stegu_snoise,
+        )
+
+      const v = shader.vertexShader
+      const index0 = shader.vertexShader.indexOf(glslPatterns[0])
+      const index1 = shader.vertexShader.indexOf(glslPatterns[1])
+      shader.vertexShader =
+        v.substring(0, index0)
+        + /* glsl */`
+          vec4 start = vec4( instanceStart, 1.0 );
+          vec4 end = vec4( instanceEnd, 1.0 );
+
+          start = modelMatrix * start;
+          end = modelMatrix * end;
+
+          start = applyBend(start, uBendFactor, uBendMatrix, uBendMatrixInverse);
+          end = applyBend(end, uBendFactor, uBendMatrix, uBendMatrixInverse);
+
+          float time = uTime * 0.5;
+          float noiseScale = 0.825;
+          float startNoise = snoise(vec4(start.xyz * noiseScale, time)) * instanceStart.y;
+          float endNoise = snoise(vec4(end.xyz * noiseScale, time)) * instanceEnd.y;
+
+          start.xz += vec2(1.0, -1.0) * startNoise * 0.01;
+          end.xz += vec2(1.0, -1.0) * endNoise * 0.01;
+
+          start = viewMatrix * start;
+          end = viewMatrix * end;
+        `
+        + v.substring(index1 + glslPatterns[1].length)
+    }
+    this.bendUniforms = bendUniforms
+    this.bendTransform = bendTransform
+    return this
+  }
+
+  updateBendTransform(transform: TransformDeclaration): this {
+    if (this.bendUniforms) {
+      makeMatrix4(transform, this.bendUniforms.uBendMatrix.value)
+      this.bendUniforms.uBendMatrixInverse.value.copy(this.bendUniforms.uBendMatrix.value).invert()
+    }
+    return this
+  }
+
+  update(deltaTime: number): this {
+    this.uTime.value += deltaTime
+    if (this.bendUniforms) {
+      const time = this.uTime.value
+      this.bendUniforms.uBendFactor.value = 0.25 * (
+        Math.sin(time * 1.5) * .1
+        + Math.sin(time * 3.34) * .03
+        + Math.sin(time * 4.732) * .01
+      )
+    }
     return this
   }
 }
