@@ -160,6 +160,10 @@
     "dir": "t/random-utils"
   },
   {
+    "page": "t/shader-forge/instances/page.tsx",
+    "dir": "t/shader-forge/instances"
+  },
+  {
     "page": "t/shader-xplr/page.tsx",
     "dir": "t/shader-xplr"
   },
@@ -190,6 +194,14 @@
   {
     "page": "t/transform-with-shear/page.tsx",
     "dir": "t/transform-with-shear"
+  },
+  {
+    "page": "t/vertex-bend/basic/page.tsx",
+    "dir": "t/vertex-bend/basic"
+  },
+  {
+    "page": "t/vertex-bend/umbellifer/page.tsx",
+    "dir": "t/vertex-bend/umbellifer"
   },
   {
     "page": "t/vertigo/page.tsx",

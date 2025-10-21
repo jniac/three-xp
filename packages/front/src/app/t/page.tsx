@@ -24,6 +24,7 @@ import * as threeProviderColor from './three-provider/color/page'
 import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
 import * as transformWithShear from './transform-with-shear/page'
 import * as vertexBendBasic from './vertex-bend/basic/page'
+import * as vertexBendUmbellifer from './vertex-bend/umbellifer/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
 
@@ -49,6 +50,7 @@ const pages = {
  'three-provider/free-vertigo': threeProviderFreeVertigo,
  'transform-with-shear': transformWithShear,
  'vertex-bend/basic': vertexBendBasic,
+ 'vertex-bend/umbellifer': vertexBendUmbellifer,
  'vertigo': vertigo,
  'voxel': voxel,
 }
