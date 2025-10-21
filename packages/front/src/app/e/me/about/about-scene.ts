@@ -20,6 +20,7 @@ import { Message } from 'some-utils-ts/message'
 import { isHosted } from 'some-utils-ts/misc/is-hosted'
 import { Ticker } from 'some-utils-ts/ticker'
 
+import { leak } from '@/utils/leak'
 import { useAboutLayout } from './about-layout'
 import { createSdfTexture } from './about-texture'
 import { Umbellifer } from './umbellifer'
@@ -47,6 +48,8 @@ export function AboutScene() {
   const three = useThreeWebGL()!
   const aboutLayout = useAboutLayout()
   useGroup('my-scene', async function* (group) {
+    leak()
+
     // three.pipeline.basicPasses.fxaa.enabled = false
     three.ticker.set({ inactivityWaitDurationMinimum: isHosted() ? 60 : 60 * 5 })
 

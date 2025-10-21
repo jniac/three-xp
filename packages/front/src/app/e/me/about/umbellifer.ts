@@ -12,8 +12,15 @@ import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
+/**
+ * A segment of an umbellifer structure.
+ * 
+ * Note:
+ * - The segment subdivisions are not stored as child segments, but generated on the fly when needed.
+ * - The subdivisions is slightly unoptimized, since it recalculates the subdivision count multiple times (involving distance calculations).
+ */
 class Segment {
-  static #shared = { _v: new Vector3() }
+  static #shared = { _v: new Vector3(), _c: new Color() }
   parent: Segment | null = null
   children: Segment[] = []
 
@@ -29,22 +36,34 @@ class Segment {
     public normal: Vector3,
   ) { }
 
+  getSubdivisionCount(): number {
+    const length = this.start.distanceTo(this.end)
+    if (length <= .05) return 2
+    return Math.ceil(length / .02)
+  }
+
   *positions() {
-    yield this.start.x
-    yield this.start.y
-    yield this.start.z
-    yield this.end.x
-    yield this.end.y
-    yield this.end.z
+    yield* this.start
+    const count = this.getSubdivisionCount()
+    const { _v } = Segment.#shared
+    for (let i = 1; i < count - 1; i++) {
+      _v.lerpVectors(this.start, this.end, i / count)
+      yield* _v
+      yield* _v
+    }
+    yield* this.end
   }
 
   *colors() {
-    yield this.startColor.r
-    yield this.startColor.g
-    yield this.startColor.b
-    yield this.endColor.r
-    yield this.endColor.g
-    yield this.endColor.b
+    yield* this.startColor
+    const count = this.getSubdivisionCount()
+    const { _c } = Segment.#shared
+    for (let i = 1; i < count - 1; i++) {
+      _c.lerpColors(this.startColor, this.endColor, i / count)
+      yield* _c
+      yield* _c
+    }
+    yield* this.endColor
   }
 
   getChild(...indices: number[]): Segment {
@@ -107,6 +126,17 @@ class Segment {
 
     for (const child of this.children)
       yield* child.allDescendants({ includeSelf: true })
+  }
+
+  *allAscendants({ includeSelf = false } = {}): Generator<Segment> {
+    if (includeSelf)
+      yield this
+
+    let current: Segment | null = this.parent
+    while (current) {
+      yield current
+      current = current.parent
+    }
   }
 
   *allLeaves({ includeSelf = false } = {}): Generator<Segment> {
@@ -194,7 +224,11 @@ export class Umbellifer extends Group {
     for (const leaf of [...s0.allLeaves()])
       leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75 })
 
+    console.log(s0.allDescendantsCount())
+    console.log(s0.allDescendants().reduce((acc, cur) => acc + cur.getSubdivisionCount(), 0))
+
     {
+      // Set colors from leaves to root:
       const color0 = new Color('#ecde0d')
       const color1 = new Color('#fff')
       const stepMax = 3
