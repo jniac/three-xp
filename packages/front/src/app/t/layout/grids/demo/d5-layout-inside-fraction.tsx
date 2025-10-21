@@ -46,10 +46,12 @@ export function LayoutInsideFractionDemo() {
       <canvas style={{ border: 'solid 2px #fff1' }} />
       <div className='text-center'>
         <p>
-          A test of layouting spaces inside a fraction unit. Everything is ok. I was
-          looking for a bug that was coming from another part of the code.
+          {`
+            A test of layouting spaces inside a fraction unit. Everything is ok. I was
+            looking for a bug that was coming from another part of the code.
+          `}
           <br />
-          The test is still there, not very useful now, but can't be reused for something else.
+          {`The test is still there, not very useful now, but can't be reused for something else.`}
         </p>
       </div>
     </div>
