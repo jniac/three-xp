@@ -3,6 +3,7 @@ import { Client } from './client'
 
 export const metadata = new XpMetadata({
   slug: 'css-3d',
+  status: 'done',
 })
 
 export default function CSS3DPage() {

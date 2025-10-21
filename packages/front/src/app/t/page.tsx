@@ -15,6 +15,7 @@ import * as layoutGrids from './layout/grids/page'
 import * as noiseDemo from './noise-demo/page'
 import * as randomUtils from './random-utils/page'
 import * as shaderXplr from './shader-xplr/page'
+import * as slerpVectors from './slerp-vectors/page'
 import * as template2 from './template-2/page'
 import * as template from './template/page'
 import * as textHelper from './text-helper/page'
@@ -37,6 +38,7 @@ const pages = {
  'noise-demo': noiseDemo,
  'random-utils': randomUtils,
  'shader-xplr': shaderXplr,
+ 'slerp-vectors': slerpVectors,
  'template-2': template2,
  'template': template,
  'text-helper': textHelper,

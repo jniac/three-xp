@@ -164,6 +164,10 @@
     "dir": "t/shader-xplr"
   },
   {
+    "page": "t/slerp-vectors/page.tsx",
+    "dir": "t/slerp-vectors"
+  },
+  {
     "page": "t/template-2/page.tsx",
     "dir": "t/template-2"
   },
