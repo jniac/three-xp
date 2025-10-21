@@ -9,6 +9,7 @@ import { ShaderForge } from 'some-utils-three/shader-forge'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some-utils-ts/declaration'
+import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
 class Segment {
@@ -155,6 +156,13 @@ class Segment {
 export class Umbellifer extends Group {
   material: LineMaterial
 
+  uTime = { value: 0 }
+  uNoiseAmplitude = { value: 1 }
+  bendAmplitude = 1
+
+  get noiseAmplitude() { return this.uNoiseAmplitude.value }
+  set noiseAmplitude(value: number) { this.uNoiseAmplitude.value = value }
+
   constructor(seed = 256789, {
     splitIndices = <number[][]>[
       [2],
@@ -248,8 +256,15 @@ export class Umbellifer extends Group {
     const bendUniforms = createBendUniforms(makeMatrix4(bendTransform))
     this.material.onBeforeCompile = shader => {
       ShaderForge.with(shader)
-        .uniforms(bendUniforms)
-        .vertex.top(glsl_bend)
+        .uniforms({
+          ...bendUniforms,
+          uTime: this.uTime,
+          uNoiseAmplitude: this.uNoiseAmplitude,
+        })
+        .vertex.top(
+          glsl_bend,
+          glsl_stegu_snoise,
+        )
 
       const v = shader.vertexShader
       const index0 = shader.vertexShader.indexOf(glslPatterns[0])
@@ -266,6 +281,14 @@ export class Umbellifer extends Group {
           start = applyBend(start, uBendFactor, uBendMatrix, uBendMatrixInverse);
           end = applyBend(end, uBendFactor, uBendMatrix, uBendMatrixInverse);
 
+          float time = uTime * 0.15;
+          float noiseScale = 0.825;
+          float startNoise = snoise(vec4(start.xyz * noiseScale, time)) * instanceStart.y;
+          float endNoise = snoise(vec4(end.xyz * noiseScale, time)) * instanceEnd.y;
+
+          start.xz += vec2(1.0, -1.0) * startNoise * uNoiseAmplitude * 0.01;
+          end.xz += vec2(1.0, -1.0) * endNoise * uNoiseAmplitude * 0.01;
+
           start = viewMatrix * start;
           end = viewMatrix * end;
         `
@@ -276,14 +299,23 @@ export class Umbellifer extends Group {
     return this
   }
 
-  time = 0
-  update(deltaTime: number): this {
-    this.time += deltaTime
+  updateBendTransform(transform: TransformDeclaration): this {
     if (this.bendUniforms) {
-      this.bendUniforms.uBendFactor.value =
-        Math.sin(this.time * 1.5) * .1
-        + Math.sin(this.time * 3.34) * .03
-        + Math.sin(this.time * 4.732) * .01
+      makeMatrix4(transform, this.bendUniforms.uBendMatrix.value)
+      this.bendUniforms.uBendMatrixInverse.value.copy(this.bendUniforms.uBendMatrix.value).invert()
+    }
+    return this
+  }
+
+  update(deltaTime: number): this {
+    this.uTime.value += deltaTime
+    if (this.bendUniforms) {
+      const time = this.uTime.value
+      this.bendUniforms.uBendFactor.value = this.bendAmplitude * 0.33 * (
+        Math.sin(time * 1.5) * .1
+        + Math.sin(time * 3.34) * .03
+        + Math.sin(time * 4.732) * .01
+      )
     }
     return this
   }

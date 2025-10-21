@@ -157,6 +157,11 @@ export class Umbellifer extends Group {
   material: LineMaterial
 
   uTime = { value: 0 }
+  uNoiseAmplitude = { value: 1 }
+  bendAmplitude = 1
+
+  get noiseAmplitude() { return this.uNoiseAmplitude.value }
+  set noiseAmplitude(value: number) { this.uNoiseAmplitude.value = value }
 
   constructor(seed = 256789, {
     splitIndices = <number[][]>[
@@ -254,6 +259,7 @@ export class Umbellifer extends Group {
         .uniforms({
           ...bendUniforms,
           uTime: this.uTime,
+          uNoiseAmplitude: this.uNoiseAmplitude,
         })
         .vertex.top(
           glsl_bend,
@@ -280,8 +286,8 @@ export class Umbellifer extends Group {
           float startNoise = snoise(vec4(start.xyz * noiseScale, time)) * instanceStart.y;
           float endNoise = snoise(vec4(end.xyz * noiseScale, time)) * instanceEnd.y;
 
-          start.xz += vec2(1.0, -1.0) * startNoise * 0.01;
-          end.xz += vec2(1.0, -1.0) * endNoise * 0.01;
+          start.xz += vec2(1.0, -1.0) * startNoise * uNoiseAmplitude * 0.01;
+          end.xz += vec2(1.0, -1.0) * endNoise * uNoiseAmplitude * 0.01;
 
           start = viewMatrix * start;
           end = viewMatrix * end;
@@ -305,7 +311,7 @@ export class Umbellifer extends Group {
     this.uTime.value += deltaTime
     if (this.bendUniforms) {
       const time = this.uTime.value
-      this.bendUniforms.uBendFactor.value = 0.33 * (
+      this.bendUniforms.uBendFactor.value = this.bendAmplitude * 0.33 * (
         Math.sin(time * 1.5) * .1
         + Math.sin(time * 3.34) * .03
         + Math.sin(time * 4.732) * .01

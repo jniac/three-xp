@@ -6,12 +6,8 @@ import { setupShaderForge } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
-import { Umbellifer } from './umbellifer'
 
-const glslPatterns = [
-  'vec4 start = modelViewMatrix * vec4( instanceStart, 1.0 );',
-  'vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );',
-]
+import { Umbellifer } from './umbellifer'
 
 function MyScene() {
   const three = useThreeWebGL()!
@@ -19,9 +15,11 @@ function MyScene() {
     three.pipeline.basicPasses.fxaa.enabled = false
 
     setup(new DebugHelper(), group)
-      .regularGrid()
+      .regularGrid({ size: 4 })
 
     const umbellifer = setup(new Umbellifer(), group)
+    umbellifer.bendAmplitude = 2
+    umbellifer.noiseAmplitude = 2
     umbellifer.enableBend()
     yield three.ticker.onTick(tick => {
       umbellifer.update(tick.deltaTime)
@@ -47,8 +45,8 @@ export function ClientPage() {
     <ThreeProvider
       vertigoControls={{
         perspective: .5,
-        size: 2,
-        focus: [0, .5, 0],
+        size: 1.4,
+        focus: [0, .6, 0],
       }}
     >
       <div className='layer thru p-16'>

@@ -17,6 +17,7 @@ import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { glsl_uv_size } from 'some-utils-ts/glsl/uv-size'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Message } from 'some-utils-ts/message'
+import { isHosted } from 'some-utils-ts/misc/is-hosted'
 import { Ticker } from 'some-utils-ts/ticker'
 
 import { useAboutLayout } from './about-layout'
@@ -47,6 +48,7 @@ export function AboutScene() {
   const aboutLayout = useAboutLayout()
   useGroup('my-scene', async function* (group) {
     // three.pipeline.basicPasses.fxaa.enabled = false
+    three.ticker.set({ inactivityWaitDurationMinimum: isHosted() ? 60 : 60 * 5 })
 
     const grainPass = new FilmPass(.5, false)
     three.pipeline.composer.addPass(grainPass)
