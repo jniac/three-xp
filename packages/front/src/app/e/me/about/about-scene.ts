@@ -83,15 +83,19 @@ export function AboutScene() {
           return sin(x * 3.14159265);
         }
         float scroll(vec2 uv) {
+          float x = 0.0;
           float lineId = texture(uAboutMap, uv).b;
-          return lineId > 0.5 ? 1.0 : -1.0;
+          x += 2.5 * lineId;
+          x += (lineId > 0.5 ? 1.0 : -1.0) * uTime * 0.002;
+          return x;
         }
       `)
       .fragment.after('map_fragment', /* glsl */ `
         float timeScale = 0.05;
         vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, uAboutMapSize.x / uAboutMapSize.y);
-        uv.x += uTime * 0.002 * scroll(uv);
-        float d = texture(uAboutMap, uv).r;
+        uv.x += scroll(uv);
+        vec4 aboutTexel = texture(uAboutMap, uv);
+        float d = aboutTexel.r;
         float n = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), uTime * timeScale), 3);
         float n2 = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), (uTime + 1.3) * timeScale), 3);
         // n = spow(n, 2.0);
@@ -105,7 +109,7 @@ export function AboutScene() {
         n2 = n2 * 0.8 + 0.5;
 
         // diffuseColor.rgb = mix(${vec3('#0993efff')}, ${vec3('#220793')}, mix(n2, siiiin(n2 * 5.0), 0.15));
-        float t = mix(n2, siiiin(n2 * 5.0), 0.15);
+        float t = mix(n2, siiiin(n2 * 5.0), 0.25);
         Vec3Ramp r = ramp(t, ${vec3('#0993efff')}, ${vec3('#2556d2ff')}, ${vec3('#220793')});
         diffuseColor.rgb = mix(r.a, r.b, r.t);
 

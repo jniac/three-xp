@@ -60,9 +60,17 @@ async function createStencilTexture() {
   ctx.fillText('Generative Art', -300, y += stepY)
 
   ctx.globalCompositeOperation = 'screen'
-  ctx.fillStyle = '#00f'
   // Note: the blue stripe (line id) has not been tested, overlapping with text may cause artifacts.
-  ctx.fillRect(0, y + stepY, size.x, stepY)
+  y = 0
+  ctx.fillStyle = '#006'
+  ctx.fillRect(0, y, size.x, stepY)
+  y += stepY
+  ctx.fillStyle = '#00f'
+  ctx.fillRect(0, y, size.x, stepY)
+  y += stepY
+  ctx.fillStyle = '#003'
+  ctx.fillRect(0, y, size.x, stepY)
+  y += stepY
 
   const stencilMap = new CanvasTexture(canvas)
   stencilMap.colorSpace = SRGBColorSpace

@@ -6,10 +6,11 @@ import { fromVector3Declaration } from 'some-utils-three/declaration/vector'
 import { createBendUniforms, glsl_bend } from 'some-utils-three/glsl/transform/bend'
 import { slerpVectors } from 'some-utils-three/math/slerp-vectors'
 import { ShaderForge } from 'some-utils-three/shader-forge'
-import { makeMatrix4 } from 'some-utils-three/utils/make'
+import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some-utils-ts/declaration'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
+import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
 /**
@@ -39,7 +40,7 @@ class Segment {
   getSubdivisionCount(): number {
     const length = this.start.distanceTo(this.end)
     if (length <= .05) return 2
-    return Math.ceil(length / .02)
+    return Math.ceil(length / .08)
   }
 
   *positions() {
@@ -224,13 +225,12 @@ export class Umbellifer extends Group {
     for (const leaf of [...s0.allLeaves()])
       leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75 })
 
-    console.log(s0.allDescendantsCount())
-    console.log(s0.allDescendants().reduce((acc, cur) => acc + cur.getSubdivisionCount(), 0))
+    console.log(s0.allDescendants().reduce((acc, cur) => acc + cur.getSubdivisionCount(), 0) / s0.allDescendantsCount())
 
     {
       // Set colors from leaves to root:
-      const color0 = new Color('#ecde0d')
-      const color1 = new Color('#fff')
+      const color0 = makeColor('#d483c6ff').clone()
+      const color1 = makeColor('#fff').clone()
       const stepMax = 3
       let stepCount = 0
       let set0 = new Set<Segment>(s0.allLeaves())
@@ -297,8 +297,13 @@ export class Umbellifer extends Group {
         })
         .vertex.top(
           glsl_bend,
+          glsl_utils,
           glsl_stegu_snoise,
         )
+        .vertex.mainAfterAll(/* glsl */ `
+          // Debug: instance ID to color (displaying the segment)
+          // vColor = hash3(float(gl_InstanceID));
+        `)
 
       const v = shader.vertexShader
       const index0 = shader.vertexShader.indexOf(glslPatterns[0])
