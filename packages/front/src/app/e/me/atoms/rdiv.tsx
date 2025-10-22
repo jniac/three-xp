@@ -14,6 +14,19 @@ const supportedOverrides = new Set(['className', 'style'])
 
 /**
  * RDiv stands for "Responsive Div".
+ * 
+ * It is a wrapper around a standard div that allows overriding certain props 
+ * based on the current screen size (mobile, desktop, tablet).
+ * 
+ * Eg:
+ * ```tsx
+ * <RDiv
+ *   className='p-8'
+ *   mobile={{ className: 'p-4' }}
+ * >
+ *   Content
+ * </RDiv>
+ * ```
  */
 export function RDiv(props: Props) {
   const { mobile, desktop, tablet, ...rest } = props

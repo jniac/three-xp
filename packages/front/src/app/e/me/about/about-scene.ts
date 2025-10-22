@@ -57,8 +57,10 @@ export function AboutScene() {
     three.pipeline.composer.addPass(grainPass)
     yield () => three.pipeline.composer.removePass(grainPass)
 
+    const aboutSdf = await createSdfTexture(three.renderer)
     const uniforms = {
-      uAboutMap: { value: await createSdfTexture(three.renderer) },
+      uAboutMap: { value: aboutSdf.map },
+      uAboutMapSize: { value: aboutSdf.size },
       uPlaneSize: { value: new Vector2() },
       uTime: Ticker.get('three').uTime,
     }
@@ -80,10 +82,15 @@ export function AboutScene() {
         float siiiin(float x) {
           return sin(x * 3.14159265);
         }
+        float scroll(vec2 uv) {
+          float lineId = texture(uAboutMap, uv).b;
+          return lineId > 0.5 ? 1.0 : -1.0;
+        }
       `)
       .fragment.after('map_fragment', /* glsl */ `
         float timeScale = 0.05;
-        vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, 1.0);
+        vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, uAboutMapSize.x / uAboutMapSize.y);
+        uv.x += uTime * 0.002 * scroll(uv);
         float d = texture(uAboutMap, uv).r;
         float n = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), uTime * timeScale), 3);
         float n2 = fnoise(vec3(uv * 0.25 * vec2(1.0, 8.0), (uTime + 1.3) * timeScale), 3);
