@@ -93,6 +93,8 @@ export function AboutScene() {
       .fragment.after('map_fragment', /* glsl */ `
         float timeScale = 0.05;
         vec2 uv = applyUvSize(vUv, uPlaneSize.x / uPlaneSize.y, uAboutMapSize.x / uAboutMapSize.y);
+        uv = scaleAround(uv, vec2(0.5), 1.14);
+        uv.y += -0.006; // nudge to better center vertically
         uv.x += scroll(uv);
         vec4 aboutTexel = texture(uAboutMap, uv);
         float d = aboutTexel.r;

@@ -23,7 +23,7 @@ export function AboutPage() {
         <AboutLayoutProvider>
           <ThreeProvider
             vertigoControls={{
-              // fixed: true,
+              fixed: true,
               size: 1.4,
             }}
             fullscreenKey={{ key: 'f', modifiers: 'shift' }}
