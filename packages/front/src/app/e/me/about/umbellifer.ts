@@ -220,17 +220,17 @@ export class Umbellifer extends Group {
     }
 
     for (const leaf of [...s0.allLeaves()])
-      leaf.split(11, { angle: '70deg', length: .12, altDir: [0, 1, 0], altDirWeight: .5 })
+      leaf.split(11, { angle: '70deg', length: .12, altDir: [0, 1, 0], altDirWeight: .5, lengthVariationFactor: 1.1 })
 
     for (const leaf of [...s0.allLeaves()])
-      leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75 })
+      leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75, lengthVariationFactor: 1.1 })
 
     console.log(s0.allDescendants().reduce((acc, cur) => acc + cur.getSubdivisionCount(), 0) / s0.allDescendantsCount())
 
     {
       // Set colors from leaves to root:
-      const color0 = makeColor('#d483c6ff').clone()
-      const color1 = makeColor('#fff').clone()
+      const color0 = makeColor('#ecde0d').clone()
+      const color1 = makeColor('#83f3f1').clone()
       const stepMax = 3
       let stepCount = 0
       let set0 = new Set<Segment>(s0.allLeaves())
