@@ -230,7 +230,7 @@ export class Umbellifer extends Group {
     {
       // Set colors from leaves to root:
       const color0 = makeColor('#ecde0d').clone()
-      const color1 = makeColor('#83f3f1').clone()
+      const color1 = makeColor('#bbfffeff').clone()
       const stepMax = 3
       let stepCount = 0
       let set0 = new Set<Segment>(s0.allLeaves())

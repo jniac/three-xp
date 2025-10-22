@@ -6,19 +6,43 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { ObservableNumber } from 'some-utils-ts/observables'
 
+const bottomWeights = {
+  default: {
+    left: 5,
+    right: 3,
+  },
+  almostSquareAspect: {
+    maxAspect: 1.2,
+    left: 1,
+    right: 1,
+  },
+}
+
 class AboutLayout {
   changeObs = new ObservableNumber(0)
   root = new Space({ direction: 'vertical' }).add(
-    new Space({ name: 'header', size: ['1rel', 64] }),
-    new Space({ size: ['1rel', 2] }),
-    new Space({ name: 'bottom', size: ['1rel', '1fr'] }).add(
-      new Space({ name: 'left', size: ['1fr', '1rel'] }),
-      new Space({ size: [2, '1rel'] }),
-      new Space({ size: ['1fr', '1rel'] }),
+    new Space('header', {
+      size: ['1rel', 64]
+    }),
+    new Space({
+      size: ['1rel', 2]
+    }),
+    new Space('bottom', {
+      size: ['1rel', '1fr']
+    }).add(
+      new Space('left', {
+        size: [`${bottomWeights.default.left}fr`, '1rel']
+      }),
+      new Space({
+        size: [`${bottomWeights.default.right}fr`, '1rel']
+      }),
     ),
   )
+
   header = this.root.find('header')!
+  bottom = this.root.find('bottom')!
   left = this.root.find('left')!
+
   get isReady() { return this.changeObs.value > 0 }
 }
 
@@ -35,6 +59,16 @@ export function AboutLayoutProvider({ children }: { children?: React.ReactNode }
     yield handleSize(parent, {
       onSize: info => {
         aboutLayout.root.setSize(info.size.x, info.size.y)
+
+        const aspect = info.size.x / info.size.y
+        const currentBottomWeights = aspect < bottomWeights.almostSquareAspect.maxAspect
+          ? bottomWeights.almostSquareAspect
+          : bottomWeights.default
+
+        const [left, right] = aboutLayout.bottom.children
+        left.setWidth(`${currentBottomWeights.left}fr`)
+        right.setWidth(`${currentBottomWeights.right}fr`)
+
         aboutLayout.root.computeLayout()
         aboutLayout.changeObs.value++
         window.requestAnimationFrame(() => {
