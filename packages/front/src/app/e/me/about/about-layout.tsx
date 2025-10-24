@@ -6,15 +6,17 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { ObservableNumber } from 'some-utils-ts/observables'
 
-const bottomWeights = {
-  default: {
-    left: 5,
-    right: 3,
-  },
-  almostSquareAspect: {
-    maxAspect: 1.2,
-    left: 1,
-    right: 1,
+const settings = {
+  bottomWeights: {
+    default: {
+      left: 5,
+      right: 3,
+    },
+    almostSquareAspect: {
+      maxAspect: 4 / 3,
+      left: 1,
+      right: 1,
+    },
   },
 }
 
@@ -31,10 +33,10 @@ class AboutLayout {
       size: ['1rel', '1fr']
     }).add(
       new Space('left', {
-        size: [`${bottomWeights.default.left}fr`, '1rel']
+        size: [`${settings.bottomWeights.default.left}fr`, '1rel']
       }),
       new Space({
-        size: [`${bottomWeights.default.right}fr`, '1rel']
+        size: [`${settings.bottomWeights.default.right}fr`, '1rel']
       }),
     ),
   )
@@ -61,6 +63,7 @@ export function AboutLayoutProvider({ children }: { children?: React.ReactNode }
         aboutLayout.root.setSize(info.size.x, info.size.y)
 
         const aspect = info.size.x / info.size.y
+        const { bottomWeights } = settings
         const currentBottomWeights = aspect < bottomWeights.almostSquareAspect.maxAspect
           ? bottomWeights.almostSquareAspect
           : bottomWeights.default

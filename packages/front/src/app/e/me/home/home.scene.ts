@@ -4,10 +4,10 @@ import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
+import { useResponsive } from '../responsive'
 import { HomeText } from './home-text'
-import { useResponsive } from './responsive'
 
-export function MyScene() {
+export function HomeScene() {
   const three = useThreeWebGL()!
   const responsive = useResponsive()
 

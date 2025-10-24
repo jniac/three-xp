@@ -6,12 +6,12 @@ import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ThreeProvider } from 'some-utils-misc/three-provider'
 import { mapWithSeparator } from 'some-utils-ts/iteration/map-with-separator'
 
-import { RDiv } from './atoms/rdiv'
-import { Spacer } from './atoms/spacer'
-import { Logo } from './components/logo'
-import { VERSION } from './config'
-import { MyScene } from './my-scene'
-import { ResponsiveProvider } from './responsive'
+import { RDiv } from '../atoms/rdiv'
+import { Spacer } from '../atoms/spacer'
+import { Logo } from '../components/logo'
+import { VERSION } from '../config'
+import { ResponsiveProvider } from '../responsive'
+import { HomeScene } from './home.scene'
 
 export function Menu() {
   const Separator = () => <div className='px-6' >{'|'}</div>
@@ -45,7 +45,7 @@ export function Header() {
   )
 }
 
-export function JosephM() {
+export function Home() {
   return (
     <ThreeProvider
       vertigoControls={{
@@ -71,7 +71,7 @@ export function JosephM() {
           </div>
         </RDiv>
 
-        <MyScene />
+        <HomeScene />
       </ResponsiveProvider>
     </ThreeProvider>
   )
