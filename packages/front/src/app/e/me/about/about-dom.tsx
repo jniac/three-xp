@@ -20,9 +20,9 @@ tout particulièrement travailler sur la notion d'espace à 2 ou 3 dimensions,
 et sur la manière dont l'utilisateur peut interagir avec celui-ci.
 
 J'interviens dans des écoles d'art et de design (ENSAAMA, Eartsup, Paris XIII) 
-où j'introduis les étudiants aux techniques de création numérique, qu'il s'agisse
-des outils du web (HTML, CSS, JavaScript) ou des logiciels de création temps réel
-comme Unity ou Unreal Engine.
+où j'introduis auprès des étudiants les techniques de création numérique, qu'il 
+s'agisse des outils du web (HTML, CSS, JavaScript) ou des logiciels de création 
+temps réel comme Unity ou Unreal Engine.
 `
 
 function Header() {
