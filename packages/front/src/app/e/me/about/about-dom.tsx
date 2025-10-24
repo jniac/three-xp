@@ -51,9 +51,8 @@ function Header() {
 
 export function AboutDom() {
   const aboutLayout = useAboutLayout()
-  const frame = useObservableValue(aboutLayout.changeObs)
+  useObservableValue(aboutLayout.changeObs)
   const [left, right] = aboutLayout.bottom.children
-  console.log(left.sizeX.value, right.sizeX.value)
   return (
     <div className='layer thru flex flex-col'>
       <Header />
