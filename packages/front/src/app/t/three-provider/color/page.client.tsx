@@ -1,6 +1,6 @@
 'use client'
 
-import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three'
+import { BackSide, BoxGeometry, Mesh, MeshBasicMaterial, SphereGeometry } from 'three'
 
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { SimpleGridHelper } from 'some-utils-three/helpers/grid'
@@ -9,6 +9,14 @@ import { setup } from 'some-utils-three/utils/tree'
 
 function MyScene() {
   useGroup('my-scene', function* (group) {
+    setup(new Mesh(
+      new SphereGeometry(100, 32, 16),
+      new MeshBasicMaterial({
+        color: '#242424',
+        side: BackSide,
+      }),
+    ), { parent: group })
+
     setup(new SimpleGridHelper(), group)
     setup(new Mesh(
       new BoxGeometry(1, 1, .2),

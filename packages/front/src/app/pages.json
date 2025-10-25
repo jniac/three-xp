@@ -192,6 +192,10 @@
     "dir": "t/three-provider/free-vertigo"
   },
   {
+    "page": "t/three-provider/pointer/page.tsx",
+    "dir": "t/three-provider/pointer"
+  },
+  {
     "page": "t/transform-with-shear/page.tsx",
     "dir": "t/transform-with-shear"
   },

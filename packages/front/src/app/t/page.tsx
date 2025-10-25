@@ -22,6 +22,7 @@ import * as template from './template/page'
 import * as textHelper from './text-helper/page'
 import * as threeProviderColor from './three-provider/color/page'
 import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
+import * as threeProviderPointer from './three-provider/pointer/page'
 import * as transformWithShear from './transform-with-shear/page'
 import * as vertexBendBasic from './vertex-bend/basic/page'
 import * as vertexBendUmbellifer from './vertex-bend/umbellifer/page'
@@ -48,6 +49,7 @@ const pages = {
  'text-helper': textHelper,
  'three-provider/color': threeProviderColor,
  'three-provider/free-vertigo': threeProviderFreeVertigo,
+ 'three-provider/pointer': threeProviderPointer,
  'transform-with-shear': transformWithShear,
  'vertex-bend/basic': vertexBendBasic,
  'vertex-bend/umbellifer': vertexBendUmbellifer,
