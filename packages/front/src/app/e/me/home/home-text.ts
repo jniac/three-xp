@@ -15,13 +15,13 @@ import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_texture_bicubic } from 'some-utils-ts/glsl/texture-bicubic'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
-import { clamp, inverseLerp, inverseLerpUnclamped, lerpUnclamped } from 'some-utils-ts/math/basic'
+import { clamp, inverseLerp, inverseLerpUnclamped, lerpUnclamped, remapUnclamped } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
 import { promisify } from 'some-utils-ts/misc/promisify'
 import { Destroyable } from 'some-utils-ts/types'
 
-import { homeTextSvg } from './home-text.svg'
-import { Responsive } from './responsive'
+import { Responsive } from '../responsive'
+import { homeTextSvg } from './home-text-b.svg'
 
 const WATER_SIZE_DESKTOP = 120 * 3
 const WATER_SIZE_MOBILE = 80 * 3
@@ -173,7 +173,7 @@ export class HomeText extends Group {
       uWaterMap: { value: water.currentTexture() },
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
-      uScale: { value: .7 },
+      uScale: { value: 1.9 },
       uNormalMap: { value: anyLoader.loadTexture('../assets/textures/paper002_1K_NormalGL.jpg') },
     }
 
@@ -204,7 +204,7 @@ export class HomeText extends Group {
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
         variation = slimited(variation, 1.0);
-        Vec3Ramp r = ramp(0.5 + variation * 0.5, 
+        Vec3Ramp r = ramp(0.5 + variation * 0.45, 
           ${vec3('#ff773dff')} * 4.0, 
           ${vec3('#eadc73ff')}, 
           ${vec3('#000000')}, 
@@ -223,9 +223,9 @@ export class HomeText extends Group {
         diffuseColor.rgb *= vec3(1.0 - dimLight * 150.0);
         diffuseColor.rgb += dimLight;
 
-        float strokeVisibilityIdle = pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 0.8, uTime * 0.2))) 
-          * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 2.0);
-        float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.05);
+        float strokeVisibilityIdle = 0.2 + pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 2.8, uTime * 0.2))) 
+          * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 1.5);
+        float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.25);
         float strokeVisibility = stroke.a * max(strokeVisibilityIdle, strokeVisibilityMove);
         diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
 
@@ -234,7 +234,6 @@ export class HomeText extends Group {
 
         diffuseColor.a = 1.0;
       `)
-
 
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
 
@@ -252,8 +251,8 @@ export class HomeText extends Group {
 
       this.state.nextFrame = false
 
-      const scale = three.aspect >= 1 ? 1 : .7
-      uniforms.uScale.value = scale
+      const scale = three.aspect > 1 ? 1 : remapUnclamped(three.aspect, 1, 390 / 663, .85, .64)
+      uniforms.uScale.value = scale * 1.25
 
       uniforms.uTime.value += tick.deltaTime
 
