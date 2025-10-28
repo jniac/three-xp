@@ -1,7 +1,8 @@
-import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2, Vector3 } from 'three'
+import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2, Vector3, Vector4 } from 'three'
 import { BufferGeometryUtils, SVGLoader } from 'three/examples/jsm/Addons.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { GpuComputeWaterDemo } from 'some-utils-three/experimental/gpu-compute/demo/water'
@@ -12,10 +13,12 @@ import { setup } from 'some-utils-three/utils/tree'
 import { glsl_blending } from 'some-utils-ts/glsl/blending'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
 import { glsl_ramp } from 'some-utils-ts/glsl/ramp'
+import { glsl_sdf2d } from 'some-utils-ts/glsl/sdf-2d'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_texture_bicubic } from 'some-utils-ts/glsl/texture-bicubic'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { clamp, inverseLerp, inverseLerpUnclamped, lerpUnclamped, remapUnclamped } from 'some-utils-ts/math/basic'
+import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Message } from 'some-utils-ts/message'
 import { promisify } from 'some-utils-ts/misc/promisify'
 import { Destroyable } from 'some-utils-ts/types'
@@ -84,16 +87,12 @@ function getFillTexture(svg: SVGSVGElement, size: number) {
   for (const element of svg.querySelectorAll('line')) {
     element.remove()
   }
-  for (const path of svg.querySelectorAll('#visual *')) {
-    path.setAttribute('stroke', 'none')
-    path.setAttribute('fill', '#f00')
+  for (const element of svg.querySelectorAll('#text *')) {
+    element.setAttribute('stroke', 'none')
+    element.setAttribute('fill', '#f00')
   }
-  for (const path of svg.querySelectorAll('#tech *')) {
-    path.setAttribute('stroke', 'none')
-    path.setAttribute('fill', '#0f0')
-  }
-  for (const path of svg.querySelectorAll('#baseline *')) {
-    path.remove()
+  for (const element of svg.querySelectorAll('#baseline')) {
+    element.remove()
   }
   return svgToTexture(svg.outerHTML, size, size)
 }
@@ -103,15 +102,16 @@ function getFillTexture(svg: SVGSVGElement, size: number) {
  */
 function getStrokeTexture(svg: SVGSVGElement, size: number) {
   svg = svg.cloneNode(true) as SVGSVGElement
-  const strokeWidth = (.5).toString()
+  const strokeWidth = .5
   for (const element of svg.querySelectorAll('line, path')) {
     element.setAttribute('stroke', '#fff')
     element.setAttribute('fill', 'none')
-    element.setAttribute('stroke-width', strokeWidth)
+    element.setAttribute('stroke-width', strokeWidth.toString())
   }
-  for (const path of svg.querySelectorAll('#baseline *')) {
-    path.setAttribute('stroke', 'none')
-    path.setAttribute('fill', '#fff')
+  for (const element of svg.querySelectorAll('#baseline')) {
+    element.setAttribute('stroke', '#fff')
+    element.setAttribute('fill', 'none')
+    element.setAttribute('stroke-width', (strokeWidth * 1.2).toString())
   }
   return svgToTexture(svg.outerHTML, size, size)
 }
@@ -119,6 +119,7 @@ function getStrokeTexture(svg: SVGSVGElement, size: number) {
 export class HomeText extends Group {
   imageFill: Texture
   imageStroke: Texture
+  toggleRect: Rectangle
 
   state = {
     /**
@@ -129,6 +130,10 @@ export class HomeText extends Group {
      * Whether to update the simulation only on next frame (when `playing` is false).
      */
     nextFrame: false,
+    /**
+     * Whether to automatically move the water simulation.
+     */
+    autoMove: false,
   }
 
   constructor() {
@@ -156,6 +161,17 @@ export class HomeText extends Group {
     const IMAGE_SIZE = 2048 * 2
     this.imageFill = getFillTexture(svg, IMAGE_SIZE)
     this.imageStroke = getStrokeTexture(svg, IMAGE_SIZE)
+
+    const toggleRectElement = svg.querySelector('#toggle rect') as SVGRectElement
+    this.toggleRect = new Rectangle(
+      toggleRectElement.x.baseVal.value,
+      toggleRectElement.y.baseVal.value,
+      toggleRectElement.width.baseVal.value,
+      toggleRectElement.height.baseVal.value)
+      .relativeTo({ x: 0, y: 0, width, height })
+      .mirrorY(1)
+
+    // this.toggleRect.y = 1 - this.toggleRect.y - this.toggleRect.height
   }
 
   *initialize(three: ThreeWebGLContext, responsive: Responsive): Generator<Destroyable, this> {
@@ -174,6 +190,8 @@ export class HomeText extends Group {
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
       uScale: { value: 1.9 },
+      uToggleRect: { value: new Vector4(...this.toggleRect) },
+      uToggleValue: { value: 0 },
       uNormalMap: { value: anyLoader.loadTexture('../assets/textures/paper002_1K_NormalGL.jpg') },
     }
 
@@ -189,7 +207,30 @@ export class HomeText extends Group {
         glsl_stegu_snoise,
         glsl_easings,
         glsl_texture_bicubic,
+        glsl_sdf2d,
       )
+      .fragment.top(/* glsl */`
+        struct Toggle {
+          float roundedRectSdf;
+          float thumbSdf;
+        };
+
+        Toggle computeToggle(vec2 uv) {
+          Toggle toggle;
+
+          vec2 size = uToggleRect.zw;
+          float radius = size.y * 0.5;
+          vec2 center = uToggleRect.xy + size * 0.5;
+          toggle.roundedRectSdf = sdRoundedBox(uv - center, size * 0.5, vec4(radius));
+
+          float deltaX = size.x - size.y;
+          float onOff = easeInOut(uToggleValue, 4.0, 0.5);
+          vec2 thumbCenter = uToggleRect.xy + vec2(radius) + vec2(deltaX * onOff, 0.0);
+          toggle.thumbSdf = sdCircle(uv - thumbCenter, radius *  0.75);
+
+          return toggle;
+        }
+      `)
       .fragment.after('map_fragment', /* glsl */`
         float aspect = uViewportSize.x / uViewportSize.y;
         // vec2 imageUv = (vUv - 0.5) / vec2(1.0, aspect) + 0.5;
@@ -198,9 +239,14 @@ export class HomeText extends Group {
         vec4 fill = texture2D(uImageFill, imageUv);
         float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
 
+        Toggle toggle = computeToggle(imageUv);
+
         // water is sampled with bicubic filtering for smoother look
         // vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
-        vec4 water = textureBicubic(uWaterMap, mix(vUv, oneMinus(scaleAround(vUv, vec2(0.5), 2.0)), fill.a));
+        vec2 outsideUv = vUv;
+        vec2 insideUv = scaleAround(vUv, vec2(0.5), 1.4);
+        // insideUv.y = oneMinus(insideUv.y);
+        vec4 water = textureBicubic(uWaterMap, mix(outsideUv, insideUv, fill.a));
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
         variation = slimited(variation, 1.0);
@@ -232,6 +278,13 @@ export class HomeText extends Group {
         diffuseColor.rgb = pow(oneMinus(diffuseColor.rgb), vec3(6.0));
         diffuseColor.rgb *= vec3(oneMinus(pow(oneMinus(light), 1.75)));
 
+        // float sdf = opOnion(toggle.thumbSdf + -mod(uTime, 1.0) * 0.01, 0.0);
+        // sdf = 1.0 - smoothstep(0.002, 0.0, sdf);
+        // diffuseColor.rgb *= vec3(sdf, sdf, 1.0);
+
+        float thumb = 1.0 - smoothstep(0.0005, 0.0, toggle.thumbSdf);
+        diffuseColor.rgb *= vec3(thumb);
+
         diffuseColor.a = 1.0;
       `)
 
@@ -241,6 +294,12 @@ export class HomeText extends Group {
       [{ code: 'Space' }, () => this.state.playing = !this.state.playing],
       [{ code: /Arrow/ }, () => this.state.nextFrame = true],
     ])
+
+    yield handlePointer(three.domElement, {
+      onTap: () => {
+        this.state.autoMove = !this.state.autoMove
+      },
+    })
 
     const delta = new Vector3()
     const p0 = three.pointer.intersectPlane('xy', { oldFactor: 1 }).clone()
@@ -255,6 +314,8 @@ export class HomeText extends Group {
       uniforms.uScale.value = scale * 1.25
 
       uniforms.uTime.value += tick.deltaTime
+
+      uniforms.uToggleValue.value += ((this.state.autoMove ? 1 : 0) - uniforms.uToggleValue.value) * clamp(tick.deltaTime * 5, 0, 1)
 
       const { realSize } = controls.dampedVertigo.state
       uniforms.uViewportSize.value.set(realSize.width, realSize.height)
@@ -288,7 +349,7 @@ export class HomeText extends Group {
         const isTouch = responsive.layoutObs.value.pointerType === 'touch'
         const radius = isTouch || three.pointer.buttonDown()
           ? WATER_SIZE / 10
-          : lerpUnclamped(0, WATER_SIZE / 10, inverseLerpUnclamped(3, 40, velocity))
+          : lerpUnclamped(0, WATER_SIZE / 10, inverseLerpUnclamped(3, 20, velocity) ** .5)
         const strength = isTouch
           ? (three.pointer.buttonDown() ? 1 : 0)
           : 1
