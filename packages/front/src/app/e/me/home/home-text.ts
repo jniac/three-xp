@@ -182,7 +182,8 @@ export class HomeText extends Group {
         // vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
         vec2 outsideUv = vUv;
         vec2 insideUv = scaleAround(vUv, vec2(0.4), 1.4);
-        insideUv.y = oneMinus(insideUv.y);
+        insideUv.x = oneMinus(insideUv.x);
+        // insideUv.y = oneMinus(insideUv.y);
         vec4 water = textureBicubic(uWaterMap, mix(outsideUv, insideUv, fill.a));
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
@@ -338,6 +339,10 @@ export class HomeText extends Group {
           // if ((this.state.autoMoveIndex + 1) * 4 >= this.autoMovePointerBuffer.length) {
           //   this.state.autoMoveIndex = 0
           // }
+
+          // Cheap slow-mo for auto-move:
+          if (tick.frame % 4 > 0)
+            return
 
           // Procedural auto-move:
           const t = this.state.autoMoveState * 2
