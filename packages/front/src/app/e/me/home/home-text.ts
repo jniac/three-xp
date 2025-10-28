@@ -1,4 +1,4 @@
-import { DataTexture, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2, Vector3, Vector4 } from 'three'
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, RepeatWrapping, ShapeGeometry, Texture, Vector2, Vector3, Vector4 } from 'three'
 import { BufferGeometryUtils, SVGLoader } from 'three/examples/jsm/Addons.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
@@ -20,54 +20,22 @@ import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { clamp, inverseLerp, inverseLerpUnclamped, lerpUnclamped, remapUnclamped } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Message } from 'some-utils-ts/message'
-import { promisify } from 'some-utils-ts/misc/promisify'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { Responsive } from '../responsive'
 import { homeTextSvg } from './home-text-b.svg'
+import { getFillTexture, getStrokeTexture } from './texture'
 
 const WATER_SIZE_DESKTOP = 120 * 3
 const WATER_SIZE_MOBILE = 80 * 3
 const VISCOSITY = .995
 const DAMPING_IDLE = .995
 
-function svgToTexture(svg: any, width = 512, height = 512) {
-  const blob = new Blob([svg], { type: 'image/svg+xml' })
-  const url = URL.createObjectURL(blob)
-
-  const img = new Image()
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')!
-
-  const sourceTexture = new DataTexture(new Uint8Array(4 * 4 * 4).fill(255), 4, 4)
-  sourceTexture.generateMipmaps = true
-  sourceTexture.minFilter = LinearMipMapLinearFilter
-  sourceTexture.magFilter = LinearFilter
-  const texture = promisify(sourceTexture)
-
-  img.onload = () => {
-    ctx.transform(1, 0, 0, -1, 0, height) // flip Y
-    ctx.drawImage(img, 0, 0, width, height)
-    URL.revokeObjectURL(url)
-    texture.image = {
-      data: ctx.getImageData(0, 0, width, height).data,
-      width,
-      height,
-    }
-    texture.needsUpdate = true
-    texture.resolve()
-  }
-  img.onerror = (e) => {
-    texture.reject(e)
-  }
-  img.src = url
-
-  return texture
-}
-
-function applyAspect<T extends { x: number, y: number } = Vector2>(aspect: number, largestSize: number, out?: T): T {
+function applyAspect<T extends { x: number, y: number } = Vector2>(
+  aspect: number,
+  largestSize: number,
+  out?: T,
+): T {
   out ??= new Vector2() as unknown as T
   if (aspect > 1) {
     out.x = largestSize
@@ -77,43 +45,6 @@ function applyAspect<T extends { x: number, y: number } = Vector2>(aspect: numbe
     out.y = largestSize
   }
   return out
-}
-
-/**
- * Process the svg document to create a texture with only the "fill" parts.
- */
-function getFillTexture(svg: SVGSVGElement, size: number) {
-  svg = svg.cloneNode(true) as SVGSVGElement
-  for (const element of svg.querySelectorAll('line')) {
-    element.remove()
-  }
-  for (const element of svg.querySelectorAll('#text *')) {
-    element.setAttribute('stroke', 'none')
-    element.setAttribute('fill', '#f00')
-  }
-  for (const element of svg.querySelectorAll('#baseline')) {
-    element.remove()
-  }
-  return svgToTexture(svg.outerHTML, size, size)
-}
-
-/**
- * 
- */
-function getStrokeTexture(svg: SVGSVGElement, size: number) {
-  svg = svg.cloneNode(true) as SVGSVGElement
-  const strokeWidth = .5
-  for (const element of svg.querySelectorAll('line, path')) {
-    element.setAttribute('stroke', '#fff')
-    element.setAttribute('fill', 'none')
-    element.setAttribute('stroke-width', strokeWidth.toString())
-  }
-  for (const element of svg.querySelectorAll('#baseline')) {
-    element.setAttribute('stroke', '#fff')
-    element.setAttribute('fill', 'none')
-    element.setAttribute('stroke-width', (strokeWidth * 1.2).toString())
-  }
-  return svgToTexture(svg.outerHTML, size, size)
 }
 
 export class HomeText extends Group {
@@ -237,7 +168,7 @@ export class HomeText extends Group {
         vec2 imageUv = (vUv - 0.5) * vec2(aspect, 1.0) / uScale + 0.5;
         vec4 stroke = texture2D(uImageStroke, imageUv);
         vec4 fill = texture2D(uImageFill, imageUv);
-        float inside = mix(0.0, 1.0, max(stroke.a, fill.a));
+        float inside = fill.a;
 
         Toggle toggle = computeToggle(imageUv);
 
@@ -272,7 +203,7 @@ export class HomeText extends Group {
         float strokeVisibilityIdle = 0.2 + pow(inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 2.8, uTime * 0.2))) 
           * inverseLerp(-1.2, 1.0, snoise(vec3(imageUv * 1.8 + 1.2, uTime * 0.2))), 1.5);
         float strokeVisibilityMove = clamp01(pow(abs(water.r) * 0.2, 8.0) * 0.25);
-        float strokeVisibility = stroke.a * max(strokeVisibilityIdle, strokeVisibilityMove);
+        float strokeVisibility = stroke.r * max(strokeVisibilityIdle, strokeVisibilityMove);
         diffuseColor.rgb = screenBlending(diffuseColor.rgb, vec3(1.0) * strokeVisibility);
 
         diffuseColor.rgb = pow(oneMinus(diffuseColor.rgb), vec3(6.0));
@@ -282,10 +213,18 @@ export class HomeText extends Group {
         // sdf = 1.0 - smoothstep(0.002, 0.0, sdf);
         // diffuseColor.rgb *= vec3(sdf, sdf, 1.0);
 
-        float thumb = 1.0 - smoothstep(0.0005, 0.0, toggle.thumbSdf);
-        diffuseColor.rgb *= vec3(thumb);
+        float thumb = smoothstep(0.0005, 0.0, toggle.thumbSdf);
+        vec3 thumbColorOff = mix(${vec3('#ff0008ff')}, ${vec3('#000000')}, 1.0 - easeInOut(sin01(uTime * 0.5), 6.0, 0.95));
+        vec3 thumbColorOn = pow(${vec3('#2500AD')}, vec3(2.2));
+        vec3 thumbColor = mix(thumbColorOff, thumbColorOn, easeInOut(uToggleValue, 4.0, 0.5));
+        diffuseColor.rgb = mix(diffuseColor.rgb, thumbColor, thumb);
 
         diffuseColor.a = 1.0;
+
+        // debug
+        // diffuseColor = stroke;
+        // diffuseColor = fill;
+        // diffuseColor.rgb = vec3(fill.a);
       `)
 
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
@@ -293,6 +232,7 @@ export class HomeText extends Group {
     yield handleKeyboard([
       [{ code: 'Space' }, () => this.state.playing = !this.state.playing],
       [{ code: /Arrow/ }, () => this.state.nextFrame = true],
+      [{ code: 'KeyR' }, () => alert('Reset animation (not implemented)')],
     ])
 
     yield handlePointer(three.domElement, {
