@@ -23,6 +23,7 @@ import { Message } from 'some-utils-ts/message'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { Responsive } from '../responsive'
+import { base64ToFloatBuffer, floatBufferToBase64 } from './float-buffer-utils'
 import { homeTextSvg } from './home-text-b.svg'
 import { getFillTexture, getStrokeTexture } from './texture'
 
@@ -65,7 +66,12 @@ export class HomeText extends Group {
      * Whether to automatically move the water simulation.
      */
     autoMove: false,
+    autoMoveState: 0,
   }
+
+  // Canceled (in favor of procedural auto-move)
+  // autoMovePointerBuffer = base64ToFloatBuffer(pointerRecording1)
+  recordingPointerBuffer = <number[]>[]
 
   constructor() {
     super()
@@ -175,8 +181,8 @@ export class HomeText extends Group {
         // water is sampled with bicubic filtering for smoother look
         // vec4 water = textureBicubic(uWaterMap, vUv + 0.05 * inside);
         vec2 outsideUv = vUv;
-        vec2 insideUv = scaleAround(vUv, vec2(0.5), 1.4);
-        // insideUv.y = oneMinus(insideUv.y);
+        vec2 insideUv = scaleAround(vUv, vec2(0.4), 1.4);
+        insideUv.y = oneMinus(insideUv.y);
         vec4 water = textureBicubic(uWaterMap, mix(outsideUv, insideUv, fill.a));
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
@@ -229,10 +235,33 @@ export class HomeText extends Group {
 
     const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
 
+    let recordingPointer = false
+    const startRecordingPointer = () => {
+      recordingPointer = true
+      console.log('started recording pointer data')
+      this.recordingPointerBuffer = []
+    }
+    const stopRecordingPointer = () => {
+      recordingPointer = false
+      const str = floatBufferToBase64(this.recordingPointerBuffer)
+      console.log('recording pointer data:')
+      console.log(str)
+      // copy to clipboard
+      navigator.clipboard.writeText(str)
+      this.recordingPointerBuffer = []
+    }
+    const toggleRecordingPointer = () => {
+      if (recordingPointer) {
+        stopRecordingPointer()
+      } else {
+        startRecordingPointer()
+      }
+    }
+
     yield handleKeyboard([
       [{ code: 'Space' }, () => this.state.playing = !this.state.playing],
       [{ code: /Arrow/ }, () => this.state.nextFrame = true],
-      [{ code: 'KeyR' }, () => alert('Reset animation (not implemented)')],
+      [{ code: 'KeyR', modifiers: 'shift' }, toggleRecordingPointer],
     ])
 
     yield handlePointer(three.domElement, {
@@ -289,13 +318,52 @@ export class HomeText extends Group {
         const isTouch = responsive.layoutObs.value.pointerType === 'touch'
         const radius = isTouch || three.pointer.buttonDown()
           ? WATER_SIZE / 10
-          : lerpUnclamped(0, WATER_SIZE / 10, inverseLerpUnclamped(3, 20, velocity) ** .5)
+          : lerpUnclamped(0, WATER_SIZE / 10, Math.max(0, inverseLerpUnclamped(3, 20, velocity)) ** .5)
         const strength = isTouch
           ? (three.pointer.buttonDown() ? 1 : 0)
           : 1
         water.setSize(waterSize)
         water.pointer(waterPointer.x, waterPointer.y, radius, -strength)
+
+        if (this.state.autoMove) {
+          // Canceled (in favor of procedural auto-move):
+          // const i4 = this.state.autoMoveIndex * 4
+          // const x = this.autoMovePointerBuffer[i4 + 0]
+          // const y = this.autoMovePointerBuffer[i4 + 1]
+          // const r = this.autoMovePointerBuffer[i4 + 2]
+          // const s = this.autoMovePointerBuffer[i4 + 3]
+          // water.pointer(x, y, r, s)
+
+          // this.state.autoMoveIndex++
+          // if ((this.state.autoMoveIndex + 1) * 4 >= this.autoMovePointerBuffer.length) {
+          //   this.state.autoMoveIndex = 0
+          // }
+
+          // Procedural auto-move:
+          const t = this.state.autoMoveState * 2
+          const a1 = t * .5
+          const x1 = .16 * Math.cos(a1)
+          const y1 = .16 * Math.sin(a1 * 2)
+          const a2 = t * 2
+          const x2 = .02 * Math.cos(a2)
+          const y2 = .02 * Math.sin(a2)
+          const x = .5 + x1 + x2
+          const y = .5 + y1 + y2
+          const r = WATER_SIZE / 10
+          const s = -1
+          water.pointer(x, y, r, s)
+
+          this.state.autoMoveState += 1 / 50
+        }
+
         water.update(tick.deltaTime / SUBSAMPLING)
+
+        if (recordingPointer) {
+          this.recordingPointerBuffer.push(waterPointer.x, waterPointer.y, radius, -strength)
+          if (this.recordingPointerBuffer.length >= 4000) {
+            stopRecordingPointer()
+          }
+        }
       }
       uniforms.uWaterMap.value = water.currentTexture()
 
@@ -305,3 +373,8 @@ export class HomeText extends Group {
     return this
   }
 }
+
+const str = floatBufferToBase64([1, 2, 3, 4, 5, 9999, 12345])
+console.log('floatBufferToBase64 test:', str)
+console.log('base64ToFloatBuffer test:', base64ToFloatBuffer(str))
+
