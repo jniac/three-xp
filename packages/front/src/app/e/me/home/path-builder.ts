@@ -69,6 +69,19 @@ export class SimplePath {
     return this
   }
 
+  rect(params: { x: number, y: number, width: number, height: number }): this {
+    const { x, y, width: w, height: h } = params
+    this.commands.push(CommandFlags.L)
+    this.commands.push(CommandFlags.L)
+    this.commands.push(CommandFlags.L)
+    this.commands.push(CommandFlags.L)
+    this.args.push([x, y])
+    this.args.push([x + w, y])
+    this.args.push([x + w, y + h])
+    this.args.push([x, y + h])
+    return this
+  }
+
   quadraticBezierTo(ax: number, ay: number, x: number, y: number): this {
     this.commands.push(CommandFlags.Q)
     this.args.push([ax, ay, x, y])

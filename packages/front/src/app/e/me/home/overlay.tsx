@@ -5,6 +5,7 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { Animation } from 'some-utils-ts/animation'
 import { lerp } from 'some-utils-ts/math/basic'
+import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { ObservableNumber } from 'some-utils-ts/observables'
 import { SimplePath } from './path-builder'
 
@@ -22,7 +23,7 @@ export function Overlay() {
       const m = 16
       const w = div.clientWidth
       const h = div.clientHeight
-      const tw = 80 // Thumb width
+      const tw = 60 // Thumb width
 
       const tw2 = tw * (1 + 0.2 * thumbHoverObs.get())
       const th = lerp(m * .75, m, thumbHoverObs.get())
@@ -55,11 +56,12 @@ export function Overlay() {
         .lineTo(w / 2 + tw2 / 2 - m, m + dy)
         .getPathData())
 
+      const r = Rectangle.instance
+        .from({ center: [w / 2, m], size: [tw + m * 2, m * 2] })
+        .inflate(m)
       pathThumbArea.setAttribute('d', SimplePath.instance
-        .moveTo(w / 2 - tw / 2 - m, 0)
-        .lineTo(w / 2 + tw / 2 + m, 0)
-        .lineTo(w / 2 + tw / 2 + m, m * 2)
-        .lineTo(w / 2 - tw / 2 - m, m * 2)
+        .clear()
+        .rect(r)
         .closePath()
         .getPathData())
 

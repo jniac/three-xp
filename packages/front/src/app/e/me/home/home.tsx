@@ -36,7 +36,7 @@ export function Home() {
       <ResponsiveProvider>
         <RDiv
           data-info={`Joseph M. — Visual Tech Artist — v${VERSION}`}
-          className='ClientPage layer thru flex flex-col p-8 text-[#2500AD]'
+          className='ClientPage layer thru flex flex-col p-8 text-[#2500AD] select-none'
           mobile={{ className: 'p-4' }}
         >
           <Header />
