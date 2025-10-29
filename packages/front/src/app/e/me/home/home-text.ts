@@ -23,7 +23,7 @@ import { Message } from 'some-utils-ts/message'
 import { Destroyable } from 'some-utils-ts/types'
 
 import { Responsive } from '../responsive'
-import { base64ToFloatBuffer, floatBufferToBase64 } from './float-buffer-utils'
+import { floatBufferToBase64 } from './float-buffer-utils'
 import { homeTextSvg } from './home-text-b.svg'
 import { getFillTexture, getStrokeTexture } from './texture'
 
@@ -378,8 +378,3 @@ export class HomeText extends Group {
     return this
   }
 }
-
-const str = floatBufferToBase64([1, 2, 3, 4, 5, 9999, 12345])
-console.log('floatBufferToBase64 test:', str)
-console.log('base64ToFloatBuffer test:', base64ToFloatBuffer(str))
-

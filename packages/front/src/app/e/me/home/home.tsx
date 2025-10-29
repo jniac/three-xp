@@ -12,6 +12,7 @@ import { VERSION } from '../config'
 import { Menu } from '../menu/menu'
 import { ResponsiveProvider } from '../responsive'
 import { HomeScene } from './home.scene'
+import { Overlay } from './overlay'
 
 export function Header() {
   return (
@@ -47,6 +48,7 @@ export function Home() {
             <span> — </span>
             <FpsMeter />
           </div>
+          <Overlay />
         </RDiv>
 
         <HomeScene />
