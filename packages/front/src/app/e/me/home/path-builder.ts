@@ -122,20 +122,27 @@ export class SimplePath {
     return this
   }
 
-  getPointAt(index: number): { x: number, y: number } | null {
+  getPointAt<T extends Vector2Like>(index: number, out?: T): T | null {
+    out ??= { x: 0, y: 0 } as T
     index = this.loopIndex(index)
     const command = this.commands[index]
     const args = this.args[index]
     switch (command) {
       case CommandFlags.M:
       case CommandFlags.L: {
-        return { x: args[0], y: args[1] }
+        out.x = args[0]
+        out.y = args[1]
+        return out
       }
       case CommandFlags.C: {
-        return { x: args[4], y: args[5] }
+        out.x = args[4]
+        out.y = args[5]
+        return out
       }
       case CommandFlags.Q: {
-        return { x: args[2], y: args[3] }
+        out.x = args[2]
+        out.y = args[3]
+        return out
       }
       default: {
         return null
@@ -165,33 +172,21 @@ export class SimplePath {
     throw new Error(`No next point found after command index ${startIndex}`)
   }
 
-  roundCorner(delegate: (info: { point: Vector2Like, angle: number, line1: Line2, line2: Line2 }) => { radius: number, tension?: number }): this {
+
+  roundCorner(delegate: (info: { index: number, point: Vector2Like, angle: number, line1: Line2, line2: Line2 }) => { radius: number, tension?: number }): this {
     const point = { x: 0, y: 0 }
     const controlPoints = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }]
     const line1 = new Line2()
     const line2 = new Line2()
+    const delegateInfo = { index: 0, point, angle: 0, line1, line2 }
 
-    // p: previous point
-    // c: current point
-    // n: next point
-
-    const pcni = (i: number): [ok: boolean, pi: number, ci: number, ni: number] => {
-      const pc = this.getCommandInfo(i - 1)
-      const cc = this.getCommandInfo(i)
-      const nc = this.getCommandInfo(i + 1)
-      if ((pc.flag === CommandFlags.M || pc.flag === CommandFlags.L) && cc.flag === CommandFlags.L && nc.flag === CommandFlags.L) {
-        return [
-          true,
-          this.loopIndex(i - 1),
-          this.loopIndex(i),
-          this.loopIndex(i + 1)
-        ]
-      }
-      return [false, -1, -1, -1]
-    }
-
+    let iterationIndex = 0
     for (let i = 0; i < this.commands.length; i++) {
-      const cp = this.getPointAt(i)
+      // p: previous point
+      // c: current point
+      // n: next point
+
+      const cp = this.getPointAt(i, point)
 
       if (!cp)
         continue
@@ -204,10 +199,13 @@ export class SimplePath {
       const angle = line1.angleTo(line2)
       if (Math.abs(angle) < 1e-6) {
         // No corner to round
+        iterationIndex += 1
         continue
       }
 
-      const { radius, tension = 1 } = delegate({ point: cp, angle, line1, line2 })
+      delegateInfo.index = iterationIndex // Use iterationIndex to reflect the inserted commands before any new insertions
+      delegateInfo.angle = angle
+      const { radius, tension = 1 } = delegate(delegateInfo)
 
       const offset = angle > 0 ? -radius : radius
       line1.offset(offset)
@@ -234,8 +232,6 @@ export class SimplePath {
       // Compute control points for the cubic Bezier curve
       cubicBezierArcControlPoints(point, radius, a1, a2, tension, controlPoints)
 
-      console.log([pi, i, ni], point, controlPoints)
-
       this.setArgsAt(i, [controlPoints[0].x, controlPoints[0].y])
       this.insertCubicBezierAt(ni,
         controlPoints[1].x, controlPoints[1].y,
@@ -243,6 +239,7 @@ export class SimplePath {
         controlPoints[3].x, controlPoints[3].y)
 
       i += 1 // Skip the inserted command
+      iterationIndex += 1
     }
 
     return this
@@ -258,7 +255,9 @@ export class SimplePath {
       return chunks.join(',')
     }
     const commands: string[] = []
+
     {
+      // Handle first command separately to convert it to 'M'
       switch (this.commands[0]) {
         case CommandFlags.L: {
           const [x, y] = this.args[0]
@@ -281,12 +280,14 @@ export class SimplePath {
         }
       }
     }
+
     for (let i = 1; i < this.commands.length; i++) {
       const { code } = commandsInfo[this.commands[i]]
       commands.push(`${code}${fmtarr(this.args[i])}`)
     }
+
     commands.push('Z')
-    console.log(commands.join('\n'))
+
     return commands.join(' ')
   }
 }
