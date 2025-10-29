@@ -122,7 +122,7 @@ export function AboutScene() {
 
     const plane = setup(new Mesh(new PlaneGeometry(), material), group)
 
-    const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
+    const controls = Message.send<VertigoControls>([three, VertigoControls]).assertPayload()
     const helper = setup(new LayoutDebugHelper(), group)
     helper.visible = false
 

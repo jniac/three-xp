@@ -16,24 +16,30 @@ function EnsureLoadFont() {
   )
 }
 
+export function AboutMain() {
+  return (
+    <AboutLayoutProvider>
+      <ThreeProvider
+        vertigoControls={{
+          fixed: true,
+          size: 1.4,
+        }}
+        fullscreenKey={{ key: 'f', modifiers: 'shift' }}
+      >
+        <AboutDom />
+        <EnsureLoadFont />
+        <DevHideNextJs />
+        <AboutScene />
+      </ThreeProvider>
+    </AboutLayoutProvider>
+  )
+}
+
 export function AboutPage() {
   return (
     <div className='layer p-4 bg-[#eee]'>
       <div className='relative w-full h-full bg-[#220793] rounded-[12px] overflow-hidden'>
-        <AboutLayoutProvider>
-          <ThreeProvider
-            vertigoControls={{
-              fixed: true,
-              size: 1.4,
-            }}
-            fullscreenKey={{ key: 'f', modifiers: 'shift' }}
-          >
-            <AboutDom />
-            <EnsureLoadFont />
-            <DevHideNextJs />
-            <AboutScene />
-          </ThreeProvider>
-        </AboutLayoutProvider>
+        <AboutMain />
       </div>
     </div>
   )

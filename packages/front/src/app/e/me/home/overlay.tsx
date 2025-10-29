@@ -3,10 +3,13 @@
 import { useEffects } from 'some-utils-react/hooks/effects'
 
 import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { handleSize } from 'some-utils-dom/handle/size'
 import { Animation } from 'some-utils-ts/animation'
 import { lerp } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { ObservableNumber } from 'some-utils-ts/observables'
+
+import { AboutMain } from '../about/about'
 import { SimplePath } from './path-builder'
 
 export function Overlay() {
@@ -52,8 +55,8 @@ export function Overlay() {
 
       const dy = m * .75 * openingObs.get()
       pathThumb.setAttribute('d', SimplePath.instance
-        .moveTo(w / 2 - tw2 / 2 + m, m + dy)
-        .lineTo(w / 2 + tw2 / 2 - m, m + dy)
+        .moveTo(w / 2 - tw2 / 2 + m * .666, m + dy)
+        .lineTo(w / 2 + tw2 / 2 - m * .666, m + dy)
         .getPathData())
 
       const r = Rectangle.instance
@@ -77,6 +80,7 @@ export function Overlay() {
 
     yield thumbHoverObs.onChange(update)
     yield openingObs.onChange(update)
+    yield handleSize(div, { onSize: update })
 
     yield handlePointer(pathThumbArea, {
       onEnter: () => {
@@ -105,9 +109,14 @@ export function Overlay() {
     <div ref={ref} className='layer' >
       <svg>
         <path id='background' fill='#220793' />
-        <path id='thumb-line' stroke='#6060FF' strokeWidth={4} strokeLinejoin='round' />
+        <path id='thumb-line' stroke='#185de9' strokeWidth={4} strokeLinejoin='round' />
         <path id='thumb-area' fill='transparent' style={{ cursor: 'pointer' }} />
       </svg>
+      <div className='layer p-[16px]' style={{ pointerEvents: 'none' }}>
+        <div className='relative w-full h-full'>
+          <AboutMain />
+        </div>
+      </div>
     </div>
   )
 }

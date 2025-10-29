@@ -234,7 +234,7 @@ export class HomeText extends Group {
         // diffuseColor.rgb = vec3(fill.a);
       `)
 
-    const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
+    const controls = Message.send<VertigoControls>([three, VertigoControls]).assertPayload()
 
     let recordingPointer = false
     const startRecordingPointer = () => {
