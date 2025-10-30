@@ -120,10 +120,18 @@ export class HomeText extends Group {
 
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), this)
 
+    /**
+     * Shader uniforms
+     * 
+     * Note:
+     * - `uWaterOldMixFactor` is kind of "mounted upside-down": when 0 it shows the current water texture, when 1 it shows the previous texture.
+     */
     const uniforms = {
       uTime: { value: 0 },
       uViewportSize: { value: new Vector2() },
       uWaterMap: { value: water.currentTexture() },
+      uWaterOldMap: { value: water.previousTexture() },
+      uWaterOldMixFactor: { value: 0 },
       uImageFill: { value: this.imageFill },
       uImageStroke: { value: this.imageStroke },
       uScale: { value: 1.9 },
@@ -184,7 +192,14 @@ export class HomeText extends Group {
         vec2 insideUv = scaleAround(vUv, vec2(0.4), 1.4);
         insideUv.x = oneMinus(insideUv.x);
         // insideUv.y = oneMinus(insideUv.y);
+        
         vec4 water = textureBicubic(uWaterMap, mix(outsideUv, insideUv, fill.a));
+        float mixFactor = uWaterOldMixFactor;
+        // mixFactor = sin(uTime * 6.0) * 0.5 + 0.5;
+        if (mixFactor > 0.0) {
+          vec4 waterOld = textureBicubic(uWaterOldMap, mix(outsideUv, insideUv, fill.a));
+          water = mix(water, waterOld, mixFactor);
+        }
 
         float variation = spow(water.r * 0.1, 5.0) / 400.0;
         variation = slimited(variation, 1.0);
@@ -301,6 +316,8 @@ export class HomeText extends Group {
       }
       const velocity = clamp(delta.length() / tick.deltaTime, 0, 50)
 
+      let waterOldMixFactor = 0
+
       /**
        * Sub-sampling the water simulation for constant behavior at different framerate.
        */
@@ -326,6 +343,7 @@ export class HomeText extends Group {
         water.setSize(waterSize)
         water.pointer(waterPointer.x, waterPointer.y, radius, -strength)
 
+
         if (this.state.autoMove) {
           // Canceled (in favor of procedural auto-move):
           // const i4 = this.state.autoMoveIndex * 4
@@ -340,8 +358,14 @@ export class HomeText extends Group {
           //   this.state.autoMoveIndex = 0
           // }
 
+          // NOTE: This has to be rewritten in a better way.
           // Cheap slow-mo for auto-move:
-          if (tick.frame % 4 > 0)
+
+          const FRAME_SKIP = 20
+          waterOldMixFactor = 1 - inverseLerpUnclamped(0, FRAME_SKIP, tick.frame % FRAME_SKIP)
+          uniforms.uWaterOldMixFactor.value = waterOldMixFactor
+
+          if (tick.frame % FRAME_SKIP > 0)
             return
 
           // Procedural auto-move:
@@ -370,11 +394,18 @@ export class HomeText extends Group {
           }
         }
       }
+
       uniforms.uWaterMap.value = water.currentTexture()
+      uniforms.uWaterOldMap.value = water.previousTexture()
+      uniforms.uWaterOldMixFactor.value = waterOldMixFactor
 
       plane.scale.set(realSize.width, realSize.height, 1)
     })
 
+    Object.assign(window, { homeText: this })
+
     return this
   }
+
+  foo = 0
 }
