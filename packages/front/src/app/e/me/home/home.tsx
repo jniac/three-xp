@@ -41,7 +41,7 @@ export function Home() {
         >
           <Header />
           <div className='flex-1 pointer-events-none' />
-          <div className='flex row gap-2 text-[#3333] text-xs'>
+          <div className='flex row gap-2 pb-2 text-[#3333] text-xs'>
             <span>
               {VERSION}
             </span>

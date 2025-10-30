@@ -22,8 +22,9 @@ import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { Message } from 'some-utils-ts/message'
 import { Destroyable } from 'some-utils-ts/types'
 
-import { Responsive } from '../responsive'
+import { Responsive, ScreenSize } from '../responsive'
 import { floatBufferToBase64 } from './float-buffer-utils'
+import { homeTextMobileSvg } from './home-text-b-mobile-svg'
 import { homeTextSvg } from './home-text-b.svg'
 import { getFillTexture, getStrokeTexture } from './texture'
 
@@ -73,12 +74,12 @@ export class HomeText extends Group {
   // autoMovePointerBuffer = base64ToFloatBuffer(pointerRecording1)
   recordingPointerBuffer = <number[]>[]
 
-  constructor() {
+  constructor(screenSize = ScreenSize.Desktop) {
     super()
     this.name = 'home-text'
 
     const svgLoader = new SVGLoader()
-    const result = svgLoader.parse(homeTextSvg)
+    const result = svgLoader.parse(screenSize === ScreenSize.Mobile ? homeTextMobileSvg : homeTextSvg)
 
     const svg = result.xml as unknown as SVGSVGElement
     const width = svg.width.baseVal.value
