@@ -6,6 +6,7 @@ import { AboutDom } from './about-dom'
 import { AboutLayoutProvider } from './about-layout'
 import { AboutScene } from './about-scene'
 
+import { ResponsiveProvider } from '../responsive'
 import './about.css'
 
 function EnsureLoadFont() {
@@ -37,10 +38,12 @@ export function AboutMain() {
 
 export function AboutPage() {
   return (
-    <div className='layer p-4 bg-[#eee]'>
-      <div className='relative w-full h-full bg-[#220793] rounded-[12px] overflow-hidden'>
-        <AboutMain />
+    <ResponsiveProvider>
+      <div className='layer p-4 bg-[#eee]'>
+        <div className='relative w-full h-full bg-[#220793] rounded-[12px] overflow-hidden'>
+          <AboutMain />
+        </div>
       </div>
-    </div>
+    </ResponsiveProvider>
   )
 }

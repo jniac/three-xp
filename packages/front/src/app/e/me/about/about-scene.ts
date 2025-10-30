@@ -21,6 +21,8 @@ import { isHosted } from 'some-utils-ts/misc/is-hosted'
 import { Ticker } from 'some-utils-ts/ticker'
 
 import { leak } from '@/utils/leak'
+
+import { ScreenSize, useResponsive } from '../responsive'
 import { useAboutLayout } from './about-layout'
 import { createSdfTexture } from './about-texture'
 import { Umbellifer } from './umbellifer'
@@ -45,6 +47,7 @@ class LayoutDebugHelper extends DebugHelper {
 }
 
 export function AboutScene() {
+  const responsive = useResponsive()
   const three = useThreeWebGL()!
   const aboutLayout = useAboutLayout()
   useGroup('my-scene', async function* (group) {
@@ -127,9 +130,23 @@ export function AboutScene() {
     helper.visible = false
 
     const umbellifer1 = setup(new Umbellifer(), group)
-      .setPositionOnScene(size => {
-        umbellifer1.position.set(-size.x * .16, -size.y * .48, .75)
-        umbellifer1.rotation.set(0, .25, 0)
+      .setPositionOnScene((screenSize, sceneSize) => {
+        switch (screenSize) {
+          default: {
+            umbellifer1.position.set(sceneSize.x * -.16, -sceneSize.y * .48, .75)
+            umbellifer1.scale.setScalar(.25)
+            umbellifer1.rotation.set(0, .25, 0)
+            umbellifer1.material.linewidth = .0015
+            break
+          }
+          case ScreenSize.Mobile: {
+            umbellifer1.position.set(sceneSize.x * .06, -sceneSize.y * .4, .75)
+            umbellifer1.scale.setScalar(.4)
+            umbellifer1.rotation.set(0, .25, 0)
+            umbellifer1.material.linewidth = .003
+            break
+          }
+        }
       })
       .enableBend()
     yield three.ticker.onTick(tick => {
@@ -154,7 +171,7 @@ export function AboutScene() {
       plane.scale.set(rect.width, rect.height, 1)
       uniforms.uPlaneSize.value.set(rect.width, rect.height)
 
-      umbellifer1.positionOnScene?.(controls.dampedVertigo.state.realSize)
+      umbellifer1.positionOnScene?.(responsive.layoutObs.value.screenSize, controls.dampedVertigo.state.realSize)
     })
   }, [])
 

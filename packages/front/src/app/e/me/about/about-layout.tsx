@@ -6,6 +6,8 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { ObservableNumber } from 'some-utils-ts/observables'
 
+import { useResponsive } from '../responsive'
+
 const settings = {
   bottomWeights: {
     default: {
@@ -35,7 +37,7 @@ class AboutLayout {
       new Space('left', {
         size: [`${settings.bottomWeights.default.left}fr`, '1rel']
       }),
-      new Space({
+      new Space('right', {
         size: [`${settings.bottomWeights.default.right}fr`, '1rel']
       }),
     ),
@@ -44,6 +46,7 @@ class AboutLayout {
   header = this.root.find('header')!
   bottom = this.root.find('bottom')!
   left = this.root.find('left')!
+  right = this.root.find('right')!
 
   get isReady() { return this.changeObs.value > 0 }
 }
@@ -55,12 +58,14 @@ export function useAboutLayout() {
 }
 
 export function AboutLayoutProvider({ children }: { children?: React.ReactNode }) {
+  const responsive = useResponsive()
   const aboutLayout = useMemo(() => new AboutLayout(), [])
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const parent = div.parentElement as HTMLElement
     yield handleSize(parent, {
       onSize: info => {
         aboutLayout.root.setSize(info.size.x, info.size.y)
+        aboutLayout.right.enabled = responsive.layoutObs.value.screenSize !== 'mobile'
 
         const aspect = info.size.x / info.size.y
         const { bottomWeights } = settings

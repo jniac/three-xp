@@ -12,6 +12,7 @@ import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
+import { ScreenSize } from '../responsive'
 
 /**
  * A segment of an umbellifer structure.
@@ -225,8 +226,6 @@ export class Umbellifer extends Group {
     for (const leaf of [...s0.allLeaves()])
       leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75, lengthVariationFactor: 1.1 })
 
-    console.log(s0.allDescendants().reduce((acc, cur) => acc + cur.getSubdivisionCount(), 0) / s0.allDescendantsCount())
-
     {
       // Set colors from leaves to root:
       const color0 = makeColor('#ecde0d').clone()
@@ -270,8 +269,8 @@ export class Umbellifer extends Group {
     this.material = material
   }
 
-  positionOnScene?: (sceneSize: Vector2) => void
-  setPositionOnScene(fn: (sceneSize: Vector2) => void): this {
+  positionOnScene?: (screenSize: ScreenSize, sceneSize: Vector2) => void
+  setPositionOnScene(fn: typeof Umbellifer.prototype.positionOnScene): this {
     this.positionOnScene = fn
     return this
   }

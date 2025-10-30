@@ -63,14 +63,18 @@ export function AboutDom() {
             <Info />
           </div>
         </div>
-        <div className='my-4 w-[2px] bg-[#185DE9] rounded-[1px]' />
-        <div style={{ flex: `${right.sizeX.value} 0` }}>
-          <div className='w-full h-full px-16 flex flex-col justify-center items-center text-sm text-[#a2c1ff]'>
-            {aboutText.split('\n\n').map((text, i) => (
-              <p key={i} className='mb-4 last:mb-0 leading-relaxed'>{text}</p>
-            ))}
-          </div>
-        </div>
+        {aboutLayout.right.enabled && (
+          <>
+            <div className='my-4 w-[2px] bg-[#185DE9] rounded-[1px]' />
+            <div style={{ flex: `${right.sizeX.value} 0` }}>
+              <div className='w-full h-full px-16 flex flex-col justify-center items-center text-sm text-[#a2c1ff]'>
+                {aboutText.split('\n\n').map((text, i) => (
+                  <p key={i} className='mb-4 last:mb-0 leading-relaxed'>{text}</p>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

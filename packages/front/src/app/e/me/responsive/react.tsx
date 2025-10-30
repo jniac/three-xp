@@ -21,6 +21,9 @@ class ResponsiveBundle {
   frameId = -1
 
   update = () => {
+    if (typeof window === 'undefined')
+      return
+
     this.frameId = window.requestAnimationFrame(this.update)
 
     const { innerWidth: width, innerHeight: height } = window
@@ -53,6 +56,9 @@ class ResponsiveBundle {
   }
 
   destroy = () => {
+    if (typeof window === 'undefined')
+      return
+
     window.cancelAnimationFrame(this.frameId)
   }
 
