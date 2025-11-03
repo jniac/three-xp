@@ -186,12 +186,12 @@ export class SimplePath {
   }
 
 
-  roundCorner(delegate: (info: { index: number, point: Vector2Like, angle: number, line1: Line2, line2: Line2 }) => { radius: number, tension?: number }): this {
+  roundCorner(delegate: (info: { pointIndex: number, point: Vector2Like, angle: number, line1: Line2, line2: Line2 }) => { radius: number, tension?: number }): this {
     const point = { x: 0, y: 0 }
     const controlPoints = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }]
     const line1 = new Line2()
     const line2 = new Line2()
-    const delegateInfo = { index: 0, point, angle: 0, line1, line2 }
+    const delegateInfo = { pointIndex: 0, point, angle: 0, line1, line2 }
 
     let iterationIndex = 0
     for (let i = 0; i < this.commands.length; i++) {
@@ -216,7 +216,7 @@ export class SimplePath {
         continue
       }
 
-      delegateInfo.index = iterationIndex // Use iterationIndex to reflect the inserted commands before any new insertions
+      delegateInfo.pointIndex = iterationIndex // Use iterationIndex to reflect the inserted commands before any new insertions
       delegateInfo.angle = angle
       const { radius, tension = 1 } = delegate(delegateInfo)
 

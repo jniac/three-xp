@@ -33,6 +33,12 @@ const WATER_SIZE_MOBILE = 80 * 3
 const VISCOSITY = .995
 const DAMPING_IDLE = .995
 
+const screenSizeFloats: Record<ScreenSize, number> = {
+  [ScreenSize.Mobile]: 1,
+  [ScreenSize.Tablet]: 2,
+  [ScreenSize.Desktop]: 3,
+}
+
 function applyAspect<T extends { x: number, y: number } = Vector2>(
   aspect: number,
   largestSize: number,
@@ -139,6 +145,7 @@ export class HomeText extends Group {
       uToggleRect: { value: new Vector4(...this.toggleRect) },
       uToggleValue: { value: 0 },
       uNormalMap: { value: anyLoader.loadTexture('../assets/textures/paper002_1K_NormalGL.jpg') },
+      uScreenSizeFloat: { value: screenSizeFloats[responsive.layoutObs.value.screenSize] },
     }
 
     uniforms.uNormalMap.value.wrapS = uniforms.uNormalMap.value.wrapT = RepeatWrapping
@@ -213,8 +220,9 @@ export class HomeText extends Group {
         diffuseColor.rgb = mix(r.a, r.b, r.t);
 
         // Add some fake lighting
+        float normalMapScale = uScreenSizeFloat < 1.5 ? 0.5 : 1.0;
         vec2 normalUvOffset = vec2(hash(uTime), hash(uTime * 2.0));
-        vec3 normalMap = texture2D(uNormalMap, imageUv * 1.0 + normalUvOffset).xyz * 2.0 - 1.0;
+        vec3 normalMap = texture2D(uNormalMap, imageUv * normalMapScale + normalUvOffset).xyz * 2.0 - 1.0;
         normalMap.y *= -1.0;
         vec3 normal = normalize(vec3(normalMap.xy, 1.0));
         vec3 lightDir = normalize(vec3(-1.0, 1.0, -1.0));
@@ -298,6 +306,8 @@ export class HomeText extends Group {
 
       const scale = three.aspect > 1 ? 1 : remapUnclamped(three.aspect, 1, 390 / 663, .85, .64)
       uniforms.uScale.value = scale * 1.25
+
+      uniforms.uScreenSizeFloat.value = screenSizeFloats[responsive.layoutObs.value.screenSize]
 
       uniforms.uTime.value += tick.deltaTime
 
