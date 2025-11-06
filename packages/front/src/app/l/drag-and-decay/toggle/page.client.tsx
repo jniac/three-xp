@@ -30,9 +30,13 @@ export function PageClient() {
       }}
     >
       <div className='layer thru p-8'>
-        <h1 className='text-2xl'>
+        <h1 className='text-2xl font-bold'>
           Decay
         </h1>
+        <p className='mt-4 max-w-md'>
+          Trying to combine mouse drag & mouse wheel to control a single object
+          with multiple stop positions and decay.
+        </p>
       </div>
 
       <MyScene />

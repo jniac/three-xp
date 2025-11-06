@@ -1,42 +1,29 @@
 'use client'
-import { CircleGeometry, IcosahedronGeometry, Mesh, TorusGeometry } from 'three'
-
-import { handlePointer } from 'some-utils-dom/handle/pointer'
-import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
-import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
-import { TransformDeclaration } from 'some-utils-three/declaration'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { setup } from 'some-utils-three/utils/tree'
 import { lerp, limitedClamp } from 'some-utils-ts/math/basic'
+import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
-import { Message } from 'some-utils-ts/message'
 import { Memorization } from 'some-utils-ts/observables/memorization'
 
-import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
-import { DebugHelper } from 'some-utils-three/helpers/debug'
-import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
-import { VELOCITY_SCALE } from './settings'
-
-class ToggleMobile {
+export class ToggleMobile {
   static DragState = {
     None: 0,
     JustStarted: 1,
     Dragging: 2,
-  }
+  };
 
   static defaultProps = {
     positions: [0, 100],
     overshootLimit: 20,
     /**
      * The damping ratio applied when dragging the mobile.
-     * 
+     *
      * Value between 0 and 1. Represents the missing part of the value after 1 second.
-     * 
+     *
      * For example, a value of 0.01 means that after 1 second, 1% of the distance
      * will be missing.
      */
     dragDamping: .0001,
-  }
+  };
 
   props: typeof ToggleMobile.defaultProps
 
@@ -55,9 +42,9 @@ class ToggleMobile {
     inputPosition: 0,
     naturalDestination: 0,
     destination: 0,
-  }
+  };
 
-  dragMobile = new DragMobile()
+  dragMobile = new DragMobile();
 
   get firstPosition() { return this.props.positions[0] }
   get lastPosition() { return this.props.positions[this.props.positions.length - 1] }
@@ -132,10 +119,8 @@ class ToggleMobile {
   dragAutoStart(delta: number, { distanceThreshold = 5 } = {}): this {
     // Solution #1: skip if still in drag auto-lock period
     // this.state.inputPosition += delta * dragControlFactor
-
     // if (this.#dragStartCoolDownFor(this.state.time) < 1)
     //   return this
-
     // Solution #2: gradual control regain (tricky...)
     const dragControlFactor = Math.min(1, Math.pow(this.#dragStartCoolDownFor(this.state.time), 2))
     this.state.inputPosition = lerp(
@@ -219,77 +204,4 @@ class ToggleMobile {
       // this.state.inputPosition = this.state.position // Sync input position when not dragging
     }
   }
-}
-
-export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } & TransformDeclaration) {
-  const three = useThreeWebGL()!
-  useGroup('toggle-demo', props, function* (group) {
-    const controls = Message.send<VertigoControls>(VertigoControls).assertPayload()
-
-    setup(new DebugHelper(), group)
-      .text([0, -12, 0], `d: ${dragDamping?.toPrecision(3).replace(/0+$/, '') || 'default'}`, { size: 1, color: 'white' })
-
-    const sphere1 = setup(new Mesh(new IcosahedronGeometry(1, 12), new AutoLitMaterial({})), group)
-
-    const mobile = new ToggleMobile({
-      dragDamping,
-      positions: [-10, -1.5, 1.5, 10],
-      overshootLimit: 3,
-    })
-
-    for (const position of mobile.props.positions) {
-      const ring = setup(new Mesh(new TorusGeometry(1.2, .05), new AutoLitMaterial({})), group)
-      ring.position.y = position
-    }
-
-    const ringInputPosition = setup(new Mesh(
-      new CircleGeometry(1.6, 32),
-      new AutoLitMaterial({ color: '#022c14' })),
-      group)
-    const ringNaturalDestination = setup(new Mesh(
-      new TorusGeometry(1.4, .05),
-      new AutoLitMaterial({ color: '#7636c9' })),
-      group)
-
-    let usingWheel = false
-    const getFactor = () => controls.dampedVertigo.state.realSize.y / three.domElement.clientHeight
-    yield handlePointer(three.domElement, {
-      onVerticalDragStart: () => {
-        mobile.dragStart()
-      },
-      onVerticalDrag: info => {
-        usingWheel = false
-        const dy = getFactor() * -info.delta.y * VELOCITY_SCALE
-        mobile.drag(dy)
-      },
-      onVerticalDragStop: () => {
-        mobile.dragStop()
-      },
-
-      onWheel: info => {
-        usingWheel = true
-        const dy = getFactor() * info.delta.y * VELOCITY_SCALE * 1
-        mobile.dragAutoStart(dy, { distanceThreshold: 1 })
-      },
-    })
-
-    yield handleKeyboard([
-      [' ', () => {
-        ringInputPosition.visible = !ringInputPosition.visible
-        ringNaturalDestination.visible = !ringNaturalDestination.visible
-      }]
-    ])
-
-    yield three.ticker.onTick(() => {
-      if (usingWheel)
-        mobile.dragAutoStop({ velocityThreshold: 20 })
-
-      mobile.update(three.ticker.deltaTime)
-      sphere1.position.y = mobile.position
-
-      ringInputPosition.position.y = mobile.state.inputPosition
-      ringNaturalDestination.position.y = mobile.state.naturalDestination
-    })
-  }, [])
-  return null
 }
