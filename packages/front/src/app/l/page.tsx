@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import { SummaryPage } from '@/components/summary'
 
 import * as depthOffset from './depth-offset/page'
+import * as dragAndDecay from './drag-and-decay/page'
 import * as occludedLines from './occluded-lines/page'
 import * as transformWithShear0Intro from './transform-with-shear/0-intro/page'
 import * as transformWithShear1Shear from './transform-with-shear/1-shear/page'
@@ -15,6 +16,7 @@ import * as webgpu from './webgpu/page'
 
 const pages = {
  'depth-offset': depthOffset,
+ 'drag-and-decay': dragAndDecay,
  'occluded-lines': occludedLines,
  'transform-with-shear/0-intro': transformWithShear0Intro,
  'transform-with-shear/1-shear': transformWithShear1Shear,
