@@ -1,4 +1,3 @@
-'use client'
 import { lerp, limitedClamp } from 'some-utils-ts/math/basic'
 import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
@@ -21,21 +20,25 @@ export class ToggleMobile {
      *
      * For example, a value of 0.01 means that after 1 second, 1% of the distance
      * will be missing.
+     * 
+     * .00001 is a good default value:
+     * - .00001 ** .1 = ~.31, so after 0.1s, ~31% of the distance is missing
      */
-    dragDamping: .0001,
+    dragDamping: .00001,
   };
 
   props: typeof ToggleMobile.defaultProps
 
   state = {
+    positionIndex: 0,
     position: 0,
     time: 0,
     deltaTime: 0,
 
     dragging: false,
     dragVelocity: 0,
-    dragStartTime: 0,
-    dragStopTime: 0,
+    dragStartTime: -Infinity,
+    dragStopTime: -Infinity,
     dragVelocityMem: new Memorization(6, 0),
     dragState: ToggleMobile.DragState.None,
 
@@ -58,6 +61,46 @@ export class ToggleMobile {
     this.state.destination = this.firstPosition
     this.state.naturalDestination = this.firstPosition
     this.dragMobile.set({ position: this.firstPosition })
+  }
+
+  computeClosestPositionIndex(position: number): number {
+    let closestIndex = 0
+    let closestDistance = Math.abs(position - this.props.positions[0])
+    for (let i = 1; i < this.props.positions.length; i++) {
+      const pos = this.props.positions[i]
+      const distance = Math.abs(position - pos)
+      if (distance < closestDistance) {
+        closestIndex = i
+        closestDistance = distance
+      }
+    }
+    return closestIndex
+  }
+
+  inverseLerpPosition(position: number): number {
+    const min = this.props.positions[0]
+    const max = this.props.positions[this.props.positions.length - 1]
+    return (position - min) / (max - min)
+  }
+
+  goto(index: number): this {
+    const { positions } = this.props
+    if (index < 0)
+      index += positions.length
+    this.dragStop()
+    this.dragMobile.set({ drag: 1 - 1e-6 })
+    this.dragMobile.setVelocityForDestination(positions[index])
+    this.state.destination = positions[index]
+    this.state.naturalDestination = positions[index]
+    this.state.inputPosition = this.state.position // Sync input position to current position
+    return this
+  }
+
+  gotoNext({ loop = false } = {}): this {
+    let nextIndex = this.state.positionIndex + 1
+    if (nextIndex >= this.props.positions.length)
+      nextIndex = loop ? 0 : this.props.positions.length - 1
+    return this.goto(nextIndex)
   }
 
   dragStart(): this {
@@ -116,17 +159,21 @@ export class ToggleMobile {
     this.state.inputPosition += delta
   }
 
+  isDragAutoStartUnderCooldown(): boolean {
+    return this.#dragStartCooldownFor(this.state.time) < 1
+  }
   dragAutoStart(delta: number, { distanceThreshold = 5 } = {}): this {
     // Solution #1: skip if still in drag auto-lock period
-    // this.state.inputPosition += delta * dragControlFactor
-    // if (this.#dragStartCoolDownFor(this.state.time) < 1)
-    //   return this
-    // Solution #2: gradual control regain (tricky...)
-    const dragControlFactor = Math.min(1, Math.pow(this.#dragStartCoolDownFor(this.state.time), 2))
-    this.state.inputPosition = lerp(
-      this.state.position,
-      this.state.inputPosition + delta * dragControlFactor,
-      dragControlFactor * .8 + .2)
+    this.state.inputPosition += delta
+    if (this.isDragAutoStartUnderCooldown())
+      return this
+
+    // // Solution #2: gradual control regain (tricky...)
+    // const dragControlFactor = Math.min(1, Math.pow(this.#dragStartCoolDownFor(this.state.time), 2))
+    // this.state.inputPosition = lerp(
+    //   this.state.position,
+    //   this.state.inputPosition + delta * dragControlFactor,
+    //   dragControlFactor * .8 + .2)
 
     if (this.state.dragState === ToggleMobile.DragState.Dragging) // Already dragging
       return this
@@ -138,8 +185,8 @@ export class ToggleMobile {
     return this
   }
 
-  #dragStartCoolDownFor(time: number): number {
-    const COOL_DOWN_DRAG_START = .8
+  #dragStartCooldownFor(time: number): number {
+    const COOL_DOWN_DRAG_START = .6
     return (time - this.state.dragStopTime) / COOL_DOWN_DRAG_START
   }
 
@@ -149,7 +196,7 @@ export class ToggleMobile {
   }
 
   #isDragAutoLockedFor(time: number): boolean {
-    return this.#dragStartCoolDownFor(time) < 1 || this.#dragStopCoolDownFor(time) < 1
+    return this.#dragStartCooldownFor(time) < 1 || this.#dragStopCoolDownFor(time) < 1
   }
 
   isDragAutoLocked(): boolean {
@@ -173,6 +220,7 @@ export class ToggleMobile {
     this.state.deltaTime = deltaTime
     this.state.time += deltaTime
 
+    // Update input position if just finished drag auto-lock
     const timeOld = this.state.time - deltaTime
     const dragAutoLockEnd = this.#isDragAutoLockedFor(timeOld)
       && this.#isDragAutoLockedFor(this.state.time) === false
@@ -203,5 +251,62 @@ export class ToggleMobile {
       this.state.position = this.dragMobile.position
       // this.state.inputPosition = this.state.position // Sync input position when not dragging
     }
+
+    this.state.positionIndex = this.computeClosestPositionIndex(this.state.position)
+  }
+
+  /**
+   * A single method to generate AND update an SVG representation of the ToggleMobile.
+   */
+  svgRepresentation({
+    svg = <SVGSVGElement | null>null,
+  } = {}): SVGSVGElement {
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      svg.setAttribute('viewBox', '-30 -30 100 500')
+      svg.setAttribute('width', '100')
+      svg.setAttribute('height', '500')
+    }
+
+    let head = svg.querySelector('circle.head')
+    if (!head) {
+      head = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      head.classList.add('head')
+      head.setAttribute('r', '5')
+      head.setAttribute('fill', 'none')
+      head.setAttribute('stroke', 'white')
+      svg.appendChild(head)
+    }
+
+    const stops = [...svg.querySelectorAll('circle.stop')]
+    while (stops.length < this.props.positions.length) {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      circle.classList.add('stop')
+      circle.setAttribute('r', '3')
+      circle.setAttribute('fill', 'white')
+      svg.appendChild(circle)
+      stops.push(circle)
+    }
+    while (stops.length > this.props.positions.length) {
+      const circle = stops.pop()
+      if (circle && circle.parentNode)
+        circle.parentNode.removeChild(circle)
+    }
+
+    const remap = (position: number) => {
+      const value = this.inverseLerpPosition(position) * 200 + 10
+      return value
+    }
+
+    for (let i = 0; i < this.props.positions.length; i++) {
+      const pos = this.props.positions[i]
+      const y = remap(pos)
+      const circle = stops[i]
+      circle.setAttribute('cy', `${y}`)
+    }
+
+    head.setAttribute('cy', `${remap(this.state.position)}`)
+
+    return svg
   }
 }

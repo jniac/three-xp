@@ -11,7 +11,7 @@ import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 
-import { ToggleMobile } from '../../toggle-mobile'
+import { ToggleMobile } from '../toggle-mobile'
 import { VELOCITY_SCALE } from './settings'
 
 export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } & TransformDeclaration) {
@@ -23,8 +23,6 @@ export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } &
       .text([0, -12, 0], `d: ${dragDamping?.toPrecision(3).replace(/0+$/, '') || 'default'}`, { size: 1, color: 'white' })
 
     const sphere1 = setup(new Mesh(new IcosahedronGeometry(1, 12), new AutoLitMaterial({})), group)
-
-    const text = setup(new DebugHelper(), sphere1)
 
     const mobile = new ToggleMobile({
       dragDamping,
@@ -84,7 +82,6 @@ export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } &
 
       circleInputPosition.position.y = mobile.state.inputPosition
       ringNaturalDestination.position.y = mobile.state.naturalDestination
-      text.textAt(0, `${mobile.state.positionIndex}`, { position: [0, 0, 1], size: 4, color: 'blue' })
     })
   }, [])
   return null
