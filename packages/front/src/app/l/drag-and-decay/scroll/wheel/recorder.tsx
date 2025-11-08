@@ -40,9 +40,6 @@ export function WheelRecorder({
           progressBarFill.style.width = `${(progress * 100).toFixed(2)}%`
         }
       },
-      onWheelFrame: () => {
-
-      },
     })
 
     yield onTick(() => {

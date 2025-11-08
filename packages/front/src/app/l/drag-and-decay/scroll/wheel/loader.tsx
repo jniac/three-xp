@@ -105,10 +105,10 @@ class WheelData {
       const frameIndex = frame - firstFrame
       // Note: there might be multiple entries for the same frame
       const frameDelta = deltas[frameIndex] + deltaY
+      deltas[frameIndex] = frameDelta
 
       // Note: fill in the gaps from lastFrameIndex to frameIndex
       for (let j = lastFrameIndex + 1; j <= frameIndex; j++) {
-        deltas[j] = frameDelta
         cumulativeDeltas[j] = cumulative
       }
 
@@ -155,6 +155,20 @@ function DataInfo({ wheelData }: { wheelData: WheelData }) {
   )
 }
 
+function HorizontalLine({ y }: { y: number }) {
+  return (
+    <line
+      x1={0}
+      y1={y}
+      x2={400}
+      y2={y}
+      stroke='#fff6'
+      strokeWidth={1}
+      strokeDasharray='4 4'
+    />
+  )
+}
+
 export function WheelLoader() {
   const [data, setData] = useState<WheelData | null>(null)
 
@@ -186,13 +200,13 @@ export function WheelLoader() {
           <path
             d={data.cumulativeDeltas.getSvgPathData({ width, height })}
             stroke='white'
-            strokeWidth={2}
+            strokeWidth={1}
             fill='none'
           />
           <path
             d={data.deltas.getSvgPathData({ width, height })}
             stroke='white'
-            strokeWidth={2}
+            strokeWidth={1}
             fill='none'
           />
           <path
@@ -218,15 +232,12 @@ export function WheelLoader() {
             strokeWidth={2}
             fill='none'
           />
-          <line
-            x1={0}
-            y1={data.cumulativeDeltas.scaleY(mobilePositions[1], { height })}
-            x2={width}
-            y2={data.cumulativeDeltas.scaleY(mobilePositions[1], { height })}
-            stroke='#fff6'
-            strokeWidth={1}
-            strokeDasharray='4 4'
-          />
+          {mobilePositions.slice(1).map(position => (
+            <HorizontalLine
+              key={position}
+              y={data.cumulativeDeltas.scaleY(position, { height })}
+            />
+          ))}
         </svg>
       </>}
     </div>

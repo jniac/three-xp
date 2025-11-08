@@ -12,7 +12,6 @@ import { ToggleMobile } from '../toggle-mobile'
 import { WheelLoader } from './wheel/loader'
 import { WheelRecorder } from './wheel/recorder'
 
-
 function MyScene() {
   const three = useThreeWebGL()!
   useGroup('my-scene', function* (group) {
@@ -21,7 +20,6 @@ function MyScene() {
     setup(new DebugHelper(), group)
       .regularGrid()
   })
-
   return null
 }
 
@@ -154,7 +152,6 @@ function ScrollingContent() {
     </div>
   )
 }
-
 
 function WrapperChip({ borderColor = 'white' }: { borderColor?: string }) {
   return (
