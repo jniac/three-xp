@@ -3,12 +3,82 @@ import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
 import { Memorization } from 'some-utils-ts/observables/memorization'
 
+type CallbackType = string | number | Symbol
+type Callback<TArgs extends any[] = any[]> = (...args: [type: CallbackType, ...TArgs]) => (void | 'unsubscribe')
+
+class CallbackHandler<TArgs extends any[] = any[]> {
+  map = new Map<CallbackType, Set<Callback<TArgs>>>()
+
+  add(type: CallbackType, callback: Callback<TArgs>): { unsubscribe: () => void } {
+    if (!this.map.has(type))
+      this.map.set(type, new Set())
+    const set = this.map.get(type)!
+    set.add(callback)
+    return {
+      unsubscribe: () => this.unsubscribe(type, callback),
+    }
+  }
+
+  addOnce(type: CallbackType, callback: Callback<TArgs>): { unsubscribe: () => void } {
+    const wrapper: Callback<TArgs> = (...args) => {
+      callback(...args)
+      return 'unsubscribe' as const
+    }
+    return this.add(type, wrapper)
+  }
+
+  dispatch(type: CallbackType, ...args: TArgs): this {
+    const wildcardSet = this.map.get('*')
+
+    if (wildcardSet) {
+      for (const callback of wildcardSet) {
+        const result = callback(type, ...args)
+        if (result === 'unsubscribe')
+          wildcardSet.delete(callback)
+      }
+      if (wildcardSet.size === 0)
+        this.map.delete('*')
+    }
+
+    const set = this.map.get(type)
+    if (set) {
+      for (const callback of set) {
+        const result = callback(type, ...args)
+        if (result === 'unsubscribe')
+          set.delete(callback)
+      }
+      if (set.size === 0)
+        this.map.delete(type)
+    }
+
+    return this
+  }
+
+  unsubscribe(type: CallbackType, callback: Callback<TArgs>): boolean {
+    const set = this.map.get(type)
+    if (!set)
+      return false
+    const result = set.delete(callback)
+    if (set.size === 0)
+      this.map.delete(type)
+    return result
+  }
+}
+
 export class ToggleMobile {
   static DragState = {
     None: 0,
     JustStarted: 1,
     Dragging: 2,
-  };
+  }
+
+  static Events = {
+    MovingStart: 'moving-start',
+    MovingStop: 'moving-stop',
+    DragStart: 'drag-start',
+    DragStop: 'drag-stop',
+    DragAutoLockEnd: 'drag-auto-lock-end',
+  }
 
   static defaultProps = {
     positions: [0, 100],
@@ -35,16 +105,22 @@ export class ToggleMobile {
     time: 0,
     deltaTime: 0,
 
+    moving: false,
+
+    positionMem: new Memorization(10, 0),
+    velocityMem: new Memorization(10, 0),
+
     dragging: false,
     dragVelocity: 0,
     dragStartTime: -Infinity,
     dragStopTime: -Infinity,
-    dragVelocityMem: new Memorization(6, 0),
     dragState: ToggleMobile.DragState.None,
 
     inputPosition: 0,
     naturalDestination: 0,
     destination: 0,
+
+    callbacks: new CallbackHandler<[ToggleMobile]>(),
   };
 
   dragMobile = new DragMobile();
@@ -61,6 +137,10 @@ export class ToggleMobile {
     this.state.destination = this.firstPosition
     this.state.naturalDestination = this.firstPosition
     this.dragMobile.set({ position: this.firstPosition })
+  }
+
+  on(type: (typeof ToggleMobile.Events)[keyof typeof ToggleMobile.Events], callback: (type: any, mobile: ToggleMobile) => void) {
+    return this.state.callbacks.add(type, callback)
   }
 
   computeClosestPositionIndex(position: number): number {
@@ -96,6 +176,13 @@ export class ToggleMobile {
     return this
   }
 
+  gotoPrevious({ loop = false } = {}): this {
+    let prevIndex = this.state.positionIndex - 1
+    if (prevIndex < 0)
+      prevIndex = loop ? this.props.positions.length - 1 : 0
+    return this.goto(prevIndex)
+  }
+
   gotoNext({ loop = false } = {}): this {
     let nextIndex = this.state.positionIndex + 1
     if (nextIndex >= this.props.positions.length)
@@ -111,7 +198,7 @@ export class ToggleMobile {
     this.state.dragging = true
     this.state.dragState = ToggleMobile.DragState.JustStarted
 
-    console.log('drag start')
+    this.state.callbacks.dispatch(ToggleMobile.Events.DragStart, this)
 
     return this
   }
@@ -148,6 +235,8 @@ export class ToggleMobile {
     this.state.inputPosition = this.state.position // Sync input position to current position
 
     this.dragMobile.setVelocityForDestination(closestPosition)
+
+    this.state.callbacks.dispatch(ToggleMobile.Events.DragStop, this)
 
     return this
   }
@@ -216,7 +305,7 @@ export class ToggleMobile {
     return this
   }
 
-  update(deltaTime: number) {
+  update(deltaTime: number): this {
     this.state.deltaTime = deltaTime
     this.state.time += deltaTime
 
@@ -224,8 +313,10 @@ export class ToggleMobile {
     const timeOld = this.state.time - deltaTime
     const dragAutoLockEnd = this.#isDragAutoLockedFor(timeOld)
       && this.#isDragAutoLockedFor(this.state.time) === false
-    if (dragAutoLockEnd)
+    if (dragAutoLockEnd) {
       this.state.inputPosition = this.state.position // Sync input position when not dragging
+      this.state.callbacks.dispatch(ToggleMobile.Events.DragAutoLockEnd, this)
+    }
 
     if (this.state.dragging) {
       const { overshootLimit: ol } = this.props
@@ -253,6 +344,20 @@ export class ToggleMobile {
     }
 
     this.state.positionIndex = this.computeClosestPositionIndex(this.state.position)
+    this.state.positionMem.setValue(this.state.position, true)
+    this.state.velocityMem.setValue(this.state.dragVelocity, true)
+
+    const movingNew = Math.abs(this.state.velocityMem.average) > 1e-5
+    const movingOld = this.state.moving
+    this.state.moving = movingNew
+    if (movingNew !== movingOld) {
+      const type = movingNew
+        ? ToggleMobile.Events.MovingStart
+        : ToggleMobile.Events.MovingStop
+      this.state.callbacks.dispatch(type, this)
+    }
+
+    return this
   }
 
   /**

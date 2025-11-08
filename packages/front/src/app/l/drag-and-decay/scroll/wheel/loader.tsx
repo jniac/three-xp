@@ -3,9 +3,8 @@
 import { useState } from 'react'
 
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { ToggleMobile } from '../../toggle-mobile'
 
-const mobilePositions = [0, 406.5, 813]
+import { ToggleMobile } from '../../toggle-mobile'
 
 class Data {
   data: Float32Array
@@ -18,20 +17,25 @@ class Data {
     this.max = data.reduce((max, val) => Math.max(max, val), -Infinity)
   }
 
-  scaleY = (value: number, { height = 200 } = {}) => {
-    const { min, max } = this
-    const delta = max - min
-    const scaleY = 1 / (delta === 0 ? 1 : delta)
-    return (1 - (value - min) * scaleY) * height
-  }
-
-  getSvgPathData({ width = 500, height = 200, scaleY = this.scaleY } = {}) {
-    const pathData: string[] = []
+  mapX = (index: number, { width = 500 } = {}) => {
     const length = this.data.length
     const scaleX = width / length
+    return index * scaleX
+  }
+
+  mapY = (value: number, { height = 200 } = {}) => {
+    const { min, max } = this
+    const delta = max - min
+    const mapY = 1 / (delta === 0 ? 1 : delta)
+    return (1 - (value - min) * mapY) * height
+  }
+
+  getSvgPathData({ width = 500, height = 200, mapY = this.mapY } = {}) {
+    const pathData: string[] = []
+    const length = this.data.length
     for (let i = 0; i < length; i++) {
-      const x = i * scaleX
-      const y = scaleY(this.data[i], { height })
+      const x = this.mapX(i, { width })
+      const y = mapY(this.data[i], { height })
       const command = i === 0 ? 'M' : 'L'
       pathData.push(`${command} ${x.toFixed(1)} ${y.toFixed(1)}`)
     }
@@ -120,30 +124,40 @@ class WheelData {
   }
 
   mobileScenario({
+    mobilePositions = [0, 100],
     velocityThreshold = 200,
-    distanceThreshold = 200,
+    distanceThreshold = 50,
   } = {}) {
     const mobile = new ToggleMobile({
       positions: mobilePositions,
     })
+    let frame = 0
+    const events = new Map<string, number[]>()
+    mobile.on('*', (type, mobile) => {
+      const frames = events.get(type) ?? []
+      frames.push(frame)
+      events.set(type, frames)
+    })
     const { deltas, frameCount } = this
     const mobilePositions2 = new Float32Array(frameCount)
-    for (let i = 0; i < frameCount; i++) {
+    for (frame = 0; frame < frameCount; frame++) {
       mobile
-        .dragAutoStart(deltas.data[i], { distanceThreshold })
+        .dragAutoStart(deltas.data[frame], { distanceThreshold })
         .dragAutoStop({ velocityThreshold })
         .update(1 / 120) // Assume 120 FPS
-      mobilePositions2[i] = mobile.position
+      mobilePositions2[frame] = mobile.position
     }
     const mobileData = new Data(mobilePositions2)
-    return mobileData
+    return {
+      mobileData,
+      events,
+    }
   }
 }
 
 function DataInfo({ wheelData }: { wheelData: WheelData }) {
   return (
     <div className='text-xs'>
-      <div>Wheel Data Info</div>
       <div>
         <span>
           Length: [{wheelData.cumulativeDeltas.data.length}]  {wheelData.data.length} floats
@@ -162,84 +176,125 @@ function HorizontalLine({ y }: { y: number }) {
       y1={y}
       x2={400}
       y2={y}
-      stroke='#fff6'
+      stroke='#fff2'
       strokeWidth={1}
-      strokeDasharray='4 4'
     />
   )
 }
 
-export function WheelLoader() {
-  const [data, setData] = useState<WheelData | null>(null)
+function VerticalLine({
+  x = 0,
+  color = '#ff06',
+  dashArray = '',
+}) {
+  return (
+    <line
+      x1={x}
+      y1={0}
+      x2={x}
+      y2={300}
+      stroke={color}
+      strokeWidth={1}
+      strokeDasharray={dashArray}
+    />
+  )
+}
 
-  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
-    const wheelData = await WheelData.load('/assets/misc/wheel-recording-5s-1200floats.bin')
-    setData(wheelData)
-  }, [])
-
+function WithData({ data, mobilePositions }: { data: WheelData, mobilePositions: number[] }) {
   const width = 400
   const height = 300
   const margin = 10
+  const mobileScenario = data.mobileScenario({ mobilePositions })
+  return (
+    <>
+      <DataInfo wheelData={data} />
+      <svg
+        className='mt-2 border border-white/10 rounded'
+        width={width + margin * 2}
+        height={height + margin * 2}
+        viewBox={`${-margin} ${-margin} ${width + margin * 2} ${height + margin * 2}`}
+      >
+        <rect x={0} y={0} width={width} height={height} stroke='#fff6' strokeWidth={1} fill='none' />
+        <path
+          d={data.cumulativeDeltas.getSvgPathData({ width, height })}
+          stroke='white'
+          strokeWidth={1}
+          fill='none'
+        />
+        <path
+          d={data.deltas.getSvgPathData({ width, height })}
+          stroke='white'
+          strokeWidth={1}
+          fill='none'
+        />
+        <path
+          d={mobileScenario.mobileData.getSvgPathData({
+            width,
+            height,
+            mapY: data.cumulativeDeltas.mapY, // Use the same Y scale as cumulativeDeltas
+          })}
+          stroke='yellow'
+          strokeWidth={2}
+          fill='none'
+        />
+        {mobilePositions.slice(1).map(position => (
+          <HorizontalLine
+            key={position}
+            y={data.cumulativeDeltas.mapY(position, { height })}
+          />
+        ))}
+        {mobileScenario.events.get('drag-start')?.map((frame, index) => (
+          <VerticalLine
+            key={`drag-start-${index}`}
+            color='#f609'
+            x={data.cumulativeDeltas.mapX(frame, { width })}
+          />
+        ))}
+        {mobileScenario.events.get('drag-stop')?.map((frame, index) => (
+          <VerticalLine
+            key={`drag-stop-${index}`}
+            color='rgba(0, 162, 255, 0.6)'
+            x={data.cumulativeDeltas.mapX(frame, { width })}
+          />
+        ))}
+        {mobileScenario.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
+          <VerticalLine
+            key={`drag-stop-${index}`}
+            color='#00f7ff66'
+            dashArray='8 8'
+            x={data.cumulativeDeltas.mapX(frame, { width })}
+          />
+        ))}
+      </svg>
+    </>
+  )
+}
+
+export function WheelLoader({
+  url = '/assets/misc/wheel-recording-5s-1200floats.bin',
+  mobilePositions
+}: {
+  url?: string
+  mobilePositions: number[]
+}) {
+  const [data, setData] = useState<WheelData | null>(null)
+
+  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    const wheelData = await WheelData.load(url)
+    setData(wheelData)
+  }, [])
+
   return (
     <div
       ref={ref}
       className='p-2 flex flex-col items-start border border-white/10 rounded'
     >
       <div>
-        Wheel Loader
+        {url}
       </div>
-      {data && <>
-        <DataInfo wheelData={data} />
-        <svg
-          className='mt-2 border border-white/10 rounded'
-          width={width + margin * 2}
-          height={height + margin * 2}
-          viewBox={`${-margin} ${-margin} ${width + margin * 2} ${height + margin * 2}`}
-        >
-          <rect x={0} y={0} width={width} height={height} stroke='#fff6' strokeWidth={1} fill='none' />
-          <path
-            d={data.cumulativeDeltas.getSvgPathData({ width, height })}
-            stroke='white'
-            strokeWidth={1}
-            fill='none'
-          />
-          <path
-            d={data.deltas.getSvgPathData({ width, height })}
-            stroke='white'
-            strokeWidth={1}
-            fill='none'
-          />
-          <path
-            d={data.mobileScenario().getSvgPathData({
-              width,
-              height,
-              scaleY: data.cumulativeDeltas.scaleY, // Use the same Y scale as cumulativeDeltas
-            })}
-            stroke='yellow'
-            strokeWidth={2}
-            fill='none'
-          />
-          <path
-            d={data.mobileScenario({
-              velocityThreshold: 1000,
-              distanceThreshold: 100,
-            }).getSvgPathData({
-              width,
-              height,
-              scaleY: data.cumulativeDeltas.scaleY, // Use the same Y scale as cumulativeDeltas
-            })}
-            stroke='orange'
-            strokeWidth={2}
-            fill='none'
-          />
-          {mobilePositions.slice(1).map(position => (
-            <HorizontalLine
-              key={position}
-              y={data.cumulativeDeltas.scaleY(position, { height })}
-            />
-          ))}
-        </svg>
-      </>}
+      {data && (
+        <WithData data={data} mobilePositions={mobilePositions} />
+      )}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import { ArrowRight } from 'lucide-react'
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, useState } from 'react'
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
@@ -59,17 +60,35 @@ function SectionChip({ borderColor = 'white' }: { borderColor?: string }) {
   )
 }
 
+function computeMobilePositionsFromLayout(div: HTMLDivElement): number[] {
+  const parent = div.parentElement!
+  const sections = [...div.querySelectorAll('section')]
+  const mobilePositions = sections.map(section => 0)
+
+  // Middle positions: div are centered in the viewport
+  for (let i = 1, max = sections.length - 1; i < max; i++) {
+    const section = sections[i]
+    const p = section.offsetTop - (parent.clientHeight - section.clientHeight) / 2
+    mobilePositions[i] = p
+  }
+
+  // Last position: bottom of last section at bottom of viewport
+  mobilePositions[sections.length - 1] = parent.scrollHeight - parent.clientHeight
+
+  return mobilePositions
+}
+
 function ScrollingContent() {
+  const [mobilePositions, setMobilePositions] = useState<number[] | null>(null)
+
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const parent = div.parentElement!
-    const sections = div.querySelectorAll('section')
-    const stops = [
-      0,
-      (parent.scrollHeight - parent.clientHeight) / 2,
-      parent.scrollHeight - parent.clientHeight,
-    ]
+
+    const mobilePositions = computeMobilePositionsFromLayout(div)
+    setMobilePositions(mobilePositions)
+
     const mobile = new ToggleMobile({
-      positions: stops,
+      positions: mobilePositions,
     })
 
     const svg = mobile.svgRepresentation()
@@ -94,7 +113,7 @@ function ScrollingContent() {
 
       onWheel: info => {
         usingWheel = true
-        mobile.dragAutoStart(info.delta.y, { distanceThreshold: 200 })
+        mobile.dragAutoStart(info.delta.y, { distanceThreshold: 50 })
       }
     })
 
@@ -109,6 +128,15 @@ function ScrollingContent() {
 
       mobile.svgRepresentation({ svg })
     })
+
+    yield handleKeyboard([
+      ['ArrowUp', () => {
+        mobile.gotoPrevious({ loop: true })
+      }],
+      ['ArrowDown', () => {
+        mobile.gotoNext({ loop: true })
+      }],
+    ])
   }, [])
 
   return (
@@ -125,8 +153,19 @@ function ScrollingContent() {
           Trying to combine mouse drag & mouse wheel to control a single object
           with multiple stop positions and decay.
         </p>
-        <WheelLoader />
+        {mobilePositions && (
+          <div className='flex flex-row'>
+            {/* <WheelLoader mobilePositions={mobilePositions} /> */}
+            <WheelLoader
+              url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
+              mobilePositions={mobilePositions} />
+          </div>
+        )}
       </Section>
+
+      <Section />
+
+      <Section bgColor='blue' size='1rem' />
 
       <Section size='10rem' textColor='black' bgColor='#fc0'>
         <SectionChip borderColor='#fc0' />
@@ -139,8 +178,29 @@ function ScrollingContent() {
         </p>
       </Section>
 
+      <Section size='10rem' textColor='black' bgColor='#fc0'>
+        <SectionChip borderColor='#fc0' />
+        <h1 className='text-2xl font-bold'>
+          Small section
+        </h1>
+        <p className='mt-4 max-w-md'>
+          You cannot always have something interesting to say. <br />Can you?
+        </p>
+      </Section>
+
       <Section size='70vh'>
         <SectionChip borderColor='red' />
+        <h1 className='text-2xl font-bold'>
+          Decay
+        </h1>
+        <p className='mt-4 max-w-md'>
+          Trying to combine mouse drag & mouse wheel to control a single object
+          with multiple stop positions and decay.
+        </p>
+      </Section>
+
+      <Section size='70vh' bgColor='orange'>
+        <SectionChip borderColor='orange' />
         <h1 className='text-2xl font-bold'>
           Decay
         </h1>
