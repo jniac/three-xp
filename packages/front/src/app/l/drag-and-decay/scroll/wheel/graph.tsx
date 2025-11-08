@@ -43,11 +43,11 @@ class Data {
   }
 }
 
-class WheelData {
+class WheelRecord {
   static async load(url: string) {
     const response = await window.fetch(url)
     const arrayBuffer = await response.arrayBuffer()
-    return new WheelData(new Float32Array(arrayBuffer))
+    return new WheelRecord(new Float32Array(arrayBuffer))
   }
   /**
    * The recorded wheel data as a Float32Array.
@@ -123,7 +123,10 @@ class WheelData {
     this.cumulativeDeltas = new Data(cumulativeDeltas)
   }
 
-  mobileScenario({
+  /**
+   * 
+   */
+  mobileSimulation({
     mobilePositions = [0, 100],
     velocityThreshold = 200,
     distanceThreshold = 50,
@@ -155,7 +158,7 @@ class WheelData {
   }
 }
 
-function DataInfo({ wheelData }: { wheelData: WheelData }) {
+function DataInfo({ wheelData }: { wheelData: WheelRecord }) {
   return (
     <div className='text-xs'>
       <div>
@@ -200,11 +203,11 @@ function VerticalLine({
   )
 }
 
-function WithData({ data, mobilePositions }: { data: WheelData, mobilePositions: number[] }) {
+function MobileSimulation({ data, mobilePositions }: { data: WheelRecord, mobilePositions: number[] }) {
   const width = 400
   const height = 300
   const margin = 10
-  const mobileScenario = data.mobileScenario({ mobilePositions })
+  const simulation = data.mobileSimulation({ mobilePositions })
   return (
     <>
       <DataInfo wheelData={data} />
@@ -228,7 +231,7 @@ function WithData({ data, mobilePositions }: { data: WheelData, mobilePositions:
           fill='none'
         />
         <path
-          d={mobileScenario.mobileData.getSvgPathData({
+          d={simulation.mobileData.getSvgPathData({
             width,
             height,
             mapY: data.cumulativeDeltas.mapY, // Use the same Y scale as cumulativeDeltas
@@ -243,21 +246,21 @@ function WithData({ data, mobilePositions }: { data: WheelData, mobilePositions:
             y={data.cumulativeDeltas.mapY(position, { height })}
           />
         ))}
-        {mobileScenario.events.get('drag-start')?.map((frame, index) => (
+        {simulation.events.get('drag-start')?.map((frame, index) => (
           <VerticalLine
             key={`drag-start-${index}`}
             color='#f609'
             x={data.cumulativeDeltas.mapX(frame, { width })}
           />
         ))}
-        {mobileScenario.events.get('drag-stop')?.map((frame, index) => (
+        {simulation.events.get('drag-stop')?.map((frame, index) => (
           <VerticalLine
             key={`drag-stop-${index}`}
             color='rgba(0, 162, 255, 0.6)'
             x={data.cumulativeDeltas.mapX(frame, { width })}
           />
         ))}
-        {mobileScenario.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
+        {simulation.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
           <VerticalLine
             key={`drag-stop-${index}`}
             color='#00f7ff66'
@@ -270,18 +273,22 @@ function WithData({ data, mobilePositions }: { data: WheelData, mobilePositions:
   )
 }
 
-export function WheelLoader({
-  url = '/assets/misc/wheel-recording-5s-1200floats.bin',
+export function WheelGraph({
+  url,
   mobilePositions
 }: {
   url?: string
   mobilePositions: number[]
 }) {
-  const [data, setData] = useState<WheelData | null>(null)
+  const [data, setData] = useState<WheelRecord | null>(null)
 
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
-    const wheelData = await WheelData.load(url)
-    setData(wheelData)
+    if (url) {
+      const wheelData = await WheelRecord.load(url)
+      setData(wheelData)
+    } else {
+      new WheelRecord(new Float32Array(10 * 120))
+    }
   }, [])
 
   return (
@@ -293,7 +300,7 @@ export function WheelLoader({
         {url}
       </div>
       {data && (
-        <WithData data={data} mobilePositions={mobilePositions} />
+        <MobileSimulation data={data} mobilePositions={mobilePositions} />
       )}
     </div>
   )

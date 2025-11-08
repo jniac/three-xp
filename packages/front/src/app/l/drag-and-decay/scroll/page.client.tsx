@@ -10,7 +10,7 @@ import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { onNextTick, onTick } from 'some-utils-ts/ticker'
 import { ToggleMobile } from '../toggle-mobile'
-import { WheelLoader } from './wheel/loader'
+import { WheelGraph } from './wheel/graph'
 import { WheelRecorder } from './wheel/recorder'
 
 function MyScene() {
@@ -156,7 +156,7 @@ function ScrollingContent() {
         {mobilePositions && (
           <div className='flex flex-row'>
             {/* <WheelLoader mobilePositions={mobilePositions} /> */}
-            <WheelLoader
+            <WheelGraph
               url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
               mobilePositions={mobilePositions} />
           </div>
