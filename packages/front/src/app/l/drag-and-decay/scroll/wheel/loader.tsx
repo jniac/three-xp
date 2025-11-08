@@ -18,20 +18,20 @@ class Data {
     this.max = data.reduce((max, val) => Math.max(max, val), -Infinity)
   }
 
-  getSvgY = (value: number, { height = 200 } = {}) => {
+  scaleY = (value: number, { height = 200 } = {}) => {
     const { min, max } = this
     const delta = max - min
     const scaleY = 1 / (delta === 0 ? 1 : delta)
     return (1 - (value - min) * scaleY) * height
   }
 
-  getSvgPathData({ width = 500, height = 200, getSvgY = this.getSvgY } = {}) {
+  getSvgPathData({ width = 500, height = 200, scaleY = this.scaleY } = {}) {
     const pathData: string[] = []
     const length = this.data.length
     const scaleX = width / length
     for (let i = 0; i < length; i++) {
       const x = i * scaleX
-      const y = getSvgY(this.data[i], { height })
+      const y = scaleY(this.data[i], { height })
       const command = i === 0 ? 'M' : 'L'
       pathData.push(`${command} ${x.toFixed(1)} ${y.toFixed(1)}`)
     }
@@ -57,9 +57,10 @@ class WheelData {
   firstDeltaIndex: number
   lastDeltaIndex: number
 
+  frameCount: number
+
   deltas: Data
   cumulativeDeltas: Data
-  mobile: Data
 
   constructor(data: Float32Array) {
     this.data = data
@@ -91,6 +92,8 @@ class WheelData {
 
     // Precompute cumulative wheel data for easier playback
     const frameCount = lastFrame - firstFrame + 1
+    this.frameCount = frameCount
+
     const deltas = new Float32Array(frameCount)
     const cumulativeDeltas = new Float32Array(frameCount)
     let cumulative = 0
@@ -114,19 +117,26 @@ class WheelData {
 
     this.deltas = new Data(deltas)
     this.cumulativeDeltas = new Data(cumulativeDeltas)
+  }
 
+  mobileScenario({
+    velocityThreshold = 200,
+    distanceThreshold = 200,
+  } = {}) {
     const mobile = new ToggleMobile({
       positions: mobilePositions,
     })
+    const { deltas, frameCount } = this
     const mobilePositions2 = new Float32Array(frameCount)
-    for (let i = 0; i < deltas.length; i++) {
+    for (let i = 0; i < frameCount; i++) {
       mobile
-        .dragAutoStart(deltas[i], { distanceThreshold: 200 })
-        .dragAutoStop({ velocityThreshold: 200 })
+        .dragAutoStart(deltas.data[i], { distanceThreshold })
+        .dragAutoStop({ velocityThreshold })
         .update(1 / 120) // Assume 120 FPS
       mobilePositions2[i] = mobile.position
     }
-    this.mobile = new Data(mobilePositions2)
+    const mobileData = new Data(mobilePositions2)
+    return mobileData
   }
 }
 
@@ -186,16 +196,33 @@ export function WheelLoader() {
             fill='none'
           />
           <path
-            d={data.mobile.getSvgPathData({ width, height, getSvgY: data.cumulativeDeltas.getSvgY })}
+            d={data.mobileScenario().getSvgPathData({
+              width,
+              height,
+              scaleY: data.cumulativeDeltas.scaleY, // Use the same Y scale as cumulativeDeltas
+            })}
             stroke='yellow'
+            strokeWidth={2}
+            fill='none'
+          />
+          <path
+            d={data.mobileScenario({
+              velocityThreshold: 1000,
+              distanceThreshold: 100,
+            }).getSvgPathData({
+              width,
+              height,
+              scaleY: data.cumulativeDeltas.scaleY, // Use the same Y scale as cumulativeDeltas
+            })}
+            stroke='orange'
             strokeWidth={2}
             fill='none'
           />
           <line
             x1={0}
-            y1={data.cumulativeDeltas.getSvgY(mobilePositions[1], { height })}
+            y1={data.cumulativeDeltas.scaleY(mobilePositions[1], { height })}
             x2={width}
-            y2={data.cumulativeDeltas.getSvgY(mobilePositions[1], { height })}
+            y2={data.cumulativeDeltas.scaleY(mobilePositions[1], { height })}
             stroke='#fff6'
             strokeWidth={1}
             strokeDasharray='4 4'

@@ -191,7 +191,7 @@ export class ToggleMobile {
   }
 
   #dragStopCoolDownFor(time: number): number {
-    const COOL_DOWN_DRAG_STOP = .15
+    const COOL_DOWN_DRAG_STOP = .1
     return (time - this.state.dragStartTime) / COOL_DOWN_DRAG_STOP
   }
 
