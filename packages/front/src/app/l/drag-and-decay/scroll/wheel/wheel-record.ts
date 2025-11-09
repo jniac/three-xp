@@ -65,9 +65,6 @@ export class WheelRecord {
   isLive = false
   isFinished = false
   url?: string
-  liveState = {
-    pause: false,
-  }
 
   get frameCount() { return this.deltaTrack.data.length }
 
@@ -120,21 +117,39 @@ export class WheelRecord {
     }
   }
 
+  liveState = {
+    pause: false,
+    wheelTime: 0,
+    wheelPosition: 0,
+  };
+
   *initLiveRecording() {
     type Payload = { mobile: ToggleMobile, wheelDelta: number, wheelCumulativeDelta: number }
 
     this.isLive = true
-    let movingTime = 0
 
     yield Message.on<Payload>('LIVE_TICK', message => {
       if (this.liveState.pause)
         return
 
-      const { mobile, wheelDelta, wheelCumulativeDelta } = message.assertPayload()
-      movingTime += 1 / 120
+      let { wheelTime, wheelPosition } = this.liveState
+      const { mobile, wheelDelta } = message.assertPayload()
+      wheelTime += 1 / 120
+      wheelPosition += wheelDelta
+      Object.assign(this.liveState, { wheelTime, wheelPosition })
+
       this.deltaTrack.push(wheelDelta)
-      this.positionTrack.push(wheelCumulativeDelta, { resetMethod: 'current-value' })
+      this.positionTrack.push(wheelPosition, { resetMethod: 'current-value' })
       this.mobileTrack.push(mobile.position)
     })
+  }
+
+  clear() {
+    this.liveState.wheelPosition = 0
+    this.liveState.wheelTime = 0
+
+    this.deltaTrack.reset(0)
+    this.positionTrack.reset(0)
+    this.mobileTrack.reset(0)
   }
 }

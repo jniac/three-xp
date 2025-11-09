@@ -17,19 +17,30 @@ function GraphInfo({ record }: { record: WheelRecord }) {
         {record.isLive ? 'Live Data' : record.url?.split('/').pop()}
         <div className='flex-1' />
         {record.isLive && (
-          <button
-            className='border border-white/20 rounded px-2 py-1 hover:bg-white/10 flex items-center gap-1'
-            onClick={() => {
-              record.liveState.pause = !record.liveState.pause
-              render()
-            }}
-          >
-            {record.liveState.pause
-              ? <Play size={12} />
-              : <Pause size={12} />
-            }
-            {record.liveState.pause ? 'Resume' : 'Pause'}
-          </button>
+          <>
+            <button
+              className='border border-white/20 rounded px-2 py-1 hover:bg-white/10 flex items-center gap-1'
+              onClick={() => {
+                record.liveState.pause = !record.liveState.pause
+                render()
+              }}
+            >
+              {record.liveState.pause
+                ? <><Play size={12} /> Resume</>
+                : <><Pause size={12} /> Pause</>
+              }
+            </button>
+
+            <button
+              className='border border-white/20 rounded px-2 py-1 hover:bg-white/10 ml-2'
+              onClick={() => {
+                record.clear()
+                render()
+              }}
+            >
+              Clear
+            </button>
+          </>
         )}
       </div>
 
