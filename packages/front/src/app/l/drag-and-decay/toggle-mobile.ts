@@ -2,6 +2,7 @@ import { lerp, limitedClamp } from 'some-utils-ts/math/basic'
 import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/exponential-decay'
 import { Memorization } from 'some-utils-ts/observables/memorization'
+import { DestroyableObject } from 'some-utils-ts/types'
 
 type CallbackType = string | number | Symbol
 type Callback<TArgs extends any[] = any[]> = (...args: [type: CallbackType, ...TArgs]) => (void | 'unsubscribe')
@@ -9,13 +10,15 @@ type Callback<TArgs extends any[] = any[]> = (...args: [type: CallbackType, ...T
 class CallbackHandler<TArgs extends any[] = any[]> {
   map = new Map<CallbackType, Set<Callback<TArgs>>>()
 
-  add(type: CallbackType, callback: Callback<TArgs>): { unsubscribe: () => void } {
+  add(type: CallbackType, callback: Callback<TArgs>): DestroyableObject & { unsubscribe: () => void } {
     if (!this.map.has(type))
       this.map.set(type, new Set())
     const set = this.map.get(type)!
     set.add(callback)
+    const unsubscribe = () => this.unsubscribe(type, callback)
     return {
-      unsubscribe: () => this.unsubscribe(type, callback),
+      unsubscribe,
+      destroy: unsubscribe,
     }
   }
 
@@ -129,6 +132,8 @@ export class ToggleMobile {
   get lastPosition() { return this.props.positions[this.props.positions.length - 1] }
 
   get position() { return this.state.position }
+  get isMoving() { return this.state.moving }
+  get isDragging() { return this.state.dragging }
 
   constructor(props?: Partial<typeof ToggleMobile.defaultProps>) {
     this.props = { ...ToggleMobile.defaultProps, ...props }

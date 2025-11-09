@@ -12,7 +12,7 @@ function download(data: Float32Array, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-export function WheelRecorder({
+export function WheelRecorderWidget({
   duration = 5,
 }) {
   const floatCount = 120 * duration * 2 // 120 fps, 2 floats per frame

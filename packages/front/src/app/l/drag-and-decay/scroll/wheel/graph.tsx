@@ -3,171 +3,38 @@
 import { useState } from 'react'
 
 import { useEffects } from 'some-utils-react/hooks/effects'
+import { useTriggerRender } from 'some-utils-react/hooks/render'
 
+import { Pause, Play } from 'lucide-react'
 import { ToggleMobile } from '../../toggle-mobile'
+import { WheelRecord } from './wheel-record'
 
-class Data {
-  data: Float32Array
-  min: number
-  max: number
-
-  constructor(data: Float32Array) {
-    this.data = data
-    this.min = data.reduce((min, val) => Math.min(min, val), Infinity)
-    this.max = data.reduce((max, val) => Math.max(max, val), -Infinity)
-  }
-
-  mapX = (index: number, { width = 500 } = {}) => {
-    const length = this.data.length
-    const scaleX = width / length
-    return index * scaleX
-  }
-
-  mapY = (value: number, { height = 200 } = {}) => {
-    const { min, max } = this
-    const delta = max - min
-    const mapY = 1 / (delta === 0 ? 1 : delta)
-    return (1 - (value - min) * mapY) * height
-  }
-
-  getSvgPathData({ width = 500, height = 200, mapY = this.mapY } = {}) {
-    const pathData: string[] = []
-    const length = this.data.length
-    for (let i = 0; i < length; i++) {
-      const x = this.mapX(i, { width })
-      const y = mapY(this.data[i], { height })
-      const command = i === 0 ? 'M' : 'L'
-      pathData.push(`${command} ${x.toFixed(1)} ${y.toFixed(1)}`)
-    }
-    return pathData.join(' ')
-  }
-}
-
-class WheelRecord {
-  static async load(url: string) {
-    const response = await window.fetch(url)
-    const arrayBuffer = await response.arrayBuffer()
-    return new WheelRecord(new Float32Array(arrayBuffer))
-  }
-  /**
-   * The recorded wheel data as a Float32Array.
-   * 
-   * Format: [frame1, deltaY1, frame2, deltaY2, ...]
-   */
-  data: Float32Array
-
-  deltaMax: number
-  deltaMin: number
-  firstDeltaIndex: number
-  lastDeltaIndex: number
-
-  frameCount: number
-
-  deltas: Data
-  cumulativeDeltas: Data
-
-  constructor(data: Float32Array) {
-    this.data = data
-
-    let min = Infinity
-    let max = -Infinity
-    let firstFrame = Infinity
-    let lastFrame = 0
-    let firstDeltaIndex = -1
-    let lastDeltaIndex = -1
-    for (let i = 0; i < data.length; i += 2) {
-      const frame = data[i]
-      const delta = data[i + 1]
-      if (delta < min) min = delta
-      if (delta > max) max = delta
-      if (delta !== 0) {
-        lastFrame = frame
-        lastDeltaIndex = i
-        if (firstFrame === Infinity) {
-          firstDeltaIndex = i
-          firstFrame = frame
-        }
-      }
-    }
-    this.deltaMax = min
-    this.deltaMin = max
-    this.firstDeltaIndex = firstDeltaIndex
-    this.lastDeltaIndex = lastDeltaIndex
-
-    // Precompute cumulative wheel data for easier playback
-    const frameCount = lastFrame - firstFrame + 1
-    this.frameCount = frameCount
-
-    const deltas = new Float32Array(frameCount)
-    const cumulativeDeltas = new Float32Array(frameCount)
-    let cumulative = 0
-    let lastFrameIndex = 0
-    for (let i = firstDeltaIndex; i <= lastDeltaIndex; i += 2) {
-      const frame = data[i]
-      const deltaY = data[i + 1]
-      cumulative += deltaY
-      const frameIndex = frame - firstFrame
-      // Note: there might be multiple entries for the same frame
-      const frameDelta = deltas[frameIndex] + deltaY
-      deltas[frameIndex] = frameDelta
-
-      // Note: fill in the gaps from lastFrameIndex to frameIndex
-      for (let j = lastFrameIndex + 1; j <= frameIndex; j++) {
-        cumulativeDeltas[j] = cumulative
-      }
-
-      lastFrameIndex = frameIndex
-    }
-
-    this.deltas = new Data(deltas)
-    this.cumulativeDeltas = new Data(cumulativeDeltas)
-  }
-
-  /**
-   * 
-   */
-  mobileSimulation({
-    mobilePositions = [0, 100],
-    velocityThreshold = 200,
-    distanceThreshold = 50,
-  } = {}) {
-    const mobile = new ToggleMobile({
-      positions: mobilePositions,
-    })
-    let frame = 0
-    const events = new Map<string, number[]>()
-    mobile.on('*', (type, mobile) => {
-      const frames = events.get(type) ?? []
-      frames.push(frame)
-      events.set(type, frames)
-    })
-    const { deltas, frameCount } = this
-    const mobilePositions2 = new Float32Array(frameCount)
-    for (frame = 0; frame < frameCount; frame++) {
-      mobile
-        .dragAutoStart(deltas.data[frame], { distanceThreshold })
-        .dragAutoStop({ velocityThreshold })
-        .update(1 / 120) // Assume 120 FPS
-      mobilePositions2[frame] = mobile.position
-    }
-    const mobileData = new Data(mobilePositions2)
-    return {
-      mobileData,
-      events,
-    }
-  }
-}
-
-function DataInfo({ wheelData }: { wheelData: WheelRecord }) {
+function GraphInfo({ record }: { record: WheelRecord }) {
+  const render = useTriggerRender()
   return (
     <div className='text-xs'>
-      <div>
-        <span>
-          Length: [{wheelData.cumulativeDeltas.data.length}]  {wheelData.data.length} floats
-        </span>
+      <div className='flex flex-row'>
+        {record.isLive ? 'Live Data' : record.url?.split('/').pop()}
+        <div className='flex-1' />
+        {record.isLive && (
+          <button
+            className='border border-white/20 rounded px-2 py-1 hover:bg-white/10 flex items-center gap-1'
+            onClick={() => {
+              record.liveState.pause = !record.liveState.pause
+              render()
+            }}
+          >
+            {record.liveState.pause
+              ? <Play size={12} />
+              : <Pause size={12} />
+            }
+            {record.liveState.pause ? 'Resume' : 'Pause'}
+          </button>
+        )}
       </div>
-      <div>Min: {wheelData.deltaMax}</div>
-      <div>Max: {wheelData.deltaMin}</div>
+
+      <div>Min: {record.positionTrack.min}</div>
+      <div>Max: {record.positionTrack.max}</div>
     </div>
   )
 }
@@ -203,14 +70,26 @@ function VerticalLine({
   )
 }
 
-function MobileSimulation({ data, mobilePositions }: { data: WheelRecord, mobilePositions: number[] }) {
+function Graph({ record, mobilePositions }: { record: WheelRecord, mobilePositions: number[] }) {
   const width = 400
   const height = 300
   const margin = 10
-  const simulation = data.mobileSimulation({ mobilePositions })
+  const simulation = record.isFinished && record.mobileSimulation({ mobilePositions })
+
+  const render = useTriggerRender()
+  useEffects(function* () {
+    if (record.isLive) {
+      const interval = setInterval(() => {
+        // Force re-render every second for live data
+        render()
+      }, 100)
+      yield () => clearInterval(interval)
+    }
+  }, [record.isLive])
+
   return (
     <>
-      <DataInfo wheelData={data} />
+      <GraphInfo record={record} />
       <svg
         className='mt-2 border border-white/10 rounded'
         width={width + margin * 2}
@@ -219,22 +98,22 @@ function MobileSimulation({ data, mobilePositions }: { data: WheelRecord, mobile
       >
         <rect x={0} y={0} width={width} height={height} stroke='#fff6' strokeWidth={1} fill='none' />
         <path
-          d={data.cumulativeDeltas.getSvgPathData({ width, height })}
+          d={record.positionTrack.getSvgPathData({ width, height })}
           stroke='white'
           strokeWidth={1}
           fill='none'
         />
         <path
-          d={data.deltas.getSvgPathData({ width, height })}
-          stroke='white'
+          d={record.deltaTrack.getSvgPathData({ width, height })}
+          stroke='cyan'
           strokeWidth={1}
           fill='none'
         />
         <path
-          d={simulation.mobileData.getSvgPathData({
+          d={record.mobileTrack.getSvgPathData({
             width,
             height,
-            mapY: data.cumulativeDeltas.mapY, // Use the same Y scale as cumulativeDeltas
+            mapY: record.positionTrack.mapY, // Use the same Y scale as cumulativeDeltas
           })}
           stroke='yellow'
           strokeWidth={2}
@@ -243,31 +122,35 @@ function MobileSimulation({ data, mobilePositions }: { data: WheelRecord, mobile
         {mobilePositions.slice(1).map(position => (
           <HorizontalLine
             key={position}
-            y={data.cumulativeDeltas.mapY(position, { height })}
+            y={record.positionTrack.mapY(position, { height })}
           />
         ))}
-        {simulation.events.get('drag-start')?.map((frame, index) => (
-          <VerticalLine
-            key={`drag-start-${index}`}
-            color='#f609'
-            x={data.cumulativeDeltas.mapX(frame, { width })}
-          />
-        ))}
-        {simulation.events.get('drag-stop')?.map((frame, index) => (
-          <VerticalLine
-            key={`drag-stop-${index}`}
-            color='rgba(0, 162, 255, 0.6)'
-            x={data.cumulativeDeltas.mapX(frame, { width })}
-          />
-        ))}
-        {simulation.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
-          <VerticalLine
-            key={`drag-stop-${index}`}
-            color='#00f7ff66'
-            dashArray='8 8'
-            x={data.cumulativeDeltas.mapX(frame, { width })}
-          />
-        ))}
+        {simulation && (
+          <>
+            {simulation.events.get('drag-start')?.map((frame, index) => (
+              <VerticalLine
+                key={`drag-start-${index}`}
+                color='#f609'
+                x={record.positionTrack.mapX(frame, { width })}
+              />
+            ))}
+            {simulation.events.get('drag-stop')?.map((frame, index) => (
+              <VerticalLine
+                key={`drag-stop-${index}`}
+                color='rgba(0, 162, 255, 0.6)'
+                x={record.positionTrack.mapX(frame, { width })}
+              />
+            ))}
+            {simulation.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
+              <VerticalLine
+                key={`drag-stop-${index}`}
+                color='#00f7ff66'
+                dashArray='8 8'
+                x={record.positionTrack.mapX(frame, { width })}
+              />
+            ))}
+          </>
+        )}
       </svg>
     </>
   )
@@ -280,27 +163,29 @@ export function WheelGraph({
   url?: string
   mobilePositions: number[]
 }) {
-  const [data, setData] = useState<WheelRecord | null>(null)
+  const [record, setRecord] = useState<WheelRecord | null>(null)
 
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    // Use a existing record from URL.
     if (url) {
-      const wheelData = await WheelRecord.load(url)
-      setData(wheelData)
-    } else {
-      new WheelRecord(new Float32Array(10 * 120))
+      setRecord(await WheelRecord.load(url))
+    }
+
+    // Or record live data.
+    else {
+      const record = new WheelRecord(10 * 120)
+      yield* record.initLiveRecording()
+      setRecord(record)
     }
   }, [])
 
   return (
     <div
       ref={ref}
-      className='p-2 flex flex-col items-start border border-white/10 rounded'
+      className='p-2 flex flex-col border border-white/10 rounded'
     >
-      <div>
-        {url}
-      </div>
-      {data && (
-        <MobileSimulation data={data} mobilePositions={mobilePositions} />
+      {record && (
+        <Graph record={record} mobilePositions={mobilePositions} />
       )}
     </div>
   )

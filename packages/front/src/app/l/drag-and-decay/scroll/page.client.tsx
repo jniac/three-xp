@@ -8,10 +8,11 @@ import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-pr
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
+import { Message } from 'some-utils-ts/message'
 import { onNextTick, onTick } from 'some-utils-ts/ticker'
 import { ToggleMobile } from '../toggle-mobile'
 import { WheelGraph } from './wheel/graph'
-import { WheelRecorder } from './wheel/recorder'
+import { WheelRecorderWidget } from './wheel/recorder'
 
 function MyScene() {
   const three = useThreeWebGL()!
@@ -102,6 +103,8 @@ function ScrollingContent() {
     })
 
     let usingWheel = false
+    let wheelDelta = 0
+    let wheelCumulativeDelta = 0
     yield handlePointer(div, {
       onVerticalDrag: info => {
         mobile.dragStart().drag(-info.delta.y)
@@ -113,6 +116,7 @@ function ScrollingContent() {
 
       onWheel: info => {
         usingWheel = true
+        wheelDelta += info.delta.y
         mobile.dragAutoStart(info.delta.y, { distanceThreshold: 50 })
       }
     })
@@ -122,6 +126,10 @@ function ScrollingContent() {
     yield onTick('three', tick => {
       if (usingWheel)
         mobile.dragAutoStop({ velocityThreshold: 200 })
+
+      wheelCumulativeDelta += wheelDelta
+      Message.send('LIVE_TICK', { payload: { mobile, wheelDelta, wheelCumulativeDelta } })
+      wheelDelta = 0 // reset after sending
 
       mobile.update(tick.deltaTime)
       parent.scrollTop = mobile.position
@@ -158,7 +166,11 @@ function ScrollingContent() {
             {/* <WheelLoader mobilePositions={mobilePositions} /> */}
             <WheelGraph
               url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
-              mobilePositions={mobilePositions} />
+              mobilePositions={mobilePositions}
+            />
+            <WheelGraph
+              mobilePositions={mobilePositions}
+            />
           </div>
         )}
       </Section>
@@ -240,7 +252,7 @@ export function PageClient() {
       }}
     >
       <div className='fixed top-4 right-4 z-10'>
-        <WheelRecorder />
+        <WheelRecorderWidget />
       </div>
 
       <div className='ScrollingWrapper layer thru'>
