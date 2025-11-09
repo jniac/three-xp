@@ -204,6 +204,10 @@
     "dir": "t/three-provider/pointer"
   },
   {
+    "page": "t/ticker/basic/page.tsx",
+    "dir": "t/ticker/basic"
+  },
+  {
     "page": "t/transform-with-shear/page.tsx",
     "dir": "t/transform-with-shear"
   },
