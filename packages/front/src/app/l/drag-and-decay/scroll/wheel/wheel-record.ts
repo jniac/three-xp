@@ -59,8 +59,10 @@ export class WheelRecord {
   }
 
   deltaTrack: FloatTrack
-  positionTrack: FloatTrack
+  absolutePositionTrack: FloatTrack
+  relativePositionTrack: FloatTrack
   mobileTrack: FloatTrack
+  naturalDestinationTrack: FloatTrack
 
   isLive = false
   isFinished = false
@@ -73,17 +75,19 @@ export class WheelRecord {
       ? (() => {
         const frameCount = args[0]
         return [
-          new FloatTrack(new Float32Array(frameCount)),
-          new FloatTrack(new Float32Array(frameCount)),
+          new FloatTrack(frameCount),
+          new FloatTrack(frameCount),
         ]
       })()
       : args
     this.deltaTrack = deltaTrack
-    this.positionTrack = positionTrack
-    this.mobileTrack = new FloatTrack(new Float32Array(this.deltaTrack.data.length))
+    this.absolutePositionTrack = positionTrack
+    this.mobileTrack = new FloatTrack(this.deltaTrack.data.length)
+    this.naturalDestinationTrack = new FloatTrack(this.deltaTrack.data.length)
+    this.relativePositionTrack = new FloatTrack(this.deltaTrack.data.length)
 
-    this.positionTrack.mapYOptions.minMaxValue = 0
-    this.positionTrack.mapYOptions.maxMinValue = 4000
+    this.absolutePositionTrack.mapYOptions.minMaxValue = 0
+    this.absolutePositionTrack.mapYOptions.maxMinValue = 4000
   }
 
   /**
@@ -104,16 +108,19 @@ export class WheelRecord {
       frames.push(frame)
       events.set(type, frames)
     })
-    const { deltaTrack: deltas, frameCount, mobileTrack: mobileData } = this
+    const { deltaTrack, frameCount, mobileTrack } = this
     for (frame = 0; frame < frameCount; frame++) {
       mobile
-        .dragAutoStart(deltas.data[frame], { distanceThreshold })
-        .dragAutoStop({ velocityThreshold })
+        .autoDrag(deltaTrack.data[frame])
+        // .autoDrag(deltaTrack.data[frame], { distanceThreshold })
+        // .dragAutoStop({ velocityThreshold })
         .update(1 / 120) // Assume 120 FPS
-      mobileData.data[frame] = mobile.position
+      mobileTrack.data[frame] = mobile.position
+      this.relativePositionTrack.data[frame] = mobile.state.autoDrag.inputPosition
+      this.naturalDestinationTrack.data[frame] = mobile.state.autoDrag.naturalDestination
     }
     return {
-      mobileData,
+      mobileTrack,
       events,
     }
   }
@@ -144,7 +151,7 @@ export class WheelRecord {
       Object.assign(this.liveState, { wheelTime, wheelPosition })
 
       this.deltaTrack.push(wheelDelta)
-      this.positionTrack.push(wheelPosition, { resetMethod: 'current-value' })
+      this.absolutePositionTrack.push(wheelPosition, { resetMethod: 'current-value' })
       this.mobileTrack.push(mobile.position)
     })
   }
@@ -154,7 +161,7 @@ export class WheelRecord {
     this.liveState.wheelTime = 0
 
     this.deltaTrack.reset(0)
-    this.positionTrack.reset(0)
+    this.absolutePositionTrack.reset(0)
     this.mobileTrack.reset(0)
   }
 }

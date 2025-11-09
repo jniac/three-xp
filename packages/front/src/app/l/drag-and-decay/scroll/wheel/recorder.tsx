@@ -1,6 +1,6 @@
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { onTick, Ticker } from 'some-utils-ts/ticker'
+import { Ticker } from 'some-utils-ts/ticker'
 
 function download(data: Float32Array, filename: string) {
   const blob = new Blob([data as any], { type: 'application/octet-stream' })
@@ -41,10 +41,6 @@ export function WheelRecorderWidget({
         }
       },
     })
-
-    yield onTick(() => {
-
-    })
   }, [])
 
   return (
@@ -56,7 +52,7 @@ export function WheelRecorderWidget({
         <div className='ProgressBarFill w-1/2 h-full bg-[white]' />
       </div>
       <button
-        className='text-xs border border-white/20 rounded px-2 py-1 hover:bg-white/10'
+        className='w-full text-xs border border-white/20 rounded px-2 py-1 hover:bg-white/10'
       >
         <div>
           WheelRecorder

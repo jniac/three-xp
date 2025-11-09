@@ -44,8 +44,8 @@ function GraphInfo({ record }: { record: WheelRecord }) {
         )}
       </div>
 
-      <div>Min: {record.positionTrack.min}</div>
-      <div>Max: {record.positionTrack.max}</div>
+      <div>Min: {record.absolutePositionTrack.min}</div>
+      <div>Max: {record.absolutePositionTrack.max}</div>
     </div>
   )
 }
@@ -123,9 +123,19 @@ function Graph(props: { record: WheelRecord, mobilePositions: number[] } & Parti
       >
         <rect x={0} y={0} width={width} height={height} stroke='#fff6' strokeWidth={1} fill='none' />
         <path
-          d={record.positionTrack.getSvgPathData({ width, height })}
-          stroke='white'
+          d={record.absolutePositionTrack.getSvgPathData({ width, height })}
+          stroke='#fff6'
           strokeWidth={1}
+          fill='none'
+        />
+        <path
+          d={record.relativePositionTrack.getSvgPathData({
+            width,
+            height,
+            mapY: record.absolutePositionTrack.mapY, // Use the same Y scale as cumulativeDeltas
+          })}
+          stroke='#0ff'
+          strokeWidth={5}
           fill='none'
         />
         <path
@@ -138,20 +148,30 @@ function Graph(props: { record: WheelRecord, mobilePositions: number[] } & Parti
           d={record.mobileTrack.getSvgPathData({
             width,
             height,
-            mapY: record.positionTrack.mapY, // Use the same Y scale as cumulativeDeltas
+            mapY: record.absolutePositionTrack.mapY, // Use the same Y scale as cumulativeDeltas
           })}
           stroke='yellow'
           strokeWidth={2}
           fill='none'
         />
+        <path
+          d={record.naturalDestinationTrack.getSvgPathData({
+            width,
+            height,
+            mapY: record.absolutePositionTrack.mapY, // Use the same Y scale as cumulativeDeltas
+          })}
+          stroke='red'
+          strokeWidth={2}
+          fill='none'
+        />
         <HorizontalLine
           color='#fff9'
-          y={record.positionTrack.mapY(0, { height })}
+          y={record.absolutePositionTrack.mapY(0, { height })}
         />
         {mobilePositions.slice(1).map(position => (
           <HorizontalLine
             key={position}
-            y={record.positionTrack.mapY(position, { height })}
+            y={record.absolutePositionTrack.mapY(position, { height })}
           />
         ))}
         {simulation && (
@@ -160,14 +180,14 @@ function Graph(props: { record: WheelRecord, mobilePositions: number[] } & Parti
               <VerticalLine
                 key={`drag-start-${index}`}
                 color='#f609'
-                x={record.positionTrack.mapX(frame, { width })}
+                x={record.absolutePositionTrack.mapX(frame, { width })}
               />
             ))}
             {simulation.events.get('drag-stop')?.map((frame, index) => (
               <VerticalLine
                 key={`drag-stop-${index}`}
                 color='rgba(0, 162, 255, 0.6)'
-                x={record.positionTrack.mapX(frame, { width })}
+                x={record.absolutePositionTrack.mapX(frame, { width })}
               />
             ))}
             {simulation.events.get(ToggleMobile.Events.DragAutoLockEnd)?.map((frame, index) => (
@@ -175,7 +195,7 @@ function Graph(props: { record: WheelRecord, mobilePositions: number[] } & Parti
                 key={`drag-stop-${index}`}
                 color='#00f7ff66'
                 dashArray='8 8'
-                x={record.positionTrack.mapX(frame, { width })}
+                x={record.absolutePositionTrack.mapX(frame, { width })}
               />
             ))}
           </>

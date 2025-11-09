@@ -7,6 +7,7 @@ import { waveform } from 'some-utils-ts/math/waveform'
 import * as observables from 'some-utils-ts/observables'
 import { PRNG } from 'some-utils-ts/random/prng'
 import { dedent } from 'some-utils-ts/string/dedent'
+import { Ticker } from 'some-utils-ts/ticker'
 
 export function leak(leakedProps?: Record<string, any>) {
   if (typeof window !== 'undefined') {
@@ -18,6 +19,7 @@ export function leak(leakedProps?: Record<string, any>) {
       PRNG,
       waveform,
       dedent,
+      Ticker,
     })
   }
 }

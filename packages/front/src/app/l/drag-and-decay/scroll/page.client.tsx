@@ -1,7 +1,8 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
 import { HTMLAttributes, useState } from 'react'
+
+import { ArrowRight, ChevronDown, ChevronRight } from 'lucide-react'
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
@@ -10,6 +11,9 @@ import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { onNextTick, onTick, Ticker } from 'some-utils-ts/ticker'
+
+import { leak } from '@/utils/leak'
+
 import { ToggleMobile } from '../toggle-mobile'
 import { WheelGraph } from './wheel/graph'
 import { WheelRecorderWidget } from './wheel/recorder'
@@ -83,6 +87,8 @@ function ScrollingContent() {
   const [mobilePositions, setMobilePositions] = useState<number[] | null>(null)
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    leak()
+
     const parent = div.parentElement!
 
     const mobilePositions = computeMobilePositionsFromLayout(div)
@@ -120,15 +126,17 @@ function ScrollingContent() {
       onWheel: info => {
         usingWheel = true
         wheelDelta += info.delta.y
-        mobile.dragAutoStart(info.delta.y, { distanceThreshold: 50 })
+        mobile.autoDrag(info.delta.y)
+        // mobile.autoDrag(info.delta.y, { distanceThreshold: 50 })
       }
     })
 
     Object.assign(window, { mobile })
 
+    Ticker.get('three').set({ inactivityWaitDuration: Infinity })
     yield onTick('three', tick => {
-      if (usingWheel)
-        mobile.dragAutoStop({ velocityThreshold: 200 })
+      // if (usingWheel)
+      // mobile.dragAutoStop({ velocityThreshold: 200 })
 
       wheelCumulativeDelta += wheelDelta
       Message.send('LIVE_TICK', { payload: { mobile, wheelDelta, wheelCumulativeDelta } })
@@ -170,7 +178,8 @@ function ScrollingContent() {
               width={800}
               height={400}
               // url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
-              url='/assets/misc/wheel-recording-5s-[mid-overflow-1].bin'
+              // url='/assets/misc/wheel-recording-5s-[mid].bin'
+              url='/assets/misc/wheel-recording-5s-[back-and-forth].bin'
               mobilePositions={mobilePositions}
             />
           </div>
@@ -244,15 +253,76 @@ function WrapperChip({ borderColor = 'white' }: { borderColor?: string }) {
   )
 }
 
-function useAsync<T>(callback: () => Promise<T>): T | null {
+function useAsync<T>(callback: () => Promise<T>, deps?: React.DependencyList): T | null {
   const [result, setResult] = useState<T | null>(null)
 
   useEffects(async function* () {
     const res = await callback()
     setResult(res)
-  }, [])
+  }, deps ?? 'always')
 
   return result
+}
+
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [value, setValue] = useState<T>(() => {
+    if (typeof window === 'undefined')
+      return initialValue
+    const stored = window.localStorage.getItem(key)
+    if (stored) {
+      try {
+        return JSON.parse(stored) as T
+      } catch {
+        return initialValue
+      }
+    }
+    return initialValue
+  })
+
+  const setAndStoreValue = (newValue: T) => {
+    setValue(newValue)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(key, JSON.stringify(newValue))
+    }
+  }
+
+  return [value, setAndStoreValue]
+}
+
+function WheelRecordPanel() {
+  const [expanded, setExpanded] = useLocalStorage('WheelRecordPanel:expanded', true)
+  return (
+    <div
+      className='fixed top-4 right-4 z-10 flex flex-col items-end p-4 gap-4 rounded-xl overflow-hidden'
+      style={{
+        backdropFilter: 'blur(64px) brightness(0.6) saturate(0.8)',
+      }}
+    >
+      <WheelRecorderWidget />
+      <div>
+        <button
+          className='flex flex-row gap-1 text-xs items-center hover:underline'
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded
+            ? <ChevronDown size={16} />
+            : <ChevronRight size={16} />
+          }
+          Live Wheel Graph
+        </button>
+      </div>
+      {useAsync(async () => {
+        await Ticker.current().waitNextTick()
+        const mobilePositions = Message.send<number[]>('MOBILE_POSITIONS_REQUEST').assertPayload()
+        return expanded && (
+          <WheelGraph
+            mobilePositions={mobilePositions}
+          />
+        )
+      }, [expanded])}
+    </div>
+
+  )
 }
 
 export function PageClient() {
@@ -264,23 +334,7 @@ export function PageClient() {
         perspective: 0,
       }}
     >
-      <div
-        className='fixed top-4 right-4 z-10 flex flex-col p-4 gap-4 rounded-xl overflow-hidden'
-        style={{
-          backdropFilter: 'blur(64px) brightness(0.6) saturate(0.8)',
-        }}
-      >
-        <WheelRecorderWidget />
-        {useAsync(async () => {
-          await Ticker.current().waitNextTick()
-          const mobilePositions = Message.send<number[]>('MOBILE_POSITIONS_REQUEST').assertPayload()
-          return (
-            <WheelGraph
-              mobilePositions={mobilePositions}
-            />
-          )
-        })}
-      </div>
+      <WheelRecordPanel />
 
       <div className='ScrollingWrapper layer thru'>
         <WrapperChip />

@@ -5,7 +5,8 @@ export class FloatTrack {
 
   pushIndex = 0;
 
-  constructor(data: Float32Array) {
+  constructor(arg: number | Float32Array) {
+    const data = typeof arg === 'number' ? new Float32Array(arg) : arg
     this.data = data
     this.min = data.reduce((min, val) => Math.min(min, val), Infinity)
     this.max = data.reduce((max, val) => Math.max(max, val), -Infinity)

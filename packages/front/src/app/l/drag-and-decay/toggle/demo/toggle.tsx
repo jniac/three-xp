@@ -64,7 +64,8 @@ export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } &
       onWheel: info => {
         usingWheel = true
         const dy = getFactor() * info.delta.y * VELOCITY_SCALE * 1
-        mobile.dragAutoStart(dy, { distanceThreshold: 1 })
+        // mobile.autoDrag(dy, { distanceThreshold: 1 })
+        mobile.autoDrag(dy)
       },
     })
 
@@ -76,8 +77,8 @@ export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } &
     ])
 
     yield three.ticker.onTick(() => {
-      if (usingWheel)
-        mobile.dragAutoStop({ velocityThreshold: 20 })
+      // if (usingWheel)
+      //   mobile.dragAutoStop({ velocityThreshold: 20 })
 
       mobile.update(three.ticker.deltaTime)
       sphere1.position.y = mobile.position

@@ -68,95 +68,11 @@ class CallbackHandler<TArgs extends any[] = any[]> {
   }
 }
 
-function computeClosestPositionIndex(positions: number[], position: number): number {
-  let closestIndex = 0
-  let closestDistance = Math.abs(position - positions[0])
-  for (let i = 1; i < positions.length; i++) {
-    const pos = positions[i]
-    const distance = Math.abs(position - pos)
-    if (distance < closestDistance) {
-      closestIndex = i
-      closestDistance = distance
-    }
-  }
-  return closestIndex
-}
-
-class AutoDrag {
-  dragMobile = new DragMobile()
-
-  time = 0
-  deltaTime = 0
-
-  inputDelta = 0
-  inputPosition = 0
-  inputVelocityMem = new Memorization(10, 0)
-
-  naturalDestination = 0
-
-  targetPosition = 0
-  targetTime = 0
-
-  position = 0
-  velocity = 0
-  positions: number[] = []
-
-  input(delta: number) {
-    this.inputDelta += delta
-  }
-
-  update(deltaTime: number, dragDamping: number) {
-    this.deltaTime = deltaTime
-    this.time += deltaTime
-
-    const inputPositionOld = this.inputPosition
-    const inputPositionNew = inputPositionOld + this.inputDelta
-    const inputVelocity = this.inputDelta / deltaTime
-    this.inputVelocityMem.setValue(inputVelocity, true)
-    this.inputDelta = 0 // Consume
-
-    this.dragMobile.set({
-      position: inputPositionNew,
-      velocity: this.inputVelocityMem.average,
-      drag: 1 - dragDamping,
-    })
-
-    const naturalDestination = this.dragMobile.getDestination()
-    this.naturalDestination = naturalDestination
-    const index = computeClosestPositionIndex(this.positions, naturalDestination)
-    const targetPositionNew = this.positions[index]
-
-    if (this.targetPosition !== targetPositionNew) {
-      this.targetPosition = targetPositionNew
-      this.targetTime = this.time
-    }
-
-    const timeSinceTargetChange = this.time - this.targetTime
-    const MIX_DURATION = 0.2
-    const alpha = Math.min(timeSinceTargetChange / MIX_DURATION, 1)
-
-    this.dragMobile
-      .set({
-        position: this.position,
-      })
-      .setVelocityForDestination(targetPositionNew)
-      .update(deltaTime)
-
-    const dragPositionNew = this.dragMobile.position
-
-    const positionNew = lerp(inputPositionNew, dragPositionNew, alpha)
-    const positionDelta = positionNew - this.position
-    this.inputPosition = positionNew
-    this.position = positionNew
-    this.velocity = positionDelta / deltaTime
-  }
-}
-
 export class ToggleMobile {
   static DragState = {
     None: 0,
-    Dragging: 1,
-    AutoDragging: 2,
+    JustStarted: 1,
+    Dragging: 2,
   }
 
   static Events = {
@@ -209,11 +125,8 @@ export class ToggleMobile {
     naturalDestination: 0,
     destination: 0,
 
-    autoDragging: false,
-    autoDrag: new AutoDrag(),
-
     callbacks: new CallbackHandler<[ToggleMobile]>(),
-  }
+  };
 
   dragMobile = new DragMobile()
 
@@ -243,8 +156,6 @@ export class ToggleMobile {
     this.state.destination = this.firstPosition
     this.state.naturalDestination = this.firstPosition
     this.dragMobile.set({ position: this.firstPosition })
-
-    this.state.autoDrag.positions = this.props.positions
   }
 
   on(type: (typeof ToggleMobile.Events)[keyof typeof ToggleMobile.Events], callback: (type: any, mobile: ToggleMobile) => void) {
@@ -252,7 +163,17 @@ export class ToggleMobile {
   }
 
   computeClosestPositionIndex(position: number): number {
-    return computeClosestPositionIndex(this.props.positions, position)
+    let closestIndex = 0
+    let closestDistance = Math.abs(position - this.props.positions[0])
+    for (let i = 1; i < this.props.positions.length; i++) {
+      const pos = this.props.positions[i]
+      const distance = Math.abs(position - pos)
+      if (distance < closestDistance) {
+        closestIndex = i
+        closestDistance = distance
+      }
+    }
+    return closestIndex
   }
 
   inverseLerpPosition(position: number): number {
@@ -294,7 +215,7 @@ export class ToggleMobile {
 
     this.state.dragStartTime = this.state.time
     this.state.dragging = true
-    this.state.dragState = ToggleMobile.DragState.Dragging
+    this.state.dragState = ToggleMobile.DragState.JustStarted
 
     this.state.callbacks.dispatch(ToggleMobile.Events.DragStart, this)
 
@@ -346,9 +267,60 @@ export class ToggleMobile {
     this.state.inputPosition += delta
   }
 
-  autoDrag(delta: number): this {
-    this.state.autoDragging = true
-    this.state.autoDrag.input(delta)
+  isDragAutoStartUnderCooldown(): boolean {
+    return this.#dragStartCooldownFor(this.state.time) < 1
+  }
+  dragAutoStart(delta: number, { distanceThreshold = 5 } = {}): this {
+    // Solution #1: skip if still in drag auto-lock period
+    this.state.inputPosition += delta
+    if (this.isDragAutoStartUnderCooldown())
+      return this
+
+    // // Solution #2: gradual control regain (tricky...)
+    // const dragControlFactor = Math.min(1, Math.pow(this.#dragStartCoolDownFor(this.state.time), 2))
+    // this.state.inputPosition = lerp(
+    //   this.state.position,
+    //   this.state.inputPosition + delta * dragControlFactor,
+    //   dragControlFactor * .8 + .2)
+
+    if (this.state.dragState === ToggleMobile.DragState.Dragging) // Already dragging
+      return this
+
+    const deltaToPosition = this.state.inputPosition - this.state.position
+    if (Math.abs(deltaToPosition) >= distanceThreshold)
+      this.dragStart()
+
+    return this
+  }
+
+  #dragStartCooldownFor(time: number): number {
+    const COOL_DOWN_DRAG_START = .6
+    return (time - this.state.dragStopTime) / COOL_DOWN_DRAG_START
+  }
+
+  #dragStopCoolDownFor(time: number): number {
+    const COOL_DOWN_DRAG_STOP = .1
+    return (time - this.state.dragStartTime) / COOL_DOWN_DRAG_STOP
+  }
+
+  #isDragAutoLockedFor(time: number): boolean {
+    return this.#dragStartCooldownFor(time) < 1 || this.#dragStopCoolDownFor(time) < 1
+  }
+
+  isDragAutoLocked(): boolean {
+    return this.#isDragAutoLockedFor(this.state.time)
+  }
+
+  dragAutoStop({ velocityThreshold = .1 } = {}): this {
+    if (this.state.dragState !== ToggleMobile.DragState.Dragging) // Already not dragging
+      return this
+
+    if (this.isDragAutoLocked())
+      return this
+
+    if (Math.abs(this.state.velocity) < velocityThreshold)
+      this.dragStop()
+
     return this
   }
 
@@ -378,17 +350,6 @@ export class ToggleMobile {
       this.state.naturalDestination = this.dragMobile.getDestination()
     }
 
-    else if (this.state.autoDragging) {
-      this.state.autoDrag.update(deltaTime, this.props.dragDamping)
-      const { position, velocity } = this.state.autoDrag
-      this.state.position = position
-      this.state.velocity = velocity
-      if (Math.abs(velocity) < 1e-5) {
-        this.state.autoDragging = false
-        this.dragMobile.set({ position, velocity: 0 })
-      }
-    }
-
     else {
       this.dragMobile.update(deltaTime)
       this.state.position = this.dragMobile.position
@@ -397,6 +358,13 @@ export class ToggleMobile {
     }
 
     // Update input position if just finished drag auto-lock
+    const timeOld = this.state.time - deltaTime
+    const dragAutoLockEnd = this.#isDragAutoLockedFor(timeOld)
+      && this.#isDragAutoLockedFor(this.state.time) === false
+    if (dragAutoLockEnd) {
+      this.state.inputPosition = this.state.position // Sync input position when not dragging
+      this.state.callbacks.dispatch(ToggleMobile.Events.DragAutoLockEnd, this)
+    }
 
     this.state.positionIndex = this.computeClosestPositionIndex(this.state.position)
     this.state.positionMem.setValue(this.state.position, true)
