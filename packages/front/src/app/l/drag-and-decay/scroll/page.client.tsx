@@ -92,6 +92,10 @@ function ScrollingContent() {
       positions: mobilePositions,
     })
 
+    mobile.on('drag-stop', (type, mobile) => {
+      console.log(`${mobile.position.toFixed(2)} -> ${mobile.state.naturalDestination.toFixed(2)} (v: ${mobile.state.velocity.toFixed(2)})`)
+    })
+
     const svg = mobile.svgRepresentation()
     yield () => svg.remove()
     onNextTick(() => {

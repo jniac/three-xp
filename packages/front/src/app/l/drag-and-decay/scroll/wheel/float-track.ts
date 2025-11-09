@@ -42,14 +42,17 @@ export class FloatTrack {
   }
 
   mapYOptions = {
+    margin: 100,
     minMaxValue: <number | undefined>undefined,
     maxMinValue: <number | undefined>undefined,
   }
   mapY = (value: number, { height = 200 } = {}) => {
-    const min = this.mapYOptions.minMaxValue !== undefined
+    let min = this.mapYOptions.minMaxValue !== undefined
       ? Math.min(this.mapYOptions.minMaxValue, this.min) : this.min
-    const max = this.mapYOptions.maxMinValue !== undefined
+    let max = this.mapYOptions.maxMinValue !== undefined
       ? Math.max(this.mapYOptions.maxMinValue, this.max) : this.max
+    min -= this.mapYOptions.margin
+    max += this.mapYOptions.margin
     const delta = max - min
     const mapY = 1 / (delta === 0 ? 1 : delta)
     return (1 - (value - min) * mapY) * height

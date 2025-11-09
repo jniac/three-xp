@@ -109,12 +109,14 @@ export class ToggleMobile {
     deltaTime: 0,
 
     moving: false,
+    movingStartTime: -Infinity,
+    movingStopTime: -Infinity,
 
     positionMem: new Memorization(10, 0),
     velocityMem: new Memorization(10, 0),
 
     dragging: false,
-    dragVelocity: 0,
+    velocity: 0,
     dragStartTime: -Infinity,
     dragStopTime: -Infinity,
     dragState: ToggleMobile.DragState.None,
@@ -126,7 +128,7 @@ export class ToggleMobile {
     callbacks: new CallbackHandler<[ToggleMobile]>(),
   };
 
-  dragMobile = new DragMobile();
+  dragMobile = new DragMobile()
 
   get firstPosition() { return this.props.positions[0] }
   get lastPosition() { return this.props.positions[this.props.positions.length - 1] }
@@ -134,6 +136,18 @@ export class ToggleMobile {
   get position() { return this.state.position }
   get isMoving() { return this.state.moving }
   get isDragging() { return this.state.dragging }
+
+  get movingStartDuration(): number {
+    if (!this.state.moving)
+      return 0
+    return this.state.time - this.state.movingStartTime
+  }
+
+  get movingStopDuration(): number {
+    if (this.state.moving)
+      return 0
+    return this.state.time - this.state.movingStopTime
+  }
 
   constructor(props?: Partial<typeof ToggleMobile.defaultProps>) {
     this.props = { ...ToggleMobile.defaultProps, ...props }
@@ -218,7 +232,7 @@ export class ToggleMobile {
 
     this.dragMobile.set({
       position: this.state.position,
-      velocity: this.state.dragVelocity,
+      velocity: this.state.velocity,
       drag: 1 - this.props.dragDamping,
     })
 
@@ -304,7 +318,7 @@ export class ToggleMobile {
     if (this.isDragAutoLocked())
       return this
 
-    if (Math.abs(this.state.dragVelocity) < velocityThreshold)
+    if (Math.abs(this.state.velocity) < velocityThreshold)
       this.dragStop()
 
     return this
@@ -313,6 +327,35 @@ export class ToggleMobile {
   update(deltaTime: number): this {
     this.state.deltaTime = deltaTime
     this.state.time += deltaTime
+
+    if (this.state.dragging) {
+      const { overshootLimit: ol } = this.props
+      const min = this.firstPosition, max = this.lastPosition
+      const targetPosition = limitedClamp(this.state.inputPosition, min, min - ol, max, max + ol)
+      const lerpRatio = calculateExponentialDecayLerpRatio(this.props.dragDamping, deltaTime)
+      const positionOld = this.state.position
+      const positionNew = lerp(positionOld, targetPosition, lerpRatio)
+      const positionDelta = positionNew - positionOld
+
+      this.state.position = positionNew
+      this.state.velocity = positionDelta / deltaTime
+      this.state.dragState = ToggleMobile.DragState.Dragging
+
+      this.dragMobile.set({
+        position: this.state.position,
+        velocity: this.state.velocity,
+        drag: 1 - this.props.dragDamping,
+      })
+
+      this.state.naturalDestination = this.dragMobile.getDestination()
+    }
+
+    else {
+      this.dragMobile.update(deltaTime)
+      this.state.position = this.dragMobile.position
+      this.state.velocity = this.dragMobile.velocity
+      // this.state.inputPosition = this.state.position // Sync input position when not dragging
+    }
 
     // Update input position if just finished drag auto-lock
     const timeOld = this.state.time - deltaTime
@@ -323,39 +366,19 @@ export class ToggleMobile {
       this.state.callbacks.dispatch(ToggleMobile.Events.DragAutoLockEnd, this)
     }
 
-    if (this.state.dragging) {
-      const { overshootLimit: ol } = this.props
-      const min = this.firstPosition, max = this.lastPosition
-      const targetPosition = limitedClamp(this.state.inputPosition, min, min - ol, max, max + ol)
-      const lerpRatio = calculateExponentialDecayLerpRatio(this.props.dragDamping, deltaTime)
-      const positionOld = this.state.position
-      this.state.position = lerp(this.state.position, targetPosition, lerpRatio)
-      this.state.dragVelocity = (this.state.position - positionOld) / deltaTime
-      this.state.dragState = ToggleMobile.DragState.Dragging
-
-      this.dragMobile.set({
-        position: this.state.position,
-        velocity: this.state.dragVelocity,
-        drag: 1 - this.props.dragDamping,
-      })
-
-      this.state.naturalDestination = this.dragMobile.getDestination()
-    }
-
-    else {
-      this.dragMobile.update(deltaTime)
-      this.state.position = this.dragMobile.position
-      // this.state.inputPosition = this.state.position // Sync input position when not dragging
-    }
-
     this.state.positionIndex = this.computeClosestPositionIndex(this.state.position)
     this.state.positionMem.setValue(this.state.position, true)
-    this.state.velocityMem.setValue(this.state.dragVelocity, true)
+    this.state.velocityMem.setValue(this.state.velocity, true)
 
     const movingNew = Math.abs(this.state.velocityMem.average) > 1e-5
     const movingOld = this.state.moving
     this.state.moving = movingNew
+    console.log(movingNew)
     if (movingNew !== movingOld) {
+      if (movingNew)
+        this.state.movingStartTime = this.state.time
+      else
+        this.state.movingStopTime = this.state.time
       const type = movingNew
         ? ToggleMobile.Events.MovingStart
         : ToggleMobile.Events.MovingStop

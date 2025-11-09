@@ -83,6 +83,7 @@ export class WheelRecord {
     this.mobileTrack = new FloatTrack(new Float32Array(this.deltaTrack.data.length))
 
     this.positionTrack.mapYOptions.minMaxValue = 0
+    this.positionTrack.mapYOptions.maxMinValue = 4000
   }
 
   /**
@@ -134,6 +135,10 @@ export class WheelRecord {
 
       let { wheelTime, wheelPosition } = this.liveState
       const { mobile, wheelDelta } = message.assertPayload()
+
+      if (mobile.movingStopDuration > 1.2)
+        return
+
       wheelTime += 1 / 120
       wheelPosition += wheelDelta
       Object.assign(this.liveState, { wheelTime, wheelPosition })
