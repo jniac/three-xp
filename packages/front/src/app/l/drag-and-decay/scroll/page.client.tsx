@@ -9,7 +9,7 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
-import { onNextTick, onTick } from 'some-utils-ts/ticker'
+import { onNextTick, onTick, Ticker } from 'some-utils-ts/ticker'
 import { ToggleMobile } from '../toggle-mobile'
 import { WheelGraph } from './wheel/graph'
 import { WheelRecorderWidget } from './wheel/recorder'
@@ -87,13 +87,12 @@ function ScrollingContent() {
 
     const mobilePositions = computeMobilePositionsFromLayout(div)
     setMobilePositions(mobilePositions)
+    yield Message.on('MOBILE_POSITIONS_REQUEST', message => {
+      message.setPayload(mobilePositions)
+    })
 
     const mobile = new ToggleMobile({
       positions: mobilePositions,
-    })
-
-    mobile.on('drag-stop', (type, mobile) => {
-      console.log(`${mobile.position.toFixed(2)} -> ${mobile.state.naturalDestination.toFixed(2)} (v: ${mobile.state.velocity.toFixed(2)})`)
     })
 
     const svg = mobile.svgRepresentation()
@@ -167,12 +166,11 @@ function ScrollingContent() {
         </p>
         {mobilePositions && (
           <div className='flex flex-row'>
-            {/* <WheelLoader mobilePositions={mobilePositions} /> */}
             <WheelGraph
-              url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
-              mobilePositions={mobilePositions}
-            />
-            <WheelGraph
+              width={800}
+              height={400}
+              // url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
+              url='/assets/misc/wheel-recording-5s-[mid-overflow-1].bin'
               mobilePositions={mobilePositions}
             />
           </div>
@@ -246,6 +244,17 @@ function WrapperChip({ borderColor = 'white' }: { borderColor?: string }) {
   )
 }
 
+function useAsync<T>(callback: () => Promise<T>): T | null {
+  const [result, setResult] = useState<T | null>(null)
+
+  useEffects(async function* () {
+    const res = await callback()
+    setResult(res)
+  }, [])
+
+  return result
+}
+
 export function PageClient() {
   return (
     <ThreeProvider
@@ -255,8 +264,22 @@ export function PageClient() {
         perspective: 0,
       }}
     >
-      <div className='fixed top-4 right-4 z-10'>
+      <div
+        className='fixed top-4 right-4 z-10 flex flex-col p-4 gap-4 rounded-xl overflow-hidden'
+        style={{
+          backdropFilter: 'blur(64px) brightness(0.6) saturate(0.8)',
+        }}
+      >
         <WheelRecorderWidget />
+        {useAsync(async () => {
+          await Ticker.current().waitNextTick()
+          const mobilePositions = Message.send<number[]>('MOBILE_POSITIONS_REQUEST').assertPayload()
+          return (
+            <WheelGraph
+              mobilePositions={mobilePositions}
+            />
+          )
+        })}
       </div>
 
       <div className='ScrollingWrapper layer thru'>

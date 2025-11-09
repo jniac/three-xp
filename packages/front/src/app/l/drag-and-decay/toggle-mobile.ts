@@ -373,7 +373,6 @@ export class ToggleMobile {
     const movingNew = Math.abs(this.state.velocityMem.average) > 1e-5
     const movingOld = this.state.moving
     this.state.moving = movingNew
-    console.log(movingNew)
     if (movingNew !== movingOld) {
       if (movingNew)
         this.state.movingStartTime = this.state.time

@@ -50,14 +50,17 @@ function GraphInfo({ record }: { record: WheelRecord }) {
   )
 }
 
-function HorizontalLine({ y }: { y: number }) {
+function HorizontalLine({
+  y = 0,
+  color = '#fff2',
+}) {
   return (
     <line
-      x1={0}
+      x1={-1000}
       y1={y}
-      x2={400}
+      x2={1000}
       y2={y}
-      stroke='#fff2'
+      stroke={color}
       strokeWidth={1}
     />
   )
@@ -71,9 +74,9 @@ function VerticalLine({
   return (
     <line
       x1={x}
-      y1={0}
+      y1={-1000}
       x2={x}
-      y2={300}
+      y2={1000}
       stroke={color}
       strokeWidth={1}
       strokeDasharray={dashArray}
@@ -81,10 +84,21 @@ function VerticalLine({
   )
 }
 
-function Graph({ record, mobilePositions }: { record: WheelRecord, mobilePositions: number[] }) {
-  const width = 400
-  const height = 300
-  const margin = 10
+const defaultGraphProps = {
+  width: 400,
+  height: 300,
+  margin: 0,
+}
+
+function Graph(props: { record: WheelRecord, mobilePositions: number[] } & Partial<typeof defaultGraphProps>) {
+  const {
+    record,
+    mobilePositions,
+    width,
+    height,
+    margin,
+  } = { ...defaultGraphProps, ...props }
+
   const simulation = record.isFinished && record.mobileSimulation({ mobilePositions })
 
   const render = useTriggerRender()
@@ -102,7 +116,7 @@ function Graph({ record, mobilePositions }: { record: WheelRecord, mobilePositio
     <>
       <GraphInfo record={record} />
       <svg
-        className='mt-2 border border-white/10 rounded'
+        className='mt-2'
         width={width + margin * 2}
         height={height + margin * 2}
         viewBox={`${-margin} ${-margin} ${width + margin * 2} ${height + margin * 2}`}
@@ -129,6 +143,10 @@ function Graph({ record, mobilePositions }: { record: WheelRecord, mobilePositio
           stroke='yellow'
           strokeWidth={2}
           fill='none'
+        />
+        <HorizontalLine
+          color='#fff9'
+          y={record.positionTrack.mapY(0, { height })}
         />
         {mobilePositions.slice(1).map(position => (
           <HorizontalLine
@@ -169,11 +187,12 @@ function Graph({ record, mobilePositions }: { record: WheelRecord, mobilePositio
 
 export function WheelGraph({
   url,
-  mobilePositions
+  mobilePositions,
+  ...graphProps
 }: {
   url?: string
   mobilePositions: number[]
-}) {
+} & Partial<typeof defaultGraphProps>) {
   const [record, setRecord] = useState<WheelRecord | null>(null)
 
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
@@ -196,7 +215,11 @@ export function WheelGraph({
       className='p-2 flex flex-col border border-white/10 rounded'
     >
       {record && (
-        <Graph record={record} mobilePositions={mobilePositions} />
+        <Graph
+          record={record}
+          mobilePositions={mobilePositions}
+          {...graphProps}
+        />
       )}
     </div>
   )
