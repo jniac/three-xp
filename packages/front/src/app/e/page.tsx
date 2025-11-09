@@ -20,21 +20,21 @@ import * as scatteredPlane from './scattered-plane/page'
 import * as twoEnvDemo from './two-env-demo/page'
 
 const pages = {
- 'ao-transparent': aoTransparent,
- 'art-1': art1,
- 'art-2': art2,
- 'depth-play': depthPlay,
- 'dots-and-falloffs': dotsAndFalloffs,
- 'four-circles': fourCircles,
- 'fractal-grid': fractalGrid,
- 'from-earth-to': fromEarthTo,
- 'lady-ethereal': ladyEthereal,
- 'me': me,
- 'ovvo/layers': ovvoLayers,
- 'path-with-loop': pathWithLoop,
- 'procedural-tree': proceduralTree,
- 'scattered-plane': scatteredPlane,
- 'two-env-demo': twoEnvDemo,
+  'ao-transparent': aoTransparent,
+  'art-1': art1,
+  'art-2': art2,
+  'depth-play': depthPlay,
+  'dots-and-falloffs': dotsAndFalloffs,
+  'four-circles': fourCircles,
+  'fractal-grid': fractalGrid,
+  'from-earth-to': fromEarthTo,
+  'lady-ethereal': ladyEthereal,
+  'me': me,
+  'ovvo/layers': ovvoLayers,
+  'path-with-loop': pathWithLoop,
+  'procedural-tree': proceduralTree,
+  'scattered-plane': scatteredPlane,
+  'two-env-demo': twoEnvDemo,
 }
 
 export const metadata: Metadata = {

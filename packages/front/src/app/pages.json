@@ -68,6 +68,14 @@
     "dir": "l/depth-offset"
   },
   {
+    "page": "l/drag-and-decay/clean/page.tsx",
+    "dir": "l/drag-and-decay/clean"
+  },
+  {
+    "page": "l/drag-and-decay/debug/drag-mobile/page.tsx",
+    "dir": "l/drag-and-decay/debug/drag-mobile"
+  },
+  {
     "page": "l/drag-and-decay/scroll/page.tsx",
     "dir": "l/drag-and-decay/scroll"
   },

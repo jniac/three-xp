@@ -40,7 +40,7 @@ export function AboutPage() {
   return (
     <ResponsiveProvider>
       <div className='layer p-4 bg-[#eee]'>
-        <div className='relative w-full h-full bg-[#220793] rounded-[12px] overflow-hidden'>
+        <div className='relative w-full h-full bg-[#220793] rounded-[20px] overflow-hidden'>
           <AboutMain />
         </div>
       </div>

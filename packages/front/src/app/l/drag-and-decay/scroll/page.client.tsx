@@ -161,7 +161,7 @@ function ScrollingContent() {
   return (
     <div
       ref={ref}
-      className='ScrollingContent w-full flex flex-col p-24 gap-8'
+      className='ScrollingContent w-full flex flex-col p-24 gap-8 select-none'
     >
       <Section className='gap-4' bgColor='#402b2b'>
         <SectionChip borderColor='#402b2b' />
@@ -177,9 +177,9 @@ function ScrollingContent() {
             <WheelGraph
               width={800}
               height={400}
-              // url='/assets/misc/wheel-recording-5s-[huge-acceleration].bin'
-              // url='/assets/misc/wheel-recording-5s-[mid].bin'
-              url='/assets/misc/wheel-recording-5s-[back-and-forth].bin'
+              // url='/assets/misc/wheel//wheel-recording-5s-[huge-acceleration].bin'
+              // url='/assets/misc/wheel//wheel-recording-5s-[mid].bin'
+              url='/assets/misc/wheel/wheel-recording-5s-[why-not-down].bin'
               mobilePositions={mobilePositions}
             />
           </div>

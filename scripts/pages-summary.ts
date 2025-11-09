@@ -52,7 +52,7 @@ export function generatePagesSummary(dir: string, metadata: { title: string }, p
     })
 
   const imports = entries.map(entry => entry.importStr).join('\n')
-  const pageNames = entries.map(entry => ` '${entry.localPage}': ${entry.name},`).join('\n')
+  const pageNames = entries.map(entry => `  '${entry.localPage}': ${entry.name},`).join('\n')
 
   return template
     .replace('$IMPORTS', imports)

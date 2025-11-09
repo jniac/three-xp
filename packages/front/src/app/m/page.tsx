@@ -6,7 +6,7 @@ import { SummaryPage } from '@/components/summary'
 import * as contextTest from './context-test/page'
 
 const pages = {
- 'context-test': contextTest,
+  'context-test': contextTest,
 }
 
 export const metadata: Metadata = {
