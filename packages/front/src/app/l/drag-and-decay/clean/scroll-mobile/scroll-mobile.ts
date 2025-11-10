@@ -1,3 +1,4 @@
+import { lerp, saturate } from 'some-utils-ts/math/basic'
 import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 
 import { CallbackHandler } from './callback-handler'
@@ -56,6 +57,12 @@ class PointerDragState {
 class AutoDragState {
   delta = 0
   position = 0
+  velocity = 0
+
+  time = 0
+
+  stopIndex = -1
+  stopChangeTime = 0
 
   dragMobile = new DragMobile()
 
@@ -67,10 +74,33 @@ class AutoDragState {
     this.delta += delta
   }
 
-  update(deltaTime: number) {
-    this.dragMobile.drag = .99999
+  update(deltaTime: number, stops: number[]) {
+    this.time += deltaTime
 
-    this.position = this.dragMobile.position
+    this.dragMobile.drag = .99999
+    this.dragMobile.position = this.position
+    this.dragMobile.velocity = this.delta / deltaTime
+
+    const naturalDestination = this.dragMobile.getDestination()
+    const stopIndex = getClosestStopIndex(stops, naturalDestination)
+    const stop = stops[stopIndex]
+
+    if (stopIndex !== this.stopIndex) {
+      this.stopIndex = stopIndex
+      this.stopChangeTime = this.time
+    }
+
+    const timeSinceStopChange = this.time - this.stopChangeTime
+    const alpha = saturate(timeSinceStopChange / 0.2) // 0.2 seconds to reach the stop
+
+    this.dragMobile.setVelocityForDestination(stop)
+    this.dragMobile.update(deltaTime)
+
+    const positionOld = this.position
+    this.position = lerp(this.position + this.delta, this.dragMobile.position, alpha)
+    this.velocity = (this.position - positionOld) / deltaTime
+
+    this.delta = 0 // Consume
   }
 }
 
@@ -194,8 +224,9 @@ export class ScrollMobile {
 
     const { pointerDrag, dragMobile } = this.state
 
+    const BOOST_ON_RELEASE = 2
     dragMobile.position = pointerDrag.position
-    dragMobile.velocity = pointerDrag.velocity
+    dragMobile.velocity = pointerDrag.velocity * BOOST_ON_RELEASE
     dragMobile.drag = .99999
 
     const destination = dragMobile.getDestination()
@@ -239,7 +270,7 @@ export class ScrollMobile {
       }
 
       case InputMode.AutoDragging: {
-        autoDrag.update(deltaTime)
+        autoDrag.update(deltaTime, this.props.stops)
         dragMobile.position = autoDrag.position
         break
       }
