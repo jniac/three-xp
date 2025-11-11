@@ -1,113 +1,15 @@
-import { lerp, saturate } from 'some-utils-ts/math/basic'
 import { DragMobile } from 'some-utils-ts/math/misc/drag.mobile'
 
 import { CallbackHandler } from './callback-handler'
+import { getClosestStopIndex } from './core'
+import { AutoDragState } from './states/auto-drag'
+import { PointerDragState } from './states/pointer-drag'
 import { svgRepresentation } from './svg'
-
-function getClosestStopIndex(stops: number[], position: number): number {
-  let closestIndex = 0
-  let closestDistance = Infinity
-  for (let i = 0; i < stops.length; i++) {
-    const stop = stops[i]
-    const distance = Math.abs(stop - position)
-    if (distance < closestDistance) {
-      closestDistance = distance
-      closestIndex = i
-    }
-  }
-  return closestIndex
-}
-
-class PointerDragState {
-  delta = 0
-  position = 0
-  velocity = 0
-  inputPosition = 0
-
-  dragMobile = new DragMobile()
-
-  increment(delta: number): this {
-    this.delta += delta
-    return this
-  }
-
-  start(initialPosition: number): void {
-    this.delta = 0
-    this.position = initialPosition
-    this.inputPosition = initialPosition
-    this.dragMobile.position = initialPosition
-    this.dragMobile.velocity = 0
-  }
-
-  update(deltaTime: number): void {
-    const inputPositionNew = this.inputPosition + this.delta
-    this.inputPosition = inputPositionNew
-    this.delta = 0 // Consume
-
-    this.dragMobile.drag = .9999 // High drag for pointer
-    this.dragMobile.setVelocityForDestination(inputPositionNew)
-    this.dragMobile.update(deltaTime)
-
-    const positionOld = this.position
-    this.position = this.dragMobile.position
-    this.velocity = (this.position - positionOld) / deltaTime
-  }
-}
-
-class AutoDragState {
-  delta = 0
-  position = 0
-  velocity = 0
-
-  time = 0
-
-  stopIndex = -1
-  stopChangeTime = 0
-
-  dragMobile = new DragMobile()
-
-  reset() {
-    this.delta = 0
-  }
-
-  increment(delta: number) {
-    this.delta += delta
-  }
-
-  update(deltaTime: number, stops: number[]) {
-    this.time += deltaTime
-
-    this.dragMobile.drag = .99999
-    this.dragMobile.position = this.position
-    this.dragMobile.velocity = this.delta / deltaTime
-
-    const naturalDestination = this.dragMobile.getDestination()
-    const stopIndex = getClosestStopIndex(stops, naturalDestination)
-    const stop = stops[stopIndex]
-
-    if (stopIndex !== this.stopIndex) {
-      this.stopIndex = stopIndex
-      this.stopChangeTime = this.time
-    }
-
-    const timeSinceStopChange = this.time - this.stopChangeTime
-    const alpha = saturate(timeSinceStopChange / 0.2) // 0.2 seconds to reach the stop
-
-    this.dragMobile.setVelocityForDestination(stop)
-    this.dragMobile.update(deltaTime)
-
-    const positionOld = this.position
-    this.position = lerp(this.position + this.delta, this.dragMobile.position, alpha)
-    this.velocity = (this.position - positionOld) / deltaTime
-
-    this.delta = 0 // Consume
-  }
-}
 
 enum InputMode {
   Idle,
-  PointerDragging,
-  AutoDragging,
+  PointerDrag,
+  AutoDrag,
 }
 
 enum EventType {
@@ -117,6 +19,10 @@ enum EventType {
 
 const defaultProps = {
   stops: [0, 400, 600],
+  /**
+   * Time in seconds to fade wheel input from "auto-drag" to "idle" mode.
+   */
+  autoDragFadeTime: 0.2,
 }
 
 export class ScrollMobile {
@@ -202,16 +108,16 @@ export class ScrollMobile {
   }
 
   startDrag(): this {
-    if (this.state.inputMode === InputMode.PointerDragging)
+    if (this.state.inputMode === InputMode.PointerDrag)
       return this
 
     this.state.pointerDrag.start(this.state.dragMobile.position)
-    this.#setInputModeSafe(InputMode.PointerDragging)
+    this.#setInputModeSafe(InputMode.PointerDrag)
     return this
   }
 
   drag(delta: number): this {
-    if (this.state.inputMode !== InputMode.PointerDragging)
+    if (this.state.inputMode !== InputMode.PointerDrag)
       return this
 
     this.state.pointerDrag.increment(delta)
@@ -219,7 +125,7 @@ export class ScrollMobile {
   }
 
   stopDrag(): this {
-    if (this.state.inputMode !== InputMode.PointerDragging)
+    if (this.state.inputMode !== InputMode.PointerDrag)
       return this
 
     const { pointerDrag, dragMobile } = this.state
@@ -245,12 +151,12 @@ export class ScrollMobile {
     const { autoDrag } = this.state
 
     // Update input position if entering auto drag mode
-    if (this.state.inputMode !== InputMode.AutoDragging)
+    if (this.state.inputMode !== InputMode.AutoDrag)
       autoDrag.reset()
 
     autoDrag.increment(delta)
 
-    this.#setInputModeSafe(InputMode.AutoDragging)
+    this.#setInputModeSafe(InputMode.AutoDrag)
     return this
   }
 
@@ -263,13 +169,14 @@ export class ScrollMobile {
         break
       }
 
-      case InputMode.PointerDragging: {
+      case InputMode.PointerDrag: {
         pointerDrag.update(deltaTime)
         dragMobile.position = pointerDrag.position
         break
       }
 
-      case InputMode.AutoDragging: {
+      case InputMode.AutoDrag: {
+        autoDrag.fadeTime = this.props.autoDragFadeTime
         autoDrag.update(deltaTime, this.props.stops)
         dragMobile.position = autoDrag.position
         break

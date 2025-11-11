@@ -11,18 +11,27 @@ import { ScrollMobile } from './scroll-mobile'
 import { computeStops } from './utils'
 
 function Content() {
+  const Red = () => <Section />
+  const Blue = () => <Section size='12rem' bgColor='blue' />
+  const Yellow = () => <Section size='4rem' bgColor='yellow' textColor='black' />
+  const Purple = () => <Section size='200vh' bgColor='mediumpurple' textColor='black' />
   return (
     <div className='Content w-full flex flex-col p-16 gap-8'>
-      <Section />
-      <Section size='4rem' bgColor='yellow' textColor='black' />
-      <Section size='12rem' bgColor='blue' />
-      <Section />
-      <Section />
-      <Section size='4rem' bgColor='yellow' textColor='black' />
-      <Section size='4rem' bgColor='yellow' textColor='black' />
-      <Section size='4rem' bgColor='yellow' textColor='black' />
-      <Section size='12rem' bgColor='blue' />
-      <Section />
+      <Red />
+      <Yellow />
+      <Blue />
+      <Red />
+      <Red />
+      {/* <Purple /> */}
+      <Yellow />
+      <Yellow />
+      <Yellow />
+      <Blue />
+      <Red />
+      <Yellow />
+      <Red />
+      <Blue />
+      <Red />
     </div>
   )
 }
@@ -47,7 +56,7 @@ export function PageClient() {
       },
 
       onWheel: info => {
-        mobile.autoDrag(info.delta.y)
+        mobile.autoDrag(info.delta.y * .5)
       }
     })
 

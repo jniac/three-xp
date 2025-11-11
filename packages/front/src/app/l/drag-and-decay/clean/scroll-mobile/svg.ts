@@ -2,19 +2,26 @@ import { ScrollMobile } from './scroll-mobile'
 
 export function svgRepresentation(scrollMobile: ScrollMobile, {
   svg = <SVGSVGElement | null>null,
+  margin = 20,
+  width = 100,
+  height = 500,
+  stopRadius = 3,
+  headRadius = 5,
 } = {}): SVGSVGElement {
   if (!svg) {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   }
-  svg.setAttribute('viewBox', '-20 -20 100 500')
-  svg.setAttribute('width', '100')
-  svg.setAttribute('height', '500')
+  const fullWidth = width + margin * 2
+  const fullHeight = height + margin * 2
+  svg.setAttribute('viewBox', `${-margin} ${-margin} ${fullWidth} ${fullHeight}`)
+  svg.setAttribute('width', `${fullWidth}`)
+  svg.setAttribute('height', `${fullHeight}`)
 
   let head = svg.querySelector('circle.head')
   if (!head) {
     head = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     head.classList.add('head')
-    head.setAttribute('r', '5')
+    head.setAttribute('r', `${headRadius}`)
     head.setAttribute('fill', 'none')
     head.setAttribute('stroke', 'white')
     svg.appendChild(head)
@@ -24,7 +31,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   while (stops.length < scrollMobile.props.stops.length) {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     circle.classList.add('stop')
-    circle.setAttribute('r', '3')
+    circle.setAttribute('r', `${stopRadius}`)
     circle.setAttribute('fill', 'white')
     svg.appendChild(circle)
     stops.push(circle)
@@ -36,7 +43,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   }
 
   const remap = (position: number) => {
-    const value = scrollMobile.inverseLerpPosition(position) * 200
+    const value = scrollMobile.inverseLerpPosition(position) * height
     return value
   }
 
