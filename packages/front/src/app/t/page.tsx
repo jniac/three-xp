@@ -25,6 +25,7 @@ import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
 import * as threeProviderPointer from './three-provider/pointer/page'
 import * as tickerBasic from './ticker/basic/page'
 import * as transformWithShear from './transform-with-shear/page'
+import * as variableDemo from './variable/demo/page'
 import * as vertexBendBasic from './vertex-bend/basic/page'
 import * as vertexBendUmbellifer from './vertex-bend/umbellifer/page'
 import * as vertigo from './vertigo/page'
@@ -53,6 +54,7 @@ const pages = {
   'three-provider/pointer': threeProviderPointer,
   'ticker/basic': tickerBasic,
   'transform-with-shear': transformWithShear,
+  'variable/demo': variableDemo,
   'vertex-bend/basic': vertexBendBasic,
   'vertex-bend/umbellifer': vertexBendUmbellifer,
   'vertigo': vertigo,

@@ -6,7 +6,8 @@
     "build:some-utils": "cd ../some-utils-ts && pnpm build && cd ../some-utils-three && pnpm build",
     "build": "pnpm build:some-utils && NEXT_DISABLE_ESLINT=true next build && touch ../../docs/.nojekyll",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest"
   },
   "dependencies": {
     "@svgr/webpack": "^8.1.0",
@@ -28,7 +29,8 @@
     "some-utils-react": "workspace:*",
     "some-utils-three": "workspace:*",
     "some-utils-ts": "workspace:*",
-    "three": "~0.176.0"
+    "three": "~0.176.0",
+    "vitest": "^3.1.4"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

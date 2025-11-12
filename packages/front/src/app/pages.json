@@ -220,6 +220,10 @@
     "dir": "t/transform-with-shear"
   },
   {
+    "page": "t/variable/demo/page.tsx",
+    "dir": "t/variable/demo"
+  },
+  {
     "page": "t/vertex-bend/basic/page.tsx",
     "dir": "t/vertex-bend/basic"
   },
