@@ -7,6 +7,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   height = 500,
   stopRadius = 3,
   headRadius = 5,
+  color = 'white',
 } = {}): SVGSVGElement {
   if (!svg) {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -23,7 +24,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
     head.classList.add('head')
     head.setAttribute('r', `${headRadius}`)
     head.setAttribute('fill', 'none')
-    head.setAttribute('stroke', 'white')
+    head.setAttribute('stroke', color)
     svg.appendChild(head)
   }
 
@@ -32,7 +33,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     circle.classList.add('stop')
     circle.setAttribute('r', `${stopRadius}`)
-    circle.setAttribute('fill', 'white')
+    circle.setAttribute('fill', color)
     svg.appendChild(circle)
     stops.push(circle)
   }
@@ -43,7 +44,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   }
 
   const remap = (position: number) => {
-    const value = scrollMobile.inverseLerpPosition(position) * height
+    const value = scrollMobile.inverseLerpPosition(position) * (height - 2 * margin)
     return value
   }
 

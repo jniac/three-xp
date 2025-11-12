@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.7",
     "@svgr/webpack": "^8.1.0",
     "@zip.js/zip.js": "^2.7.53",
     "change-case": "^5.4.4",

@@ -22,7 +22,7 @@ export function SectionChip({ borderColor = 'white' }: { borderColor?: string })
   return (
     <div
       style={{
-        '--size': '1.2rem',
+        '--size': '1.6rem',
         position: 'absolute',
         top: 'calc((100% - var(--size)) / 2)',
         left: 'calc(var(--size) / -2)',
@@ -30,7 +30,7 @@ export function SectionChip({ borderColor = 'white' }: { borderColor?: string })
         height: 'var(--size)',
         backgroundColor: 'currentColor',
         borderRadius: '50%',
-        border: `4px solid ${borderColor}`,
+        border: `8px solid ${borderColor}`,
       } as React.CSSProperties}>
     </div>
   )

@@ -224,6 +224,10 @@
     "dir": "t/variable/demo"
   },
   {
+    "page": "t/variable/sample/page.tsx",
+    "dir": "t/variable/sample"
+  },
+  {
     "page": "t/vertex-bend/basic/page.tsx",
     "dir": "t/vertex-bend/basic"
   },

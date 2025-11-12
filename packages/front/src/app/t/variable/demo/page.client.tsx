@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
@@ -9,80 +9,7 @@ import { useTriggerRender } from 'some-utils-react/hooks/render'
 import { Float32Variable } from 'some-utils-ts/misc/variables'
 import { onTick, Ticker } from 'some-utils-ts/ticker'
 
-function Graph({
-  variable: variableArg,
-  yRange: yRangeArg = 'auto',
-  height = 200,
-  strokeWidth = 2,
-}: {
-  variable: Float32Variable | Float32Variable[]
-  yRange?: 'auto' | [number, number]
-  height?: number
-  strokeWidth?: number
-}) {
-  const [yRange, setYRange] = useState<'auto' | [number, number]>(yRangeArg)
-  const variables = Array.isArray(variableArg) ? variableArg : [variableArg]
-  return (
-    <div
-      onClick={() => {
-        if (yRangeArg !== 'auto') {
-          setYRange(value => value === 'auto' ? yRangeArg : 'auto')
-        }
-      }}
-    >
-      <svg width="600" height={height} style={{ backgroundColor: '#111' }}>
-        {variables.map((variable, i) => (
-          <g key={i}>
-            <path
-              d={variable.toSvgPath({
-                width: 600,
-                height,
-                yRange,
-              })}
-              fill='none'
-              stroke='#56aaff'
-              strokeWidth={strokeWidth}
-            />
-            {variable.derivative && (
-              <path
-                d={variable.derivative!.toSvgPath({
-                  width: 600,
-                  height,
-                  yRange,
-                })}
-                fill='none'
-                stroke='#ff56b6'
-                strokeWidth={strokeWidth}
-              />
-            )}
-            {variable.derivative?.derivative && (
-              <path
-                d={variable.derivative.derivative.toSvgPath({
-                  width: 600,
-                  height,
-                  yRange,
-                })}
-                fill='none'
-                stroke='#fffc56'
-                strokeWidth={strokeWidth}
-                opacity={.1}
-              />
-            )}
-          </g>
-        ))}
-        <text x={10} y={24} fill='white' fontSize={16}>
-          {variables.map(v => v.props.name).join(', ')}
-        </text>
-        <text x={10} y={41} fill='white' fontSize={11} opacity={.2}>
-          {variables[0].count}:{variables[0].props.historySize} ({variables.map(v => v.get().toFixed(1)).join(', ')})
-        </text>
-        <text x={10} y={56} fill='white' fontSize={11} opacity={.2}>
-          (click to {yRange === 'auto' ? 'fix' : 'auto-adjust'} Y range)
-        </text>
-      </svg>
-    </div >
-  )
-}
+import { Graph } from '../components/graph'
 
 function createVariables({
   historySize = 100,
