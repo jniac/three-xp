@@ -1,34 +1,14 @@
+import { AngleDeclaration, fromAngleDeclaration, fromVector2Declaration, Vector2Declaration } from 'some-utils-ts/declaration'
 import { cubicBezierArcControlPoints } from 'some-utils-ts/math/geom/bezier'
 import { Line2 } from 'some-utils-ts/math/geom/line2'
+import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
 import { Vector2Like } from 'some-utils-ts/types'
-
-enum CommandFlags {
-  M = 1 << 0, // MoveTo
-  L = 1 << 1, // LineTo
-  Q = 1 << 2, // Quadratic Bezier To
-  C = 1 << 3, // Cubic Bezier To
-  Z = 1 << 4, // Close
-}
-
-const commandsInfo = {
-  [CommandFlags.M]: { flag: CommandFlags.M, args: 2, code: 'M', description: 'Move To', },
-  [CommandFlags.L]: { flag: CommandFlags.L, args: 2, code: 'L', description: 'Line To', },
-  [CommandFlags.Q]: { flag: CommandFlags.Q, args: 4, code: 'Q', description: 'Quadratic Bezier To', },
-  [CommandFlags.C]: { flag: CommandFlags.C, args: 6, code: 'C', description: 'Cubic Bezier To', },
-  [CommandFlags.Z]: { flag: CommandFlags.Z, args: 0, code: 'Z', description: 'Close Path', },
-}
-
-type Args2 = [{ x: number, y: number }] | [number, number]
-function parseArgs2(args: Args2): [number, number] {
-  if (typeof args[0] === 'object') {
-    return [args[0].x, args[0].y]
-  }
-  return [(args as [number, number])[0], (args as [number, number])[1]]
-}
+import { Args2, CommandFlags, commands, commandsByFlag, parseArgs2 } from './core'
+import { Transform2DDeclaration, transform2DToMatrix3x2 } from './math'
 
 /**
  * Note:
- * - SimplePath only use 'L', 'Q' & 'C' commands for drawing
+ * - SimplePath only use 'L', 'A', 'Q' & 'C' commands for drawing
  */
 export class SimplePath {
   static instance = new SimplePath()
@@ -69,8 +49,8 @@ export class SimplePath {
     return this
   }
 
-  rect(params: { x: number, y: number, width: number, height: number }): this {
-    const { x, y, width: w, height: h } = params
+  rect(params: RectangleDeclaration): this {
+    const { x, y, width: w, height: h } = Rectangle.from(params)
     this.commands.push(CommandFlags.L)
     this.commands.push(CommandFlags.L)
     this.commands.push(CommandFlags.L)
@@ -79,6 +59,29 @@ export class SimplePath {
     this.args.push([x + w, y])
     this.args.push([x + w, y + h])
     this.args.push([x, y + h])
+    return this
+  }
+
+  arc(params: {
+    center: Vector2Declaration
+    radius: Vector2Declaration
+    startAngle: AngleDeclaration
+    endAngle: AngleDeclaration
+  }): this {
+    const { x: cx, y: cy } = fromVector2Declaration(params.center)
+    const { x: rx, y: ry } = fromVector2Declaration(params.radius)
+    const startAngle = fromAngleDeclaration(params.startAngle)
+    const endAngle = fromAngleDeclaration(params.endAngle)
+
+    const largeArcFlag = Math.abs(endAngle - startAngle) > Math.PI ? 1 : 0
+    const sweepFlag = endAngle > startAngle ? 1 : 0
+
+    const x = cx + rx * Math.cos(endAngle)
+    const y = cy + ry * Math.sin(endAngle)
+
+    this.commands.push(CommandFlags.A)
+    this.args.push([rx, ry, (endAngle - startAngle) * 180 / Math.PI, largeArcFlag, sweepFlag, x, y])
+
     return this
   }
 
@@ -123,7 +126,7 @@ export class SimplePath {
   getCommandInfo(index: number) {
     index = this.loopIndex(index)
     const command = this.commands[index]
-    return commandsInfo[command]
+    return commandsByFlag[command]
   }
 
   setArgsAt(index: number, args: number[]): this {
@@ -138,32 +141,12 @@ export class SimplePath {
   getPointAt<T extends Vector2Like>(index: number, out?: T): T | null {
     out ??= { x: 0, y: 0 } as T
     index = this.loopIndex(index)
-    const command = this.commands[index]
-    const args = this.args[index]
-    switch (command) {
-      case CommandFlags.M:
-      case CommandFlags.L: {
-        out.x = args[0]
-        out.y = args[1]
-        return out
-      }
-      case CommandFlags.C: {
-        out.x = args[4]
-        out.y = args[5]
-        return out
-      }
-      case CommandFlags.Q: {
-        out.x = args[2]
-        out.y = args[3]
-        return out
-      }
-      default: {
-        return null
-      }
-    }
+    const commandFlag = this.commands[index]
+    const commandArgs = this.args[index]
+    return commandsByFlag[commandFlag].extractPoint(commandArgs, out)
   }
 
-  getPreviousPoint(startIndex: number): [number, { x: number, y: number }] {
+  getPreviousPoint(startIndex: number): [index: number, point: { x: number, y: number }] {
     const max = this.commands.length
     for (let i = 1; i <= max; i++) {
       const index = this.loopIndex(startIndex - i)
@@ -174,7 +157,7 @@ export class SimplePath {
     throw new Error(`No previous point found before command index ${startIndex}`)
   }
 
-  getNextPoint(startIndex: number): [number, { x: number, y: number }] {
+  getNextPoint(startIndex: number): [index: number, point: { x: number, y: number }] {
     const max = this.commands.length
     for (let i = 1; i <= max; i++) {
       const index = this.loopIndex(startIndex + i)
@@ -184,7 +167,6 @@ export class SimplePath {
     }
     throw new Error(`No next point found after command index ${startIndex}`)
   }
-
 
   roundCorner(delegate: (info: { pointIndex: number, point: Vector2Like, angle: number, line1: Line2, line2: Line2 }) => { radius: number, tension?: number }): this {
     const point = { x: 0, y: 0 }
@@ -267,41 +249,55 @@ export class SimplePath {
       }
       return chunks.join(',')
     }
-    const commands: string[] = []
+    const pathCommands: string[] = []
 
     {
       // Handle first command separately to convert it to 'M'
       switch (this.commands[0]) {
         case CommandFlags.L: {
           const [x, y] = this.args[0]
-          commands.push(`M${fmt(x)} ${fmt(y)}`)
+          pathCommands.push(commands.M.argsToString([x, y], precisionMax))
+          break
+        }
+        case CommandFlags.A: {
+          const [, pp] = this.getPreviousPoint(0)
+          pathCommands.push(commands.M.argsToString([pp.x, pp.y], precisionMax))
+          pathCommands.push(commands.A.argsToString(this.args[0], precisionMax))
           break
         }
         case CommandFlags.Q: {
           const [, pp] = this.getPreviousPoint(0)
-          const [ax, ay, x, y] = this.args[0]
-          commands.push(`M${fmt(pp.x)} ${fmt(pp.y)}`)
-          commands.push(`Q${fmt(ax)} ${fmt(ay)},${fmt(x)} ${fmt(y)}`)
+          pathCommands.push(commands.M.argsToString([pp.x, pp.y], precisionMax))
+          pathCommands.push(commands.Q.argsToString(this.args[0], precisionMax))
           break
         }
         case CommandFlags.C: {
           const [, pp] = this.getPreviousPoint(0)
-          const [ax1, ay1, ax2, ay2, x, y] = this.args[0]
-          commands.push(`M${fmt(pp.x)} ${fmt(pp.y)}`)
-          commands.push(`C${fmt(ax1)} ${fmt(ay1)},${fmt(ax2)} ${fmt(ay2)},${fmt(x)} ${fmt(y)}`)
+          pathCommands.push(commands.M.argsToString([pp.x, pp.y], precisionMax))
+          pathCommands.push(commands.C.argsToString(this.args[0], precisionMax))
           break
         }
       }
     }
 
     for (let i = 1; i < this.commands.length; i++) {
-      const { code } = commandsInfo[this.commands[i]]
-      commands.push(`${code}${fmtarr(this.args[i])}`)
+      const command = commandsByFlag[this.commands[i]]
+      pathCommands.push(command.argsToString(this.args[i], precisionMax))
     }
 
-    commands.push('Z')
+    pathCommands.push('Z')
 
-    return commands.join(' ')
+    return pathCommands.join(' ')
+  }
+
+  applyTransform(transform?: Transform2DDeclaration): this {
+    const matrix = transform2DToMatrix3x2(transform)
+    for (let i = 0; i < this.commands.length; i++) {
+      const commandFlag = this.commands[i]
+      const commandArgs = this.args[i]
+      commandsByFlag[commandFlag].transformArgs(commandArgs, matrix)
+    }
+    return this
   }
 }
 

@@ -1,6 +1,5 @@
 import { XpMetadata } from '@/types'
-
-import { AboutPage } from './about'
+import { ShapesPage } from './shapes'
 
 export const metadata = new XpMetadata({
   slug: 'me',
@@ -18,6 +17,6 @@ export const metadata = new XpMetadata({
 
 export default function Page() {
   return (
-    <AboutPage />
+    <ShapesPage />
   )
 }
