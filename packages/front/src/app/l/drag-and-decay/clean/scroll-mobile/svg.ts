@@ -7,6 +7,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   height = 500,
   stopRadius = 3,
   headRadius = 5,
+  headStrokeWidth = 2,
   color = 'white',
 } = {}): SVGSVGElement {
   if (!svg) {
@@ -56,6 +57,7 @@ export function svgRepresentation(scrollMobile: ScrollMobile, {
   }
 
   head.setAttribute('cy', `${remap(scrollMobile.position)}`)
+  head.setAttribute('stroke-width', `${headStrokeWidth}`)
 
   return svg
 }

@@ -5,7 +5,7 @@ import { SimplePath } from '../home/path-builder/path-builder'
 const defaultCrossWheelParams = {
   size: 1,
   thickness: .8 / 3,
-  aperture: (1 / 2) / 3,
+  aperture: .44 / 3,
   depth: 2 / 5,
 }
 

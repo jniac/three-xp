@@ -26,17 +26,21 @@ const colors = {
   blue: '#001eff',
 }
 
+const settings = {
+  pathStrokeWidth: 8,
+}
+
 function Content() {
   const Red = () => (
     <Section bgColor={colors.oldRed} textColor={colors.darkPurple} className='justify-center items-center'>
-      <h1 className='font-mono font-bold text-8xl'>
+      <h1 className='font-mono font-bold text-6xl'>
         {colors.oldRed}
       </h1>
     </Section>
   )
   const Blue = () => (
     <Section size='12rem' bgColor={colors.blue} textColor={colors.beige} className='justify-center items-center'>
-      <h1 className='font-mono font-bold text-8xl'>
+      <h1 className='font-mono font-bold text-6xl'>
         {colors.blue}
       </h1>
     </Section>
@@ -44,7 +48,7 @@ function Content() {
   const DarkPurple = () => <Section size='4rem' bgColor={colors.darkPurple} textColor={colors.beige} />
   const Purple = () => <Section size='200vh' bgColor='mediumpurple' textColor='black' />
   return (
-    <div className='Content w-full flex flex-col p-16 gap-8'>
+    <div className='Content w-full flex flex-col py-16 gap-8'>
       <Red />
       <DarkPurple />
       <Blue />
@@ -70,6 +74,7 @@ function WheelGraph() {
     const svg = div.querySelector('svg') as SVGSVGElement
     const mobileFill = div.querySelector('#mobile-fill') as SVGPolygonElement
     const mobileLine = div.querySelector('#mobile-line') as SVGPolylineElement
+    const progressSpans = [...div.querySelectorAll('h1 span:last-child')] as HTMLSpanElement[]
     const mobileVar = new Float32Variable({ historySize: 100 })
     yield onTick(tick => {
       const mobile = Message.send<ScrollMobile>(ScrollMobile).assertPayload()
@@ -96,6 +101,12 @@ function WheelGraph() {
       ]
       mobileLine.setAttribute('points', points.join(' '))
       mobileFill.setAttribute('points', polygonPoints.join(' '))
+
+      const progress = mobile.position / (mobile.props.stops.at(-1) ?? 1)
+      const progressPercent = (progress * 100).toFixed(1)
+      for (const span of progressSpans) {
+        span.textContent = `${progressPercent}%`
+      }
     })
   }, [])
   return (
@@ -105,22 +116,31 @@ function WheelGraph() {
         style={{ backgroundColor: colors.greyGreen }}
       >
         <h1
-          className='text-4xl font-bold'
+          className='text-4xl font-bold flex flex-row justify-between'
           style={{ color: colors.blue }}
         >
-          Wheel
+          <span>Wheel</span>
+          <span>0%</span>
         </h1>
 
         <div className='flex-1'>
           <svg
             className='rounded-lg overflow-hidden'
-            style={{ borderColor: colors.blue, borderWidth: '1px', borderStyle: 'solid' }}
+            style={{ borderColor: colors.blue, borderWidth: `${settings.pathStrokeWidth}px`, borderStyle: 'solid' }}
           >
-            <line x1='0' y1='50%' x2='100%' y2='50%' stroke={colors.blue} />
+            <line x1='0' y1='50%' x2='100%' y2='50%' stroke={colors.blue} strokeWidth={settings.pathStrokeWidth} />
             <polygon id='mobile-fill' fill={colors.darkPurple} />
-            <polyline id='mobile-line' stroke={colors.blue} strokeWidth={12} fill='none' />
+            <polyline id='mobile-line' stroke={colors.blue} strokeWidth={settings.pathStrokeWidth} fill='none' />
           </svg>
         </div>
+
+        <h1
+          className='text-4xl font-bold flex flex-row justify-between'
+          style={{ color: colors.blue, transform: `rotate(180deg)` }}
+        >
+          <span>Wheel</span>
+          <span>0%</span>
+        </h1>
       </div>
     </div>
   )
@@ -162,13 +182,16 @@ export function PageClient() {
       const content = div.querySelector('.Content ') as HTMLDivElement
       content.style.transform = `translateY(${-mobile.position}px)`
 
-      const svg = div.querySelector('.ScrollMobileSvg svg') as SVGSVGElement
+      const svg = div.querySelector('#mobile-svg') as SVGSVGElement
       mobile.svgRepresentation({
         svg,
-        height: window.innerHeight,
-        color: colors.blue,
+        height: svg.parentElement!.clientHeight,
+        width: 0,
+        color: colors.oldRed,
         margin: 32,
         headRadius: 12,
+        stopRadius: settings.pathStrokeWidth / 2,
+        headStrokeWidth: settings.pathStrokeWidth,
       })
     })
 
@@ -203,11 +226,16 @@ export function PageClient() {
     >
       <div className='layer flex flex-col'>
         <div className='flex-1' />
-        <div className='basis-[1px]' style={{ backgroundColor: colors.blue }} />
+        <div style={{ flex: `0 0 ${settings.pathStrokeWidth}px`, backgroundColor: colors.blue }} />
         <div className='flex-1' />
       </div>
-      <div className='layer flex flex-row'>
-        <div style={{ flex: 2 }}>
+      <div className='layer flex flex-row gap-16'>
+        <div style={{ flex: `0 0 ${64 + 8}px`, padding: '8px', paddingRight: '0' }}>
+          <div className='w-full h-full rounded-lg' style={{ backgroundColor: colors.blue }}>
+            <svg id='mobile-svg' width={0} height={0} />
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
           <Content />
         </div>
         <div style={{ flex: 1 }}>

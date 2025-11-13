@@ -13,19 +13,21 @@ export function Section({
       style={{ height: size, color: textColor, backgroundColor: bgColor }}
     >
       <SectionChip borderColor={bgColor} />
+      <SectionChip borderColor={bgColor} right />
       {children}
     </section>
   )
 }
 
-export function SectionChip({ borderColor = 'white' }: { borderColor?: string }) {
+export function SectionChip({ borderColor = 'white', right = false }: { borderColor?: string, right?: boolean }) {
   return (
     <div
       style={{
-        '--size': '1.6rem',
+        '--size': '24px',
         position: 'absolute',
         top: 'calc((100% - var(--size)) / 2)',
-        left: 'calc(var(--size) / -2)',
+        left: right ? '' : 'calc(var(--size) / -2)',
+        right: right ? 'calc(var(--size) / -2)' : '',
         width: 'var(--size)',
         height: 'var(--size)',
         backgroundColor: 'currentColor',
