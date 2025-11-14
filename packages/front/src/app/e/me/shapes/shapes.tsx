@@ -1,218 +1,81 @@
-import { fromVector2Declaration, fromVector3Declaration, Vector2Declaration, Vector3Declaration } from 'some-utils-ts/declaration'
-import { applyMatrix3x2ToPoint, Transform2DDeclaration, transform2DToMatrix3x2 } from '../home/path-builder/math'
-import { SimplePath } from '../home/path-builder/path-builder'
+'use client'
+import { SVGLoader } from 'three/examples/jsm/Addons.js'
 
-const defaultCrossWheelParams = {
-  size: 1,
-  thickness: .8 / 3,
-  aperture: .44 / 3,
-  depth: 2 / 5,
+import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { setup } from 'some-utils-three/utils/tree'
+
+import { ShaderForge } from 'some-utils-three/shader-forge'
+import { BufferGeometry, Color, Mesh, MeshBasicMaterial, ShapeGeometry } from 'three'
+import { ResponsiveProvider } from '../responsive'
+import { CrossWheelBuilder } from './cross-wheel'
+import { blobSvg } from './svg/blob.svg'
+
+const svgLoader = new SVGLoader()
+
+function svgToGeometry(svg: string, {
+  scale = 1 / 200,
+  align = .5 as null | number,
+} = {}): BufferGeometry {
+  const parsed = svgLoader.parse(svg)
+  const geometry = new ShapeGeometry(parsed.paths[0].toShapes(true))
+    .scale(scale, scale, scale)
+  if (align !== null) {
+    geometry.center()
+  }
+  return geometry
 }
 
-class CrossWheelBuilder {
-  params: typeof defaultCrossWheelParams
+function pathDataToGeometry(pathData: string): BufferGeometry {
+  const parsed = svgLoader.parse(/* xml */`
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="-1 -1 2 2">
+      <path d="${pathData}" fill="none" stroke="black" stroke-width="0.01"/>
+    </svg>`
+  )
+  return new ShapeGeometry(parsed.paths[0].toShapes(true))
+}
 
-  transform: Transform2DDeclaration = {
-    scale: 200,
-    // rotation: '30deg',
-  }
+function MyScene() {
+  const three = useThreeWebGL()
 
-  constructor(params?: Partial<typeof defaultCrossWheelParams>) {
-    this.params = { ...defaultCrossWheelParams, ...params }
-  }
+  useGroup('my-scene', function* (group) {
+    three.scene.background = new Color('#f0f0f0')
+    setup(new DebugHelper(), group)
+      .regularGrid()
 
-  getPathData() {
-    const s = this.params.size
-    const t = this.params.thickness
-    const a = this.params.aperture
-    const d = this.params.depth - a / 2
-    const r1 = (s - t) / 2
+    const crossWheel = new CrossWheelBuilder()
+    const pathData = crossWheel.getPathData()
 
-    SimplePath.instance
-      .clear()
-      .moveTo(-s / 2, -t / 2)
+    const material = new MeshBasicMaterial({ color: 'red' })
+    material.onBeforeCompile = shader => ShaderForge.with(shader)
+      .defines('USE_UV')
+      .fragment.after('map_fragment', /* glsl */`
+        // diffuseColor.rg = vUv;
+      `)
 
-      // top left arc
-      .arc({
-        center: [-s / 2, -s / 2],
-        radius: r1,
-        startAngle: '90deg',
-        endAngle: '0deg',
-      })
+    const geometry = pathDataToGeometry(pathData)
+    const wheel = setup(new Mesh(svgToGeometry(blobSvg), material), group)
+    wheel.scale.setScalar(2)
+  })
 
-      // top aperture
-      .lineTo(-a / 2, -s / 2)
-      .lineTo(-a / 2, -(s / 2 - d))
-      .arc({
-        center: [0, -(s / 2 - d)],
-        radius: a / 2,
-        startAngle: '180deg',
-        endAngle: '0deg',
-      })
-      .lineTo(a / 2, -s / 2)
-      .lineTo(t / 2, -s / 2)
-
-      // top right arc
-      .arc({
-        center: [s / 2, -s / 2],
-        radius: r1,
-        startAngle: '180deg',
-        endAngle: '90deg',
-      })
-
-      // right aperture
-      .lineTo(s / 2, -a / 2)
-      .lineTo(s / 2 - d, -a / 2)
-      .arc({
-        center: [s / 2 - d, 0],
-        radius: a / 2,
-        startAngle: '270deg',
-        endAngle: '90deg',
-      })
-      .lineTo(s / 2, a / 2)
-      .lineTo(s / 2, t / 2)
-
-      // bottom right arc
-      .arc({
-        center: [s / 2, s / 2],
-        radius: r1,
-        startAngle: '270deg',
-        endAngle: '180deg',
-      })
-
-      // bottom aperture
-      .lineTo(a / 2, s / 2)
-      .lineTo(a / 2, s / 2 - d)
-      .arc({
-        center: [0, s / 2 - d],
-        radius: a / 2,
-        startAngle: '0deg',
-        endAngle: '-180deg',
-      })
-      .lineTo(-a / 2, s / 2)
-      .lineTo(-t / 2, s / 2)
-
-      // bottom left arc
-      .arc({
-        center: [-s / 2, s / 2],
-        radius: r1,
-        startAngle: '0deg',
-        endAngle: '-90deg',
-      })
-
-      // left aperture
-      .lineTo(-s / 2, a / 2)
-      .lineTo(-s / 2 + d, a / 2)
-      .arc({
-        center: [-s / 2 + d, 0],
-        radius: a / 2,
-        startAngle: '90deg',
-        endAngle: '-90deg',
-      })
-      .lineTo(-s / 2, -a / 2)
-      .closePath()
-
-    return SimplePath.instance
-      .applyTransform(this.transform)
-      .getPathData()
-  }
-
-  getSvgHelpers({
-    color = 'red',
-  } = {}): string {
-    const matrix = transform2DToMatrix3x2(this.transform)
-    const averageScale = (Math.hypot(matrix[0], matrix[1]) + Math.hypot(matrix[2], matrix[3])) / 2
-
-    const dot = (...args: [Vector2Declaration] | [number, number]) => {
-      const { x, y } = fromVector2Declaration(args.length === 2 ? args : args[0])
-      const { x: cx, y: cy } = applyMatrix3x2ToPoint(matrix, { x, y })
-      return `<circle cx="${cx}" cy="${cy}" r="2" fill="${color}" />`
-    }
-
-    const circle = (...args: [Vector3Declaration] | [number, number, number?]) => {
-      const { x, y, z: r } = fromVector3Declaration((args.length > 1 ? args : args[0]) as Vector3Declaration)
-      const { x: cx, y: cy } = applyMatrix3x2ToPoint(matrix, { x, y })
-      return `<circle cx="${cx}" cy="${cy}" r="${r || 4}" stroke="${color}" fill="none" />`
-    }
-
-    const dashedCircle = (...args: [Vector3Declaration] | [number, number, number?]) => {
-      const { x, y, z: r } = fromVector3Declaration((args.length > 1 ? args : args[0]) as Vector3Declaration)
-      const { x: cx, y: cy } = applyMatrix3x2ToPoint(matrix, { x, y })
-      return `<circle cx="${cx}" cy="${cy}" r="${r || 4}" stroke="${color}" fill="none" stroke-dasharray="4 4" />`
-    }
-
-    const plus = (...args: [Vector2Declaration] | [number, number]) => {
-      const { x, y } = fromVector2Declaration(args.length === 2 ? args : args[0])
-      const { x: cx, y: cy } = applyMatrix3x2ToPoint(matrix, { x, y })
-      return `<line x1="${cx - 4}" y1="${cy}" x2="${cx + 4}" y2="${cy}" stroke="${color}" stroke-width="1" />
-              <line x1="${cx}" y1="${cy - 4}" x2="${cx}" y2="${cy + 4}" stroke="${color}" stroke-width="1" />`
-    }
-
-    const s = this.params.size
-    const t = this.params.thickness
-    const a = this.params.aperture
-
-    return [
-      dot(0, 0),
-
-      plus(-s / 2, -s / 2),
-      plus(s / 2, -s / 2),
-      plus(s / 2, s / 2),
-      plus(-s / 2, s / 2),
-
-      dashedCircle(-s / 2, -s / 2, s / 2 * averageScale),
-      dashedCircle(s / 2, -s / 2, s / 2 * averageScale),
-      dashedCircle(s / 2, s / 2, s / 2 * averageScale),
-      dashedCircle(-s / 2, s / 2, s / 2 * averageScale),
-
-      // left:
-      circle(-s / 2, -t / 2),
-      dot(-s / 2, -t / 2),
-      dot(-s / 2, -a / 2),
-      dot(-s / 2, a / 2),
-      dot(-s / 2, t / 2),
-
-      // top:
-      dot(-t / 2, -s / 2),
-      dot(-a / 2, -s / 2),
-      dot(a / 2, -s / 2),
-      dot(t / 2, -s / 2),
-
-      // right:
-      dot(s / 2, -t / 2),
-      dot(s / 2, -a / 2),
-      dot(s / 2, a / 2),
-      dot(s / 2, t / 2),
-
-      // bottom:
-      dot(t / 2, s / 2),
-      dot(a / 2, s / 2),
-      dot(-a / 2, s / 2),
-      dot(-t / 2, s / 2),
-    ].join('\n')
-  }
+  return null
 }
 
 export function ShapesPage() {
-  const crossWheel = new CrossWheelBuilder()
   return (
-    <div className='page bg-[#3a3737] flex flex-col gap-4'>
-      <h1 className='text-2xl font-bold'>
-        Shapes Page
-      </h1>
-
-      <svg
-        width='400'
-        height='400'
-        viewBox='-200 -200 400 400'
-        style={{ border: '1px solid black' }}
+    <ResponsiveProvider>
+      <ThreeProvider
+        vertigoControls={{
+        }}
+        fullscreenKey={{ key: 'f', modifiers: 'shift' }}
       >
-        <g dangerouslySetInnerHTML={{ __html: crossWheel.getSvgHelpers() }} />
-        <path
-          fill='#ffffff'
-          d={crossWheel.getPathData()}
-        />
-      </svg>
-    </div>
+        <h1 className='text-2xl font-bold'>
+          Shapes Page
+        </h1>
+
+        <MyScene />
+
+      </ThreeProvider>
+    </ResponsiveProvider >
   )
 }
