@@ -4,27 +4,24 @@ import { ExtrudeGeometry, Mesh, MeshBasicMaterial, Shape } from 'three'
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge } from 'some-utils-three/shader-forge'
+import { DebugTexture } from 'some-utils-three/textures/debug'
 import { TransformProps } from 'some-utils-three/utils/transform'
 import { setup } from 'some-utils-three/utils/tree'
 
 import { CrossWheelBuilder } from '../cross-wheel'
 import { blobSvg } from '../svg/blob.svg'
-import { RibbonGeometry } from './geometries/ribbon'
+import { PathStrokeGeometry } from './geometries/path-stroke'
 import { SinCurve } from './sin-curve'
 
-function Ribbon(props: TransformProps) {
-  useGroup('ribbon', props, function* (group) {
+function PathStroke(props: TransformProps) {
+  useGroup('path-stroke', props, function* (group) {
     const sinCurve = new SinCurve({ length: 1, period: 1, offset: 0 })
     const width = .4
-    const geometry = new RibbonGeometry(sinCurve, { width, steps: 100 })
+    const geometry = new PathStrokeGeometry(sinCurve, { width, steps: 100 })
     const material = new MeshBasicMaterial({
-      wireframe: true,
+      map: new DebugTexture()
     })
     setup(new Mesh(geometry, material), group)
-    setup(new Mesh(geometry, new MeshBasicMaterial({ opacity: .01, transparent: true })), group)
-
-    setup(new DebugHelper(), group)
-      .points(geometry.attributes.position.array as Float32Array, { size: 0.02 })
   }, [])
   return null
 }
@@ -85,7 +82,7 @@ export function PageClient() {
         <div dangerouslySetInnerHTML={{ __html: blobSvg }}></div>
 
         <MyScene />
-        <Ribbon y={-1} />
+        <PathStroke y={-1} />
       </div>
     </ThreeProvider>
   )

@@ -15,7 +15,7 @@ const defaultParams = {
   roundCapSegments: 17,
 }
 
-export class RibbonGeometry extends BufferGeometry {
+export class PathStrokeGeometry extends BufferGeometry {
   params: typeof defaultParams
   curve: Curve<Vector3>
 
