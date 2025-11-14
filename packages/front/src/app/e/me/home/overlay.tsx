@@ -10,7 +10,7 @@ import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { ObservableNumber } from 'some-utils-ts/observables'
 
 import { AboutMain } from '../about/about'
-import { SimplePath } from './path-builder/path-builder'
+import { SimplePath } from '../path-builder'
 
 class Mobile {
   /**

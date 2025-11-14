@@ -1,6 +1,6 @@
 import { Vector2Declaration, Vector3Declaration, fromVector2Declaration, fromVector3Declaration } from 'some-utils-ts/declaration'
-import { Transform2DDeclaration, applyMatrix3x2ToPoint, transform2DToMatrix3x2 } from '../home/path-builder/math'
-import { SimplePath } from '../home/path-builder/path-builder'
+
+import { SimplePath, Transform2DDeclaration, applyMatrix3x2ToPoint, transform2DToMatrix3x2 } from '../path-builder'
 
 const defaultCrossWheelParams = {
   size: 1,
