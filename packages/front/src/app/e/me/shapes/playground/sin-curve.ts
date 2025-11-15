@@ -19,9 +19,12 @@ export class SinCurve extends Curve<Vector3> {
     const { length: l, amplitude: a, period: p, offset: o } = this.params
     const PI2 = Math.PI * 2
 
-    const tx = t * l
+    const cheat_z_offset = a * .01 * Math.cos((p * t + o) * PI2)
+
+    const tx = t * l + o
     const ty = a * Math.sin((p * t + o) * PI2)
-    const tz = 0
+    const tz = cheat_z_offset
+
 
     return (optionalTarget ?? new Vector3()).set(tx, ty, tz)
   }

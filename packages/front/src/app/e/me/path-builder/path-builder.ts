@@ -62,6 +62,9 @@ export class SimplePath {
     return this
   }
 
+  /**
+   * TODO: rewrite this, `startAngle` is not necessary, since we already have the center, and the previous point.
+   */
   arc(params: {
     center: Vector2Declaration
     radius: Vector2Declaration
