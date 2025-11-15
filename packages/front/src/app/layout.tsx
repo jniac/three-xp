@@ -3,6 +3,8 @@ import localFont from 'next/font/local'
 
 import 'some-utils-dom/style/layout.css'
 
+import { FullscreenKeyboardToggle } from '@/utils/fullscreen'
+
 import { Cheat } from './cheat'
 
 import './globals.css'
@@ -12,6 +14,7 @@ const geistSans = localFont({
   variable: '--font-geist-sans',
   weight: '100 900',
 })
+
 const geistMono = localFont({
   src: '../fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
@@ -36,10 +39,9 @@ export default function RootLayout({
         <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
         <meta name='apple-mobile-web-app-title' content='three-xp' />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Cheat />
+        <FullscreenKeyboardToggle />
         {children}
       </body>
     </html>

@@ -138,13 +138,13 @@ class SinConnection extends Group {
       innerLength: il,
     } = this.params
 
-    const curve1 = new SinCurve({ amplitude: .1, length: ol, period: ol })
+    const curve1 = new SinCurve({ amplitude: .1, length: ol, period: ol, zCosineAmplitude: 0 })
     const geometry1 = new StrokeGeometry(curve1, { width: .3, steps: 100 })
     const material1 = new MeshBasicMaterial({ color: colors.cyan })
     const mesh1 = setup(new Mesh(geometry1, material1), this)
     mesh1.renderOrder = -1
 
-    const curve2 = new SinCurve({ amplitude: .1, length: il, period: il, offset: 0 })
+    const curve2 = new SinCurve({ amplitude: .1, length: il, period: il, offset: 0, zCosineAmplitude: 0 })
     const geometry2 = new StrokeGeometry(curve2, { width: .2, steps: 100 })
     const material2 = new MeshBasicMaterial({ color: colors.blue })
     const mesh2 = setup(new Mesh(geometry2, material2), this)

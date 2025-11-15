@@ -1,6 +1,6 @@
 'use client'
 
-import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
+import { Group, LineCurve3, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { TransformProps } from 'some-utils-three/utils/transform'
@@ -30,13 +30,20 @@ class SegmentGeometry extends PlaneGeometry {
 
 class Spiral extends Group {
   parts = (() => {
-    const length = 2
+    const length = 2 / 1.5
     const period = length * 1.5
 
     {
-      const geometry = new SegmentGeometry(0, [length, 0, 0], .05)
+      // const geometry = new SegmentGeometry(0, [length, 0, 0], .05)
+      const curve = new LineCurve3(
+        fromVector3Declaration(0),
+        fromVector3Declaration([length, 0, 0]))
+      const geometry = new StrokeGeometry(curve, { width: .05, steps: 100 })
       const material = new MeshBasicMaterial({ color: '#1d1409' })
-      setup(new Mesh(geometry, material), this)
+      setup(new Mesh(geometry, material), {
+        parent: this,
+        name: 'base-segment'
+      })
     }
 
     {
@@ -46,11 +53,13 @@ class Spiral extends Group {
       material.onBeforeCompile = shader => ShaderForge.with(shader)
         .defines('USE_UV')
         .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${period.toFixed(1)}) * 0.5 + 0.5;
+          float f = cos(vUv.x * 3.14159 * 2.0 * ${((period - 1) * 2).toFixed(1)}) * 0.5 + 0.5;
           diffuseColor.rgb = mix(${vec3('#4f1388ff')}, ${vec3('#ffb1cfff')}, f);
         `)
-      const mesh1 = setup(new Mesh(geometry, material), this)
-      // mesh1.visible = false
+      setup(new Mesh(geometry, material), {
+        parent: this,
+        name: 'around-stroke'
+      })
     }
 
     {
@@ -64,55 +73,13 @@ class Spiral extends Group {
           gl_Position.z += -0.05;
         `)
         .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${period.toFixed(1)}) * 0.5 + 0.5;
+          float f = cos(vUv.x * 3.14159 * 2.0 * ${((period - 1) * 2).toFixed(1)}) * 0.5 + 0.5;
           diffuseColor.rgb = mix(${vec3('#131d88ff')}, ${vec3('#fbffb1ff')}, f);
         `)
       setup(new Mesh(geometry, material), {
         parent: this,
         name: 'inner-stroke'
       })
-    }
-
-    {
-      const geometry = new StrokeGeometry(
-        new SinCurve({ length, period, amplitude: .2, offset: 0 }),
-        { width: [.3, .3], steps: 1000 })
-      const material = new MeshBasicMaterial({})
-      material.onBeforeCompile = shader => ShaderForge.with(shader)
-        .defines('USE_UV')
-        .vertex.mainAfterAll(/* glsl */`
-          gl_Position.z += 0.005;
-        `)
-        .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${period.toFixed(1)}) * 0.5 + 0.5;
-          diffuseColor.rgb = mix(${vec3('#003d49ff')}, ${vec3('#100076ff')}, f);
-        `)
-      const mesh = setup(new Mesh(geometry, material), {
-        parent: this,
-        name: 'outer-stroke-1'
-      })
-      mesh.frustumCulled = false
-    }
-
-    {
-      const geometry = new StrokeGeometry(
-        new SinCurve({ length, period, amplitude: .2, offset: 0 }),
-        { width: .7, steps: 1000 })
-      const material = new MeshBasicMaterial({})
-      material.onBeforeCompile = shader => ShaderForge.with(shader)
-        .defines('USE_UV')
-        .vertex.mainAfterAll(/* glsl */`
-          gl_Position.z += 0.01;
-        `)
-        .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${period.toFixed(1)}) * 0.5 + 0.5;
-          diffuseColor.rgb = mix(${vec3('#fbffb1ff')}, ${vec3('#4f1388ff')}, f);
-        `)
-      const mesh = setup(new Mesh(geometry, material), {
-        parent: this,
-        name: 'outer-stroke-2'
-      })
-      mesh.frustumCulled = false
     }
   })()
 
@@ -149,8 +116,7 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 5.5,
-        // rotation: '0, 180deg, 0',
+        size: 5.5
       }}
       // className='bg-[#928bc6]'
       className='bg-[#8bc6bc]'

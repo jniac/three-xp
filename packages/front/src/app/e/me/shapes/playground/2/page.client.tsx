@@ -174,8 +174,8 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        // focus: [.3333, 0, 0],
-        size: 1
+        focus: [1 / 3, 0, 0],
+        size: 8
       }}
       // className='bg-[#928bc6]'
       className='bg-[#a8abbc]'
