@@ -4,6 +4,7 @@ import localFont from 'next/font/local'
 import 'some-utils-dom/style/layout.css'
 
 import { FullscreenKeyboardToggle } from '@/utils/fullscreen'
+import { HideNextjsPortal } from '@/utils/hide-nextjs'
 
 import { Cheat } from './cheat'
 
@@ -41,6 +42,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Cheat />
+        <HideNextjsPortal />
         <FullscreenKeyboardToggle />
         {children}
       </body>

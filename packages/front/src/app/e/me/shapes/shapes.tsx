@@ -1,6 +1,5 @@
 'use client'
-import { BufferGeometry, CircleGeometry, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, RingGeometry, ShapeGeometry, Vector3 } from 'three'
-import { SVGLoader } from 'three/examples/jsm/Addons.js'
+import { CircleGeometry, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, RingGeometry, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
@@ -8,29 +7,12 @@ import { setup } from 'some-utils-three/utils/tree'
 import { positiveModulo } from 'some-utils-ts/math/basic'
 import { Tick } from 'some-utils-ts/ticker'
 
+import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { ResponsiveProvider } from '../responsive'
 import { CrossWheelBuilder } from './cross-wheel'
 import { StrokeGeometry } from './playground/geometries/stroke'
 import { SinCurve } from './playground/sin-curve'
-
-const svgLoader = new SVGLoader()
-
-function svgToGeometry(svg: string, {
-  scale = 1 / 200,
-  align = .5 as null | number,
-} = {}): BufferGeometry {
-  const parsed = svgLoader.parse(svg)
-  const geometry = new ShapeGeometry(parsed.paths[0].toShapes(true))
-    .scale(scale, scale, scale)
-  if (align !== null) {
-    geometry.computeBoundingBox()
-    const { min, max } = geometry.boundingBox!
-    const offsetX = - (min.x + (max.x - min.x) * align)
-    const offsetY = - (min.y + (max.y - min.y) * align)
-    geometry.translate(offsetX, offsetY, 0)
-  }
-  return geometry
-}
+import { pathDataToGeometry } from './utils'
 
 const colors = {
   yellow: '#ffeb61',
@@ -38,15 +20,7 @@ const colors = {
   mediumGrey: '#6b6b6b',
   cyan: '#5bfff7',
   blue: '#1706ff',
-}
-
-function pathDataToGeometry(pathData: string, options?: Parameters<typeof svgToGeometry>[1]): BufferGeometry {
-  const str = /* xml */`
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="-1 -1 2 2">
-      <path d="${pathData}"/>
-    </svg>
-  `
-  return svgToGeometry(str, options)
+  fuchsia: '#ff00aa',
 }
 
 class SpinningWheel extends Group {
@@ -73,6 +47,17 @@ class SpinningWheel extends Group {
       al * Math.SQRT1_2,
       0)
     arm.rotation.z = Math.PI / 4
+
+    setup(new Mesh(
+      new StrokeGeometry(
+        new SinCurve({ amplitude: .055, length: al, period: al * 1.8, zCosineAmplitude: -.005 }),
+        { width: th * 4, steps: 1000 }),
+      new MeshBasicMaterial({ color: colors.fuchsia })
+    ), {
+      name: 'wire',
+      parent: arm,
+      position: [-al, 0, 0],
+    })
 
     const ring = setup(new Mesh(new RingGeometry(wr - th / 2, wr + th / 2, 96), material), this)
     const line = setup(new Mesh(new PlaneGeometry(wr * 2, th), material), ring)
@@ -104,10 +89,13 @@ class SpinningWheel extends Group {
 class CrossWheel extends Group {
   parts = (() => {
     const pathData = new CrossWheelBuilder().getPathData()
-    const material = new MeshBasicMaterial({ color: colors.yellow })
+    const material = new MeshBasicMaterial({ color: colors.lightGrey })
+    material.onBeforeCompile = shader => ShaderForge.with(shader)
+      .vertex.mainAfterAll(/* glsl*/`
+        gl_Position.z -= 0.0001;
+      `)
     const geometry = pathDataToGeometry(pathData, { scale: 1 })
     const mesh = setup(new Mesh(geometry, material), this)
-    mesh.renderOrder = 2
     return { mesh }
   })()
 
@@ -141,14 +129,25 @@ class SinConnection extends Group {
     const curve1 = new SinCurve({ amplitude: .1, length: ol, period: ol, zCosineAmplitude: 0 })
     const geometry1 = new StrokeGeometry(curve1, { width: .3, steps: 100 })
     const material1 = new MeshBasicMaterial({ color: colors.cyan })
+    material1.onBeforeCompile = shader => ShaderForge.with(shader)
+      .defines('USE_UV')
+      .vertex.mainAfterAll(/* glsl*/`
+        gl_Position.z += 0.011;
+      `)
+      .fragment.after('map_fragment', /* glsl*/`
+        float f = sin(vUv.x * PI2 * 3.0) * 0.5 + 0.5;
+        diffuseColor.rgb = mix(${vec3(colors.cyan)}, ${vec3('#fff')}, f * 0.4 - 0.2);
+      `)
     const mesh1 = setup(new Mesh(geometry1, material1), this)
-    mesh1.renderOrder = -1
 
     const curve2 = new SinCurve({ amplitude: .1, length: il, period: il, offset: 0, zCosineAmplitude: 0 })
     const geometry2 = new StrokeGeometry(curve2, { width: .2, steps: 100 })
     const material2 = new MeshBasicMaterial({ color: colors.blue })
+    material2.onBeforeCompile = shader => ShaderForge.with(shader)
+      .vertex.mainAfterAll(/* glsl*/`
+        gl_Position.z += 0.010;
+      `)
     const mesh2 = setup(new Mesh(geometry2, material2), this)
-    mesh2.renderOrder = -1
 
     return { mesh1, mesh2, curve1, curve2, geometry1, geometry2 }
   })()

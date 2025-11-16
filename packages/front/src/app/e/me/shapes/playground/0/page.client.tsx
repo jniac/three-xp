@@ -92,7 +92,7 @@ function PathStroke(props: TransformProps) {
   useGroup('path-stroke', props, function* (group) {
     setup(new Spiral(), {
       parent: group,
-      y: -4,
+      y: -2 / 1.5 * 2,
       rotationZ: '90deg',
       scale: 4,
     })
@@ -116,7 +116,7 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 5.5
+        size: 6.5
       }}
       // className='bg-[#928bc6]'
       className='bg-[#8bc6bc]'
