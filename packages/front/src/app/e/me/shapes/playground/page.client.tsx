@@ -17,8 +17,8 @@ import { SinCurve } from './sin-curve'
 function PathStroke(props: TransformProps) {
   useGroup('path-stroke', props, function* (group) {
     {
-      const sinCurve = new SinCurve({ length: 5, period: 5, offset: 0 })
-      const width = .6
+      const sinCurve = new SinCurve({ length: 5, frequency: 2, offset: 0 })
+      const width = .3
       const geometry = new StrokeGeometry(sinCurve, { width, steps: 300 })
       const material = new MeshBasicMaterial({
         color: '#fff'
@@ -30,8 +30,8 @@ function PathStroke(props: TransformProps) {
     }
 
     {
-      const sinCurve = new SinCurve({ length: 1, period: 1, offset: 1 })
-      const width = .5
+      const sinCurve = new SinCurve({ length: 1, frequency: 2, offset: 1 })
+      const width = .2
       const geometry = new StrokeGeometry(sinCurve, { width, steps: 100 })
       const material = new MeshBasicMaterial({
         color: '#0ff'
@@ -49,7 +49,7 @@ function PathStroke(props: TransformProps) {
     }
 
     {
-      const sinCurve = new SinCurve({ length: 1, period: 1 })
+      const sinCurve = new SinCurve({ length: 1, frequency: 1 })
       const width = .5
       const geometry = new StrokeGeometry(sinCurve, { width, steps: 100 })
       const material = new MeshBasicMaterial({
@@ -59,7 +59,7 @@ function PathStroke(props: TransformProps) {
     }
 
     {
-      const sinCurve = new SinCurve({ length: 4, period: 4 })
+      const sinCurve = new SinCurve({ length: 4, frequency: 1 / 4 })
       const width = .5
       const geometry = new StrokeGeometry(sinCurve, { width, steps: 100 })
       const material = new MeshBasicMaterial({

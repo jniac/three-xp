@@ -14,7 +14,7 @@ import { Vector3Declaration } from 'some-utils-ts/declaration'
 import { Tick } from 'some-utils-ts/ticker'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 import { StrokeGeometry } from '../geometries/stroke'
-import { SinCurve } from '../sin-curve'
+import { SinCurveOld } from '../sin-curve'
 
 class SegmentGeometry extends PlaneGeometry {
   constructor(from: Vector3Declaration, to: Vector3Declaration, strokeWidth: number) {
@@ -45,7 +45,7 @@ class Spiral extends Group {
     }
 
     {
-      const curve = new SinCurve({ length, period, amplitude: .1, offset: 0 })
+      const curve = new SinCurveOld({ length, frequency: period, amplitude: .1, offset: 0 })
       const geometry1 = new StrokeGeometry(curve, { width: .15, steps: 1000 })
       const material1 = new MeshBasicMaterial({})
       material1.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -61,7 +61,7 @@ class Spiral extends Group {
     }
 
     {
-      const curve = new SinCurve({ length, period, amplitude: .13, offset: 0 })
+      const curve = new SinCurveOld({ length, frequency: period, amplitude: .13, offset: 0 })
       const geometry1 = new StrokeGeometry(curve, { width: [.11, -.08], steps: 1000 })
       const material1 = new MeshBasicMaterial({})
       material1.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -81,7 +81,7 @@ class Spiral extends Group {
 
     {
       const geometry3 = new StrokeGeometry(
-        new SinCurve({ length, period, amplitude: .2, offset: 0 }),
+        new SinCurveOld({ length, frequency: period, amplitude: .2, offset: 0 }),
         { width: [.2, -0.1], steps: 1000 })
       const material3 = new MeshBasicMaterial({})
       material3.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -100,7 +100,7 @@ class Spiral extends Group {
     }
 
     {
-      const s = .025
+      const s = .05
       const color1 = 'hsla(63, 100%, 99%, 1.00)'
       const color2 = 'hsla(71, 20%, 91%, 1.00)'
       const geometry = BufferGeometryUtils.mergeGeometries([
@@ -135,9 +135,10 @@ class Spiral extends Group {
         parent: this,
         name: 'rivet',
         x: length / 2,
+        y: .2,
       })
-      setup(mesh.clone(), { parent: this, x: length / 2 - 2 / 3 })
-      setup(mesh.clone(), { parent: this, x: length / 2 + 2 / 3 })
+      setup(mesh.clone(), { parent: this, x: length / 2 - 2 / 3, y: .2 })
+      setup(mesh.clone(), { parent: this, x: length / 2 + 2 / 3, y: .2 })
     }
   })()
 

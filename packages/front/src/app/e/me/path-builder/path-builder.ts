@@ -62,6 +62,32 @@ export class SimplePath {
     return this
   }
 
+  static defaultRegularPolygonParams = {
+    center: <Vector2Declaration>0,
+    radius: 1,
+    sides: 6,
+    rotation: <AngleDeclaration>0,
+  }
+  regularPolygon(params?: Partial<typeof SimplePath.defaultRegularPolygonParams>): this {
+    const {
+      center,
+      radius,
+      sides,
+      rotation,
+    } = { ...SimplePath.defaultRegularPolygonParams, ...params }
+    const { x: cx, y: cy } = fromVector2Declaration(center)
+    const a_s = fromAngleDeclaration(rotation)
+    for (let i = 0; i < sides; i++) {
+      const angle = a_s + (i / sides) * Math.PI * 2
+      const x = cx + radius * Math.cos(angle)
+      const y = cy + radius * Math.sin(angle)
+      this.commands.push(CommandFlags.L)
+      this.args.push([x, y])
+    }
+
+    return this
+  }
+
   /**
    * TODO: rewrite this, `startAngle` is not necessary, since we already have the center, and the previous point.
    */

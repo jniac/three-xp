@@ -8,6 +8,7 @@ import { positiveModulo } from 'some-utils-ts/math/basic'
 import { Tick } from 'some-utils-ts/ticker'
 
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
+import { SimplePath } from '../path-builder'
 import { ResponsiveProvider } from '../responsive'
 import { CrossWheelBuilder } from './cross-wheel'
 import { StrokeGeometry } from './playground/geometries/stroke'
@@ -50,7 +51,7 @@ class SpinningWheel extends Group {
 
     setup(new Mesh(
       new StrokeGeometry(
-        new SinCurve({ amplitude: .055, length: al, period: al * 1.8, zCosineAmplitude: -.005 }),
+        new SinCurve({ amplitude: .04, length: al, frequency: 2.5, zCosineAmplitude: -.005 }),
         { width: th * 4, steps: 1000 }),
       new MeshBasicMaterial({ color: colors.fuchsia })
     ), {
@@ -116,18 +117,20 @@ class CrossWheel extends Group {
 
 class SinConnection extends Group {
   params = {
-    outerLength: 3,
+    outerLength: Math.sqrt(2),
     innerLength: .2,
+    width: .15,
   }
 
   parts = (() => {
     const {
       outerLength: ol,
       innerLength: il,
+      width,
     } = this.params
 
-    const curve1 = new SinCurve({ amplitude: .1, length: ol, period: ol, zCosineAmplitude: 0 })
-    const geometry1 = new StrokeGeometry(curve1, { width: .3, steps: 100 })
+    const curve1 = new SinCurve({ amplitude: .075, length: ol, frequency: ol * 2, zCosineAmplitude: 0 })
+    const geometry1 = new StrokeGeometry(curve1, { width, steps: 100 })
     const material1 = new MeshBasicMaterial({ color: colors.cyan })
     material1.onBeforeCompile = shader => ShaderForge.with(shader)
       .defines('USE_UV')
@@ -140,8 +143,8 @@ class SinConnection extends Group {
       `)
     const mesh1 = setup(new Mesh(geometry1, material1), this)
 
-    const curve2 = new SinCurve({ amplitude: .1, length: il, period: il, offset: 0, zCosineAmplitude: 0 })
-    const geometry2 = new StrokeGeometry(curve2, { width: .2, steps: 100 })
+    const curve2 = new SinCurve({ amplitude: .075, length: il, frequency: ol * 2, offset: 0, zCosineAmplitude: 0 })
+    const geometry2 = new StrokeGeometry(curve2, { width, steps: 100 })
     const material2 = new MeshBasicMaterial({ color: colors.blue })
     material2.onBeforeCompile = shader => ShaderForge.with(shader)
       .vertex.mainAfterAll(/* glsl*/`
@@ -152,10 +155,30 @@ class SinConnection extends Group {
     return { mesh1, mesh2, curve1, curve2, geometry1, geometry2 }
   })()
 
+  constructor() {
+    super()
+    setup(this, {
+      rotation: '0, 0, 45deg',
+    })
+  }
+
   onTick(tick: Tick) {
     this.parts.curve2.params.offset = tick.time % (this.params.outerLength - this.params.innerLength)
     this.parts.geometry2.update()
   }
+}
+
+class Hexagon extends Group {
+  parts = (() => {
+    const pathData = SimplePath.instance
+      .clear()
+      .regularPolygon({ radius: .4, rotation: '20deg' })
+      .getPathData()
+    const geometry = pathDataToGeometry(pathData, { scale: 1 })
+    setup(new Mesh(geometry, new MeshBasicMaterial({ color: colors.blue })), this)
+
+    return {}
+  })()
 }
 
 function MyScene() {
@@ -168,7 +191,12 @@ function MyScene() {
     setup(new DebugHelper(), group)
     // .regularGrid({ color: 'red' })
 
-    const sinConnection = setup(new SinConnection(), group)
+    setup(new SinConnection(), group)
+    setup(new Hexagon(), {
+      name: 'hexagon',
+      position: [1, 1, 0],
+      parent: group,
+    })
 
     const crossWheel = setup(new CrossWheel(), group)
     const spinningWheel = setup(new SpinningWheel(), group)

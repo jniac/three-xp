@@ -31,7 +31,7 @@ class SegmentGeometry extends PlaneGeometry {
 class Spiral extends Group {
   parts = (() => {
     const length = 2 / 1.5
-    const period = length * 1.5
+    const period = 2 / length
 
     {
       // const geometry = new SegmentGeometry(0, [length, 0, 0], .05)
@@ -47,13 +47,14 @@ class Spiral extends Group {
     }
 
     {
-      const curve = new SinCurve({ length, period, amplitude: .2, offset: 0 })
+      const curve = new SinCurve({ length, frequency: period, amplitude: .2, offset: 0 })
       const geometry = new StrokeGeometry(curve, { width: .5, steps: 1000 })
       const material = new MeshBasicMaterial({})
       material.onBeforeCompile = shader => ShaderForge.with(shader)
         .defines('USE_UV')
         .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${((period - 1) * 2).toFixed(1)}) * 0.5 + 0.5;
+          float f = sin(vUv.x * PI2 * ${(length * period * 2).toFixed(1)}) * 0.5 + 0.5;
+          f = 1.0 - f;
           diffuseColor.rgb = mix(${vec3('#4f1388ff')}, ${vec3('#ffb1cfff')}, f);
         `)
       setup(new Mesh(geometry, material), {
@@ -64,7 +65,7 @@ class Spiral extends Group {
 
     {
       const geometry = new StrokeGeometry(
-        new SinCurve({ length, period, amplitude: .2, offset: 0 }),
+        new SinCurve({ length, frequency: period, amplitude: .2, offset: 0 }),
         { width: .01, steps: 1000 })
       const material = new MeshBasicMaterial({})
       material.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -73,7 +74,8 @@ class Spiral extends Group {
           gl_Position.z += -0.05;
         `)
         .fragment.after('map_fragment', /* glsl */`
-          float f = cos(vUv.x * 3.14159 * 2.0 * ${((period - 1) * 2).toFixed(1)}) * 0.5 + 0.5;
+          float f = sin(vUv.x * PI2 * ${(length * period * 2).toFixed(1)}) * 0.5 + 0.5;
+          f = 1.0 - f;
           diffuseColor.rgb = mix(${vec3('#131d88ff')}, ${vec3('#fbffb1ff')}, f);
         `)
       setup(new Mesh(geometry, material), {
