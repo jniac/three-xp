@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Curve, Vector3 } from 'three'
+import { Box3, BufferAttribute, BufferGeometry, Curve, Sphere, Vector3 } from 'three'
 
 const shared = {
   vectorZ: new Vector3(0, 0, 1),
@@ -17,6 +17,10 @@ const defaultParams = {
 
 type Params = typeof defaultParams
 
+const _min = new Vector3()
+const _max = new Vector3()
+const _extents = new Vector3()
+
 function updateStrokeGeometry(curve: Curve<Vector3>, params: Params, geometry: BufferGeometry) {
   const {
     width,
@@ -32,11 +36,17 @@ function updateStrokeGeometry(curve: Curve<Vector3>, params: Params, geometry: B
   const [w_l, w_r] = Array.isArray(width) ? width : [width / 2, width / 2]
   const c_len = curve.getLength()
 
+  _min.set(Infinity, Infinity, Infinity)
+  _max.set(-Infinity, -Infinity, -Infinity)
+
   for (let i = 0; i <= steps; i++) {
     const t = i / steps
     curve.getPoint(t, point)
     curve.getTangent(t, tangent)
     normal.crossVectors(tangent, vectorZ).normalize()
+
+    _min.min(point)
+    _max.max(point)
 
     // Left vertex
     positions[(i * 2) * 3 + 0] = point.x + normal.x * w_l
@@ -100,11 +110,24 @@ function updateStrokeGeometry(curve: Curve<Vector3>, params: Params, geometry: B
   geometry.attributes.uv.needsUpdate = true
 
   geometry.computeVertexNormals()
+
+  geometry.boundingBox ??= new Box3()
+  geometry.boundingBox.set(_min, _max)
+  geometry.boundingBox.expandByScalar(Math.max(w_l, w_r))
+
+  _extents.subVectors(_max, _min)
+
+  geometry.boundingSphere ??= new Sphere()
+  geometry.boundingSphere!.center.set(
+    (_min.x + _max.x) / 2,
+    (_min.y + _max.y) / 2,
+    (_min.z + _max.z) / 2)
+  geometry.boundingSphere!.radius = 0.5 * _extents.length()
 }
 
-export class StrokeGeometry extends BufferGeometry {
+export class StrokeGeometry<T extends Curve<Vector3>> extends BufferGeometry {
   params: typeof defaultParams
-  curve: Curve<Vector3>
+  curve: T
 
   state = {
     ribbon: {
@@ -124,7 +147,7 @@ export class StrokeGeometry extends BufferGeometry {
     },
   }
 
-  constructor(curve: Curve<Vector3>, userParams: Partial<typeof defaultParams>) {
+  constructor(curve: T, userParams: Partial<typeof defaultParams>) {
     super()
     this.params = { ...defaultParams, ...userParams }
     this.curve = curve

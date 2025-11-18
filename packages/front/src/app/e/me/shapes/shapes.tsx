@@ -144,7 +144,7 @@ class SinConnection extends Group {
     const mesh1 = setup(new Mesh(geometry1, material1), this)
 
     const curve2 = new SinCurve({ amplitude: .075, length: il, frequency: ol * 2, offset: 0, zCosineAmplitude: 0 })
-    const geometry2 = new StrokeGeometry(curve2, { width, steps: 100 })
+    const geometry2 = new StrokeGeometry(curve2, { width: width * 1.5, steps: 100 })
     const material2 = new MeshBasicMaterial({ color: colors.blue })
     material2.onBeforeCompile = shader => ShaderForge.with(shader)
       .vertex.mainAfterAll(/* glsl*/`

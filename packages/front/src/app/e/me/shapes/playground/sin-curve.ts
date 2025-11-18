@@ -1,5 +1,7 @@
 import { Curve, Vector3 } from 'three'
 
+const PI2 = Math.PI * 2
+
 const defaultParams = {
   /**
    * Total "linear" length of the curve.
@@ -17,7 +19,12 @@ const defaultParams = {
   frequency: 1,
 
   /**
-   * Should 
+   * Phase offset of the sine wave (in periods).
+   */
+  phase: 0,
+
+  /**
+   * Offset to apply to the "x" coordinate (linear axis). 
    */
   offset: 0,
 
@@ -43,13 +50,12 @@ export class SinCurve extends Curve<Vector3> {
       length: l,
       amplitude: a,
       frequency: f,
+      phase: p,
       offset: o,
       zCosineAmplitude: za,
     } = this.params
 
-    const PI2 = Math.PI * 2
-
-    const tt = (f * (l * t + o)) * PI2
+    const tt = (f * (l * t + o) + p) * PI2
     const tx = t * l + o
     const ty = a * Math.sin(tt)
     const tz = (za ?? a * .1) * Math.cos(tt)
@@ -58,10 +64,16 @@ export class SinCurve extends Curve<Vector3> {
   }
 
   override getTangent(t: number, optionalTarget?: Vector3): Vector3 {
-    const { length: l, amplitude: a, frequency: f, offset: o } = this.params
-    const PI2 = Math.PI * 2
+    const {
+      length: l,
+      amplitude: a,
+      frequency: f,
+      phase: p,
+      offset: o,
+      zCosineAmplitude: za,
+    } = this.params
 
-    const tt = (f * (l * t + o)) * PI2
+    const tt = (f * (l * t + o) + p) * PI2
     const tx = l
     const ty = a * f * l * PI2 * Math.cos(tt) // derivative of sin(c . t + d) is c . cos(c . t + d)
     const tz = 0
@@ -82,24 +94,20 @@ export class SinCurveOld extends Curve<Vector3> {
     const {
       length: l,
       amplitude: a,
-      frequency: p,
+      frequency: f,
       offset: o,
       zCosineAmplitude: za,
     } = this.params
 
-    const PI2 = Math.PI * 2
-
     const tx = t * l + o
-    const ty = a * Math.sin((p * t + o) * PI2)
-    const tz = (za ?? a * .1) * Math.cos((p * t + o) * PI2)
+    const ty = a * Math.sin((f * t + o) * PI2)
+    const tz = (za ?? a * .1) * Math.cos((f * t + o) * PI2)
 
     return (optionalTarget ?? new Vector3()).set(tx, ty, tz)
   }
 
   override getTangent(t: number, optionalTarget?: Vector3): Vector3 {
     const { length: l, amplitude: a, frequency: p, offset: o } = this.params
-    const PI2 = Math.PI * 2
-
     const tx = l
     const ty = a * p * PI2 * Math.cos((p * t + o) * PI2) // derivative of sin(c . t + d) is c . cos(c . t + d)
     const tz = 0
