@@ -69,6 +69,30 @@ function PathStroke(props: TransformProps) {
     }
 
     {
+      const sinCurve = new SinCurve({ length: 2, offset: 4 / 3, frequency: 1 })
+      const width = .5
+      const geometry = new StrokeGeometry(sinCurve, { width, steps: 100 })
+      const material = new MeshBasicMaterial({
+        map: new DebugTexture(),
+      })
+      setup(new Mesh(geometry, material), { parent: group, y: -4 })
+    }
+
+    {
+      const sinCurve = new SinCurve({ length: 2, offset: 4 / 3, frequency: 1 })
+      const width = .5
+      const geometry = new StrokeGeometry(sinCurve, { width, steps: 100 })
+      const material = new MeshBasicMaterial()
+      material.onBeforeCompile = shader => ShaderForge.with(shader)
+        .defines('USE_UV')
+        .fragment.after('map_fragment', /* glsl */`
+          diffuseColor.rg = vUv;
+          diffuseColor.b = 1.0;
+        `)
+      setup(new Mesh(geometry, material), { parent: group, y: -5 })
+    }
+
+    {
       setup(new Mesh(
         new PlaneGeometry(),
         new MeshBasicMaterial({ map: new DebugTexture() }),

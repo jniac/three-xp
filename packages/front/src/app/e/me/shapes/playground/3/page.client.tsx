@@ -14,6 +14,7 @@ import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 import { Tick } from 'some-utils-ts/ticker'
 
 import { useState } from 'react'
+import { glsl_sdf2d } from 'some-utils-ts/glsl/sdf-2d'
 import { loopArray } from 'some-utils-ts/iteration/loop'
 import { lerp } from 'some-utils-ts/math/basic'
 import { Message } from 'some-utils-ts/message'
@@ -39,7 +40,7 @@ class Spiral extends Group {
     mainColor: '#a02c5aff' as ColorRepresentation,
     altColor: '#5e0018ff' as ColorRepresentation,
     length: 6,
-    innerLength: .4,
+    innerLength: 1,
     innerColor: '#dfc3afff' as ColorRepresentation,
     frequency: 1 / 2,
     amplitude: .1,
@@ -66,9 +67,15 @@ class Spiral extends Group {
     const altWidth = 0.05
 
     {
-      const curve = new SinCurve({ length, frequency, amplitude, offset: 0, phase })
+      const curve = new SinCurve({
+        length,
+        frequency,
+        amplitude,
+        phase,
+        zCosineAmplitude: 0,
+      })
       const geometry = new StrokeGeometry(curve, { width: mainWidth, steps: 1000 })
-      const material = new MeshBasicMaterial({ color: safeColor(mainColor) })
+      const material = new MeshBasicMaterial({ side: 2, color: safeColor(mainColor) })
       material.onBeforeCompile = shader => ShaderForge.with(shader)
         .defines('USE_UV')
         .fragment.after('map_fragment', /* glsl */`
@@ -82,13 +89,20 @@ class Spiral extends Group {
     }
 
     {
-      const curve = new SinCurve({ length, frequency, amplitude: -(mainWidth / 2 - amplitude) - altWidth / 2, offset: 0, phase })
+      const curve = new SinCurve({
+        length,
+        frequency,
+        amplitude: -(mainWidth / 2 - amplitude) - altWidth / 2,
+        zCosineAmplitude: .1,
+        offset: 0,
+        phase,
+      })
       const geometry = new StrokeGeometry(curve, { width: altWidth, steps: 1000 })
-      const material = new MeshBasicMaterial({ color: safeColor(altColor) })
+      const material = new MeshBasicMaterial({ side: 2, color: safeColor(altColor) })
       material.onBeforeCompile = shader => ShaderForge.with(shader)
         .defines('USE_UV')
         .vertex.mainAfterAll(/* glsl */`
-          gl_Position.w += 0.5 * position.z;
+          // gl_Position.w += 0.5 * position.z;
         `)
         .fragment.after('map_fragment', /* glsl */`
           float f = sin(vUv.y * PI);
@@ -102,15 +116,35 @@ class Spiral extends Group {
     }
 
     {
-      const curve = new SinCurve({ length: innerLength, frequency, amplitude, offset: 0, phase })
+      const curve = new SinCurve({
+        length: innerLength,
+        frequency,
+        amplitude,
+        offset: 0,
+        phase,
+        zCosineAmplitude: 0,
+      })
       const geometry = new StrokeGeometry(curve, { width: .2, steps: 100 })
       const material = new MeshBasicMaterial({
+        side: 2,
         color: safeColor(innerColor),
       })
       material.onBeforeCompile = shader => ShaderForge.with(shader)
         .defines('USE_UV')
         .vertex.mainAfterAll(/* glsl */`
-          gl_Position.w += 0.001;
+          gl_Position.w += 0.0001;
+        `)
+        .fragment.top(glsl_sdf2d)
+        .fragment.after('map_fragment', /* glsl */`
+          float x_scalar = ${(0.8 / innerLength).toFixed(1)};
+          vec2 uv = vUv * vec2(x_scalar, 1.0);
+          float f = sdSegment(uv, vec2(0.0, 0.5), vec2(x_scalar, 0.5));
+          f = (0.5 - f) * 2.0;
+          f = 1.0 - f;
+          f = pow(f, 2.0);
+          f = 1.0 - f;
+          f = mix(0.25, 1.0, f);
+          diffuseColor.rgb *= f;
         `)
       setup(new Mesh(geometry, material), {
         parent: instance,
@@ -166,13 +200,13 @@ function PathStroke(props: TransformProps) {
   useGroup('path-stroke', props, function* (group) {
     yield Message.on<number>('SEED', m => setSeed(m.assertPayload()))
     setup(new Spiral(), group)
-    // R.setRandom('parkmiller', seed)
+    R.setRandom('parkmiller', seed)
     loopArray(32, () => {
       const mainColor = R.pick<ColorRepresentation>(['#ff6f91ff', '#845ec2ff', '#2806bfff', '#ff9671ff', '#ffc75fff'])
       const altColor = R.pick<ColorRepresentation>(['#004433ff', '#29006aff', '#ff9671ff', '#ffac13ff'])
       return setup(new Spiral({
         x: R.float(-1, 1) * 20,
-        z: R.float(0, -25),
+        z: R.float(0, -50),
         scale: lerp(4, 22, R.float() ** 2),
         timeOffset: R.random(),
         phase: R.random(),
@@ -202,7 +236,8 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 6.5
+        perspective: .5,
+        size: 6.5,
       }}
       // className='bg-[#928bc6]'
       className='bg-[#f4b0df]'
