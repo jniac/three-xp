@@ -3,11 +3,12 @@ import { CircleGeometry, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, R
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { setup } from 'some-utils-three/utils/tree'
-import { positiveModulo } from 'some-utils-ts/math/basic'
+import { positiveModulo, round } from 'some-utils-ts/math/basic'
+import { ObservableNumber } from 'some-utils-ts/observables'
 import { Tick } from 'some-utils-ts/ticker'
 
-import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
 import { SimplePath } from '../path-builder'
 import { ResponsiveProvider } from '../responsive'
 import { CrossWheelBuilder } from './cross-wheel'
@@ -64,7 +65,7 @@ class SpinningWheel extends Group {
     const line = setup(new Mesh(new PlaneGeometry(wr * 2, th), material), ring)
     line.rotation.z = Math.PI / 2
     const centralPin = setup(new Mesh(new CircleGeometry(.03, 32), material), ring)
-    const externalPin = setup(new Mesh(new CircleGeometry(.06, 32), material), ring)
+    const externalPin = setup(new Mesh(new CircleGeometry(.06, 32), new MeshBasicMaterial({ color: colors.blue })), ring)
     externalPin.position.set(-wr, 0, 0)
 
     return { arm, ring, line, centralPin, externalPin }
@@ -97,21 +98,42 @@ class CrossWheel extends Group {
       `)
     const geometry = pathDataToGeometry(pathData, { scale: 1 })
     const mesh = setup(new Mesh(geometry, material), this)
+    setup(new Mesh(new CircleGeometry(.0125, 32), new MeshBasicMaterial({ color: colors.mediumGrey })), {
+      parent: mesh,
+      x: .5
+    })
     return { mesh }
   })()
 
   state = {
     worldPosition: new Vector3(),
     worldPinDelta: new Vector3(),
+    pinDistanceObs: new ObservableNumber(Infinity),
+    rotation: 0,
+    rotationStart: 0,
+    rotationOffset: 0,
   }
 
   updateFromPinPosition(pinPosition: Vector3) {
     const { worldPosition, worldPinDelta } = this.state
     this.getWorldPosition(worldPosition)
     worldPinDelta.subVectors(pinPosition, worldPosition)
-    if (worldPinDelta.length() < .5) {
-      this.rotation.z = Math.atan2(worldPinDelta.y, worldPinDelta.x) - Math.PI / 2
+
+    const PIN_DISTANCE_THRESHOLD = 0.5
+    const { pinDistanceObs } = this.state
+    pinDistanceObs.set(worldPinDelta.length())
+    if (pinDistanceObs.isBelow(PIN_DISTANCE_THRESHOLD)) {
+      this.state.rotation = this.state.rotationOffset + Math.atan2(worldPinDelta.y, worldPinDelta.x)
     }
+    if (pinDistanceObs.passed('below', PIN_DISTANCE_THRESHOLD)) {
+      this.state.rotationStart = round(this.state.rotation, Math.PI / 2)
+    }
+    if (pinDistanceObs.passed('above', PIN_DISTANCE_THRESHOLD)) {
+      const deltaRotation = round(this.state.rotation - this.state.rotationStart, Math.PI / 2)
+      this.state.rotationOffset += deltaRotation
+      console.log(this.state.rotation)
+    }
+    this.rotation.z = this.state.rotation
   }
 }
 
@@ -120,6 +142,7 @@ class SinConnection extends Group {
     outerLength: Math.sqrt(2),
     innerLength: .2,
     width: .15,
+    amplitude: .05,
   }
 
   parts = (() => {
@@ -127,9 +150,10 @@ class SinConnection extends Group {
       outerLength: ol,
       innerLength: il,
       width,
+      amplitude,
     } = this.params
 
-    const curve1 = new SinCurve({ amplitude: .075, length: ol, frequency: ol * 2, zCosineAmplitude: 0 })
+    const curve1 = new SinCurve({ amplitude, length: ol, frequency: ol * 2, zCosineAmplitude: 0 })
     const geometry1 = new StrokeGeometry(curve1, { width, steps: 100 })
     const material1 = new MeshBasicMaterial({ color: colors.cyan })
     material1.onBeforeCompile = shader => ShaderForge.with(shader)
@@ -143,8 +167,8 @@ class SinConnection extends Group {
       `)
     const mesh1 = setup(new Mesh(geometry1, material1), this)
 
-    const curve2 = new SinCurve({ amplitude: .075, length: il, frequency: ol * 2, offset: 0, zCosineAmplitude: 0 })
-    const geometry2 = new StrokeGeometry(curve2, { width: width * 1.5, steps: 100 })
+    const curve2 = new SinCurve({ amplitude, length: il, frequency: ol * 2, offset: 0, zCosineAmplitude: 0 })
+    const geometry2 = new StrokeGeometry(curve2, { width: width * 1, steps: 100 })
     const material2 = new MeshBasicMaterial({ color: colors.blue })
     material2.onBeforeCompile = shader => ShaderForge.with(shader)
       .vertex.mainAfterAll(/* glsl*/`

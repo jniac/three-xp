@@ -132,13 +132,18 @@ function Settings() {
 
 export function Main() {
   return (
-    <ThreeProvider webgpu vertigoControls={{ size: 5 }}>
+    <ThreeProvider
+      webgpu
+      vertigoControls={{ size: 5 }}
+    >
       <div className='Main layer thru flex flex-col items-start justify-start p-4'>
-        <h1>Chunk Viewer</h1>
+        <h1>
+          Jolt Physics Test
+        </h1>
         <ThreeInstance
           // @ts-ignore
           value={MainGroup} />
-        <Settings />
+        {/* <Settings /> */}
       </div>
     </ThreeProvider>
   )
