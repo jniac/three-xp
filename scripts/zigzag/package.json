@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "dependencies": {
+    "fast-csv": "^5.0.5",
+    "js-yaml": "^4.1.0",
+    "unidecode": "^1.1.0"
+  }
+}

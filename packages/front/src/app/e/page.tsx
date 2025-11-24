@@ -18,6 +18,7 @@ import * as pathWithLoop from './path-with-loop/page'
 import * as proceduralTree from './procedural-tree/page'
 import * as scatteredPlane from './scattered-plane/page'
 import * as twoEnvDemo from './two-env-demo/page'
+import * as zigZag from './zig-zag/page'
 
 const pages = {
   'ao-transparent': aoTransparent,
@@ -35,6 +36,7 @@ const pages = {
   'procedural-tree': proceduralTree,
   'scattered-plane': scatteredPlane,
   'two-env-demo': twoEnvDemo,
+  'zig-zag': zigZag,
 }
 
 export const metadata: Metadata = {

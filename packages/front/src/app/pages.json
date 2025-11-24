@@ -64,6 +64,10 @@
     "dir": "e/two-env-demo"
   },
   {
+    "page": "e/zig-zag/page.tsx",
+    "dir": "e/zig-zag"
+  },
+  {
     "page": "l/depth-offset/page.tsx",
     "dir": "l/depth-offset"
   },
