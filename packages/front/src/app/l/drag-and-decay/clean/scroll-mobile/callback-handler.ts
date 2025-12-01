@@ -1,4 +1,4 @@
-type CallbackType = string | number | Symbol
+type CallbackType = string | number | symbol
 type Callback<TArgs extends any[] = any[]> = (...args: [type: CallbackType, ...TArgs]) => (void | 'unsubscribe')
 
 export class CallbackHandler<TArgs extends any[] = any[]> {

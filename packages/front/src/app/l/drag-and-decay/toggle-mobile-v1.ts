@@ -4,7 +4,7 @@ import { calculateExponentialDecayLerpRatio } from 'some-utils-ts/math/misc/expo
 import { Memorization } from 'some-utils-ts/observables/memorization'
 import { DestroyableObject } from 'some-utils-ts/types'
 
-type CallbackType = string | number | Symbol
+type CallbackType = string | number | symbol
 type Callback<TArgs extends any[] = any[]> = (...args: [type: CallbackType, ...TArgs]) => (void | 'unsubscribe')
 
 class CallbackHandler<TArgs extends any[] = any[]> {
