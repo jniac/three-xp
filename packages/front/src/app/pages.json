@@ -40,6 +40,10 @@
     "dir": "e/me"
   },
   {
+    "page": "e/nine-circles/page.tsx",
+    "dir": "e/nine-circles"
+  },
+  {
     "page": "e/ovvo/layers/page.tsx",
     "dir": "e/ovvo/layers"
   },

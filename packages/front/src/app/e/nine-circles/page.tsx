@@ -1,15 +1,16 @@
 import { XpMetadata } from '@/types'
 
-import { Main } from './main'
+import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
-  slug: 'lady-ethereal',
+  slug: 'nine-circles',
+  status: 'wip',
 })
 
 export default function Page() {
   return (
     <div className='page'>
-      <Main />
+      <PageClient />
     </div>
   )
 }

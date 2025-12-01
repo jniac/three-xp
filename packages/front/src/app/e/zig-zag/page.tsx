@@ -4,7 +4,7 @@ import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'zig-zag',
-  status: 'done',
+  status: 'wip',
 })
 
 export default function Page() {
