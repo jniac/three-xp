@@ -12,6 +12,7 @@ import * as fourCircles from './four-circles/page'
 import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
 import * as ladyEthereal from './lady-ethereal/page'
+import * as liwaUi from './liwa-ui/page'
 import * as me from './me/page'
 import * as nineCircles from './nine-circles/page'
 import * as ovvoLayers from './ovvo/layers/page'
@@ -31,6 +32,7 @@ const pages = {
   'fractal-grid': fractalGrid,
   'from-earth-to': fromEarthTo,
   'lady-ethereal': ladyEthereal,
+  'liwa-ui': liwaUi,
   'me': me,
   'nine-circles': nineCircles,
   'ovvo/layers': ovvoLayers,

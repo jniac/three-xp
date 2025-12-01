@@ -1,5 +1,5 @@
 import JoltModule from 'jolt-physics/wasm-compat'
-import { BoxGeometry, IcosahedronGeometry, Mesh, Object3D } from 'three'
+import { BoxGeometry, BufferGeometry, IcosahedronGeometry, Material, Mesh, Object3D } from 'three'
 
 import { EulerDeclaration } from 'some-utils-three/declaration'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/types'
@@ -81,11 +81,20 @@ abstract class Shape {
   }
 }
 
-export class Physics {
-  static MotionType = MotionType
-  static AllowedDOF = AllowedDOF
-  static Layers = Layers
-  static Shape = Shape
+class JoltBundle {
+  constructor(
+    public body: JoltModule.Body,
+    public bodyInterface: JoltModule.BodyInterface,
+    public mesh: Mesh<BufferGeometry, Material>,
+  ) { }
+}
+
+export const Physics = {
+  MotionType,
+  AllowedDOF,
+  Layers,
+  Shape,
+  JoltBundle,
 }
 
 export async function initJolt(three: ThreeBaseContext) {
@@ -120,7 +129,7 @@ export async function initJolt(three: ThreeBaseContext) {
   Jolt.destroy(settings)
 
   const objects = {
-    moving: [] as { mesh: Mesh, body: JoltModule.Body }[],
+    moving: <JoltBundle[]>[],
   }
   const physicsSystem = jolt.GetPhysicsSystem()
   const bodyInterface = physicsSystem.GetBodyInterface()
@@ -133,7 +142,12 @@ export async function initJolt(three: ThreeBaseContext) {
     position = <Vector3Declaration>[0, 0, 0],
     rotation = <EulerDeclaration>[0, 0, 0],
     parent = <Object3D>three.scene,
-  } = {}) => {
+    gravityFactor = 1,
+    restitution = 0,
+    inertiaMultiplier = 1,
+    allowSleeping = false,
+    meshMaterial = null as Material | null,
+  } = {}): JoltBundle => {
     const settings = new Jolt.BodyCreationSettings(
       shape.toJoltShape(),
       toRVec3(position, new Jolt.RVec3()),
@@ -143,6 +157,10 @@ export async function initJolt(three: ThreeBaseContext) {
     )
 
     settings.mAllowedDOFs = allowedDOFs
+    settings.mGravityFactor = gravityFactor
+    settings.mRestitution = restitution
+    settings.mInertiaMultiplier = inertiaMultiplier
+    settings.mAllowSleeping = allowSleeping
 
     const body = bodyInterface.CreateBody(settings)
     Jolt.destroy(settings)
@@ -151,7 +169,15 @@ export async function initJolt(three: ThreeBaseContext) {
     mesh ??= shape.toMesh()
     parent.add(mesh)
 
-    const bundle = { body, mesh }
+    if (meshMaterial) {
+      mesh.material = meshMaterial
+    }
+
+    const bundle = new JoltBundle(
+      body,
+      bodyInterface,
+      mesh as Mesh<BufferGeometry, Material>,
+    )
 
     if (type === MotionType.KINEMATIC || type === MotionType.DYNAMIC) {
       objects.moving.push(bundle)

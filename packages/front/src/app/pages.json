@@ -36,6 +36,10 @@
     "dir": "e/lady-ethereal"
   },
   {
+    "page": "e/liwa-ui/page.tsx",
+    "dir": "e/liwa-ui"
+  },
+  {
     "page": "e/me/page.tsx",
     "dir": "e/me"
   },

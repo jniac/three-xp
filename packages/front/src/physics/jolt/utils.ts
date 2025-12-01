@@ -21,7 +21,8 @@ export function toRVec3(arg: Vector3Declaration, out: JoltModule.RVec3) {
   return out
 }
 
-export function toVec3(arg: Vector3Declaration, out: JoltModule.Vec3) {
+export function toVec3(arg: Vector3Declaration, out?: JoltModule.Vec3) {
+  out ??= new JoltModule.Vec3()
   const { x, y, z } = fromVector3Declaration(arg, _v)
   out.SetX(x)
   out.SetY(y)
