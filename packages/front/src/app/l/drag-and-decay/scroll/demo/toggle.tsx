@@ -11,7 +11,7 @@ import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 
-import { ToggleMobile } from '../toggle-mobile'
+import { ToggleMobile } from '../../toggle-mobile-v1'
 import { VELOCITY_SCALE } from './settings'
 
 export function ToggleDemo({ dragDamping, ...props }: { dragDamping?: number } & TransformDeclaration) {

@@ -8,6 +8,7 @@ export class AutoDragState {
   position = 0
   velocity = 0
   fadeTime = .2
+  overshoot = 0
 
   time = 0
 
