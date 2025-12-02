@@ -145,8 +145,10 @@ export async function initJolt(three: ThreeBaseContext) {
     gravityFactor = 1,
     restitution = 0,
     inertiaMultiplier = 1,
+    linearDamping = .05,
     allowSleeping = false,
     meshMaterial = null as Material | null,
+    numPositionStepsOverride = 0,
   } = {}): JoltBundle => {
     const settings = new Jolt.BodyCreationSettings(
       shape.toJoltShape(),
@@ -161,6 +163,8 @@ export async function initJolt(three: ThreeBaseContext) {
     settings.mRestitution = restitution
     settings.mInertiaMultiplier = inertiaMultiplier
     settings.mAllowSleeping = allowSleeping
+    settings.mLinearDamping = linearDamping
+    settings.mNumPositionStepsOverride = numPositionStepsOverride
 
     const body = bodyInterface.CreateBody(settings)
     Jolt.destroy(settings)
