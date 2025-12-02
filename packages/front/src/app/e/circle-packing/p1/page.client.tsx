@@ -8,12 +8,12 @@ import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { safeColor } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { loopArray } from 'some-utils-ts/iteration/loop'
-import { lerp } from 'some-utils-ts/math/basic'
-import { RandomUtils } from 'some-utils-ts/random/random-utils'
+import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 import { Tick } from 'some-utils-ts/ticker'
 
-import { initJolt, Physics } from '@/physics/jolt'
+import { initJolt, PhysicBundle, Physics } from '@/physics/jolt'
 import { Jolt } from '@/physics/jolt/core'
+import { handlePointer } from 'some-utils-dom/handle/pointer'
 
 function isDev() {
   return typeof window !== 'undefined' && window.location.hostname === 'localhost'
@@ -28,26 +28,40 @@ function ThreeSettings() {
 
 const GRAVITY_FADE_IN = 1.5
 
+class Item {
+  #scale = 1
+  get scale() { return this.#scale }
+  set scale(value: number) {
+    if (this.#scale !== value) {
+      this.#scale = value
+      this.bundle.mesh.scale.setScalar(value)
+      const newShape = new Jolt.SphereShape(.5 * this.scale)
+      this.bundle.bodyInterface.SetShape(this.bundle.body.GetID(), newShape, true, Jolt.EActivation_Activate)
+    }
+  }
+  constructor(public bundle: PhysicBundle, public index: number) { }
+}
+
 class LiwaUI extends Group {
   parts = {
-    spheres: [] as InstanceType<(typeof Physics)['JoltBundle']>[],
+    items: [] as Item[],
     debugHelper: setup(new DebugHelper(), this)
       .circle({ radius: GRAVITY_FADE_IN, quality: 'ultra' })
-  }
+  };
 
-  onInitialize(three: ThreeBaseContext) {
+  *onInitialize(three: ThreeBaseContext) {
     initJolt(three).then(jolt => {
-      this.parts.spheres = loopArray(32, it => {
-        const radius = it.i === 0 ? 1 : 2 * RandomUtils.pick([.1, .2, .4])
-        const color = RandomUtils.pick(['#fbff00ff', '#7be87bff', '#395cd0ff'])
+      R.setRandom('parkmiller', 'circle-packing')
+      this.parts.items = loopArray(32, it => {
+        const color = R.pick(['#fbff00ff', '#7be87bff', '#395cd0ff'])
         const autolitMaterial = new AutoLitMaterial({ color: safeColor(color) })
         const r = 5
         const a = it.t * Math.PI * 2
         const x = r * Math.cos(a)
         const y = r * Math.sin(a)
-        return jolt.createBody({
+        const bundle = jolt.createBody({
           parent: this,
-          shape: new Physics.Shape.Sphere(radius),
+          shape: new Physics.Shape.Sphere(.5),
           position: [x, y, 0],
           gravityFactor: 0,
           meshMaterial: autolitMaterial,
@@ -55,31 +69,39 @@ class LiwaUI extends Group {
           linearDamping: 10,
           numPositionStepsOverride: 40,
         })
+        const item = new Item(bundle, it.i)
+        item.scale = R.pick([.25, .5, 1, 2])
+        return item
       })
 
       Object.assign(window, { liwa: this })
     })
+
+    yield handlePointer(three.domElement, {
+      onTap: () => {
+        const [I] = three.pointer.raycast(this)
+        if (I) {
+          const item = this.parts.items.find(it => it.bundle.mesh === I.object)!
+          item.scale += .1
+        }
+      },
+    })
   }
 
   onTick(tick: Tick) {
-    for (const sphere of this.parts.spheres) {
-      const p0 = sphere.body.GetCenterOfMassPosition()
+    for (const [, item] of this.parts.items.entries()) {
+      const { bundle } = item
+      const p0 = bundle.body.GetCenterOfMassPosition()
       const p = new Jolt.Vec3(p0.GetX(), p0.GetY(), p0.GetZ())
       const gravityCenter = new Jolt.Vec3(0, 0, 0)
       const toCenter = gravityCenter.Sub(p)
       const length = toCenter.Length()
       if (length > 0.01) {
-        const imass = sphere.body.GetMotionProperties().GetInverseMass()
+        const imass = bundle.body.GetMotionProperties().GetInverseMass()
         const fadeIn = Math.min(length / GRAVITY_FADE_IN, 1)
         // sphere.body.AddForce(toCenter.Normalized().MulFloat(1000))
-        sphere.body.AddImpulse(toCenter.Normalized().MulFloat(fadeIn / imass))
+        bundle.body.AddImpulse(toCenter.Normalized().MulFloat(fadeIn / imass))
       }
-    }
-    if (this.parts.spheres.length > 0) {
-      const scale = .5 * lerp(1, 3, tick.sin01Time({ frequency: 1 / 10 }))
-      const newShape = new Jolt.SphereShape(scale)
-      this.parts.spheres[0].bodyInterface.SetShape(this.parts.spheres[0].body.GetID(), newShape, true, Jolt.EActivation_Activate)
-      this.parts.spheres[0].mesh.scale.setScalar(scale)
     }
   }
 }
@@ -89,15 +111,18 @@ export function PageClient() {
     <ThreeProvider
       webgl
       vertigoControls={{
+        fixed: true,
         size: 4,
-        perspective: 0,
+        perspective: .1,
       }}
     >
       <ThreeSettings />
       <ThreeInstance value={LiwaUI} />
-      <h1>
-        Liwa UI
-      </h1>
+      <div className='layer thru p-16'>
+        <h1 className='text-4xl font-bold'>
+          Circle Packing P1
+        </h1>
+      </div>
     </ThreeProvider>
   )
 }

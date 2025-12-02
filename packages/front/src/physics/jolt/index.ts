@@ -43,6 +43,8 @@ export const LayersCount = Object.keys(Layers).length / 2 // / 2 because it's an
 
 abstract class Shape {
   static Sphere = class extends Shape {
+    static #geometryCache = new Map<number, IcosahedronGeometry>()
+
     constructor(public radius: number) {
       super()
     }
@@ -52,7 +54,12 @@ abstract class Shape {
     }
 
     toMesh(): Mesh {
-      return new Mesh(new IcosahedronGeometry(this.radius, 8))
+      let geometry = Shape.Sphere.#geometryCache.get(this.radius)
+      if (!geometry) {
+        geometry = new IcosahedronGeometry(this.radius, 8)
+        Shape.Sphere.#geometryCache.set(this.radius, geometry)
+      }
+      return new Mesh(geometry)
     }
   }
 
@@ -81,7 +88,7 @@ abstract class Shape {
   }
 }
 
-class JoltBundle {
+class PhysicBundle {
   constructor(
     public body: JoltModule.Body,
     public bodyInterface: JoltModule.BodyInterface,
@@ -94,7 +101,11 @@ export const Physics = {
   AllowedDOF,
   Layers,
   Shape,
-  JoltBundle,
+  PhysicBundle,
+}
+
+export type {
+  PhysicBundle
 }
 
 export async function initJolt(three: ThreeBaseContext) {
@@ -129,7 +140,7 @@ export async function initJolt(three: ThreeBaseContext) {
   Jolt.destroy(settings)
 
   const objects = {
-    moving: <JoltBundle[]>[],
+    moving: <PhysicBundle[]>[],
   }
   const physicsSystem = jolt.GetPhysicsSystem()
   const bodyInterface = physicsSystem.GetBodyInterface()
@@ -149,7 +160,7 @@ export async function initJolt(three: ThreeBaseContext) {
     allowSleeping = false,
     meshMaterial = null as Material | null,
     numPositionStepsOverride = 0,
-  } = {}): JoltBundle => {
+  } = {}): PhysicBundle => {
     const settings = new Jolt.BodyCreationSettings(
       shape.toJoltShape(),
       toRVec3(position, new Jolt.RVec3()),
@@ -177,7 +188,7 @@ export async function initJolt(three: ThreeBaseContext) {
       mesh.material = meshMaterial
     }
 
-    const bundle = new JoltBundle(
+    const bundle = new PhysicBundle(
       body,
       bodyInterface,
       mesh as Mesh<BufferGeometry, Material>,
