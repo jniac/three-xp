@@ -16,6 +16,10 @@
     "dir": "e/circle-packing/p0"
   },
   {
+    "page": "e/circle-packing/p1/page.tsx",
+    "dir": "e/circle-packing/p1"
+  },
+  {
     "page": "e/depth-play/page.tsx",
     "dir": "e/depth-play"
   },

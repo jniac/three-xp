@@ -7,6 +7,7 @@ import * as aoTransparent from './ao-transparent/page'
 import * as art1 from './art-1/page'
 import * as art2 from './art-2/page'
 import * as circlePackingP0 from './circle-packing/p0/page'
+import * as circlePackingP1 from './circle-packing/p1/page'
 import * as depthPlay from './depth-play/page'
 import * as dotsAndFalloffs from './dots-and-falloffs/page'
 import * as fourCircles from './four-circles/page'
@@ -27,6 +28,7 @@ const pages = {
   'art-1': art1,
   'art-2': art2,
   'circle-packing/p0': circlePackingP0,
+  'circle-packing/p1': circlePackingP1,
   'depth-play': depthPlay,
   'dots-and-falloffs': dotsAndFalloffs,
   'four-circles': fourCircles,
