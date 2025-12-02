@@ -12,6 +12,10 @@
     "dir": "e/art-2"
   },
   {
+    "page": "e/circle-packing/p0/page.tsx",
+    "dir": "e/circle-packing/p0"
+  },
+  {
     "page": "e/depth-play/page.tsx",
     "dir": "e/depth-play"
   },
@@ -34,10 +38,6 @@
   {
     "page": "e/lady-ethereal/page.tsx",
     "dir": "e/lady-ethereal"
-  },
-  {
-    "page": "e/liwa-ui/p0/page.tsx",
-    "dir": "e/liwa-ui/p0"
   },
   {
     "page": "e/me/page.tsx",
