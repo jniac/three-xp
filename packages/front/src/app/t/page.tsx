@@ -24,6 +24,7 @@ import * as threeProviderColor from './three-provider/color/page'
 import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
 import * as threeProviderPointer from './three-provider/pointer/page'
 import * as tickerBasic from './ticker/basic/page'
+import * as track from './track/page'
 import * as transformWithShear from './transform-with-shear/page'
 import * as variableDemo from './variable/demo/page'
 import * as variableSample from './variable/sample/page'
@@ -54,6 +55,7 @@ const pages = {
   'three-provider/free-vertigo': threeProviderFreeVertigo,
   'three-provider/pointer': threeProviderPointer,
   'ticker/basic': tickerBasic,
+  'track': track,
   'transform-with-shear': transformWithShear,
   'variable/demo': variableDemo,
   'variable/sample': variableSample,

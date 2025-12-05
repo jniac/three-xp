@@ -1,6 +1,6 @@
 import { SVGProps } from 'react'
 
-import { easing } from 'some-utils-ts/math/easings'
+import { evaluateTrack, gaussianFilter as gf } from 'some-utils-ts/math/misc/track-utils'
 
 import { XpMetadata } from '@/types'
 
@@ -26,6 +26,25 @@ function Plot(props: PlotProps) {
 function Graph({
   padding = .33,
 }) {
+  const track1 = (t: number) => evaluateTrack(t, [
+    [0, 0],
+    [.2, 0],
+    [.4, .45],
+    [.6, .55],
+    [.8, 1],
+    [1, 1],
+  ])
+  const track1g = (t: number) => gf(track1, t, { samples: 19, spread: .1 })
+
+  const track2 = (t: number) => evaluateTrack(t, [
+    [0, .2],
+    [.2, .3],
+    [.4, .6],
+    [.6, .4],
+    [.8, .7],
+    [1, 0],
+  ])
+
   return (
     <svg viewBox={`${-padding} ${-padding} ${1 + padding * 2} ${1 + padding * 2}`} className='w-full h-full'>
       <g fill='none' strokeWidth={.0015}>
@@ -38,17 +57,13 @@ function Graph({
           </g>
         </g>
         <g>
-          <Plot stroke='#bdf' fn={x => easing.bump.cos(x)} />
-          <Plot stroke='#acf' fn={x => easing.bump.pow(x, 3)} />
-          <Plot stroke='#6af' fn={x => easing.bump.iqPower(x, 4, 2)} />
-          <Plot stroke='#6af' fn={x => easing.bump.iqPower(x, 5, .5)} />
+          <Plot stroke='hsla(210, 50%, 14%, 1.00)' fn={track1g} strokeWidth={20 / 1000} />
+          <Plot stroke='hsla(210, 100%, 87%, 1.00)' fn={track1} strokeWidth={1 / 1000} />
 
-          <Plot stroke='#f60' fn={x => easing.bump.elastic(x, 10, 5)} opacity={.25} />
-          <Plot stroke='#f93' fn={x => easing.bump.elastic(x, 5, 3)} />
-          <Plot stroke='#fc6' fn={x => easing.bump.elastic(x)} />
-          <Plot stroke='#f60' fn={x => easing.bump.unnormalizedElastic(x, 10, 5)} opacity={.25} />
-          <Plot stroke='#f93' fn={x => easing.bump.unnormalizedElastic(x, 5, 3)} />
-          <Plot stroke='#fc6' fn={x => easing.bump.unnormalizedElastic(x)} />
+          <Plot stroke='hsla(104, 50%, 7%, 1.00)' fn={t => gf(track2, t, { samples: 19, spread: .2 })} strokeWidth={10 / 1000} />
+          <Plot stroke='hsla(104, 50%, 14%, 1.00)' fn={t => gf(track2, t, { samples: 19, spread: .1 })} strokeWidth={4 / 1000} />
+          <Plot stroke='hsla(104, 50%, 34%, 1.00)' fn={t => gf(track2, t, { samples: 19, spread: .025 })} strokeWidth={2 / 1000} />
+          <Plot stroke='hsla(104, 100%, 87%, 1.00)' fn={track2} strokeWidth={1 / 1000} />
         </g>
       </g>
     </svg>
@@ -56,12 +71,12 @@ function Graph({
 }
 
 export const metadata = new XpMetadata({
-  slug: 'easing-graph',
+  slug: 'track',
 })
 
-export default function Page() {
+export default function EasingGraphPage() {
   return (
-    <div className='page'>
+    <div className='EasingGraphPage page'>
       <Graph />
     </div>
   )
