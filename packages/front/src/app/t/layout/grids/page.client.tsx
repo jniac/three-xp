@@ -13,7 +13,7 @@ import { LayoutInsideFractionDemo } from './demo/d5-layout-inside-fraction'
 
 import s from './client.module.css'
 
-export function Client() {
+export function PageClient() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     // Ugly hack because of a weird CSS layout bug.
     const [spacingDiv, ...otherDivs] = div.children as unknown as HTMLDivElement[]

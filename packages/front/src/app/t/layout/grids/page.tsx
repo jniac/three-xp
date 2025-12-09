@@ -1,5 +1,5 @@
 import { XpMetadata } from '@/types'
-import { Client } from './client'
+import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'layout/grids',
@@ -9,7 +9,7 @@ export const metadata = new XpMetadata({
 export default function LayoutGrid2Page() {
   return (
     <div className='LayoutGrid2Page page'>
-      <Client />
+      <PageClient />
     </div>
   )
 }
