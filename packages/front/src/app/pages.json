@@ -176,12 +176,12 @@
     "dir": "t/hash-grid"
   },
   {
-    "page": "t/layout/demo/aspect-size-mode/page.tsx",
-    "dir": "t/layout/demo/aspect-size-mode"
+    "page": "t/layout-flex/demo/aspect-size-mode/page.tsx",
+    "dir": "t/layout-flex/demo/aspect-size-mode"
   },
   {
-    "page": "t/layout/grids/page.tsx",
-    "dir": "t/layout/grids"
+    "page": "t/layout-flex/grids/page.tsx",
+    "dir": "t/layout-flex/grids"
   },
   {
     "page": "t/noise-demo/page.tsx",
