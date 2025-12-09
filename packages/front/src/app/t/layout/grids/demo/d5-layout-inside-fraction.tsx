@@ -2,7 +2,7 @@
 
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
-import { colors } from '../colors'
+import { colors } from '../../shared/colors'
 
 export function loopOver<T>(items: ArrayLike<T>): () => T {
   let index = 0

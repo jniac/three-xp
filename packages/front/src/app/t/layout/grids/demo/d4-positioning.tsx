@@ -5,8 +5,8 @@ import { Direction, Positioning, Space } from 'some-utils-ts/experimental/layout
 import { PRNG } from 'some-utils-ts/random/prng'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { CanvasContext } from '../canvas-context'
-import { colors } from '../colors'
+import { CanvasContext } from '../../shared/canvas-context'
+import { colors } from '../../shared/colors'
 
 export function PositioningDemo() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {

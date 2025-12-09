@@ -4,8 +4,8 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { CanvasContext } from '../canvas-context'
-import { colors } from '../colors'
+import { CanvasContext } from '../../shared/canvas-context'
+import { colors } from '../../shared/colors'
 
 export function BasicMarginDemo() {
   const margin4 = [10, 30, 90, 0] as [number, number, number, number]

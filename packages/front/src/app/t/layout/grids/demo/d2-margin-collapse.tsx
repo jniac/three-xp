@@ -4,8 +4,8 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { Positioning } from 'some-utils-ts/experimental/layout/flex/types'
 
-import { CanvasContext } from '../canvas-context'
-import { colors } from '../colors'
+import { CanvasContext } from '../../shared/canvas-context'
+import { colors } from '../../shared/colors'
 
 export function MarginCollapseDemo() {
   const marginToColor = (margin: number) => {

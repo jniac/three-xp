@@ -7,8 +7,8 @@ import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 import { ObservableNumber } from 'some-utils-ts/observables'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { CanvasContext } from '../canvas-context'
-import { colors } from '../colors'
+import { CanvasContext } from '../../shared/canvas-context'
+import { colors } from '../../shared/colors'
 
 const options = [
   {
@@ -50,6 +50,7 @@ export function AspectAlignDemo() {
       size: [context.width, context.height],
       spacing: 10,
       alignChildren: 1,
+      childrenAspectSizeMode: 'fill-tangent-space',
     })
       .add(
         new Space({

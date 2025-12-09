@@ -176,6 +176,10 @@
     "dir": "t/hash-grid"
   },
   {
+    "page": "t/layout/demo/aspect-size-mode/page.tsx",
+    "dir": "t/layout/demo/aspect-size-mode"
+  },
+  {
     "page": "t/layout/grids/page.tsx",
     "dir": "t/layout/grids"
   },

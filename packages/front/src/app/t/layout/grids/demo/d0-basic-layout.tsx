@@ -3,7 +3,7 @@
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
 
-import { colors } from '../colors'
+import { colors } from '../../shared/colors'
 
 export function BasicLayoutDemo() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
