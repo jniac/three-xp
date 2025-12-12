@@ -24,7 +24,7 @@ export function PageClient() {
           })
             .populate(3, { aspect: 1 })
         }
-        description={<h2><pre>childrenAspectSizeMode: undefined</pre> (default)</h2>}
+        title={<h2><pre>childrenAspectSizeMode: undefined</pre> (default)</h2>}
       />
 
       <CanvasBlock
@@ -38,7 +38,7 @@ export function PageClient() {
           })
             .populate(3, { aspect: 1 })
         }
-        description={<h2><pre>childrenAspectSizeMode: "fill-normal-space"</pre></h2>}
+        title={<h2><pre>childrenAspectSizeMode: "fill-normal-space"</pre></h2>}
       />
 
       <CanvasBlock
@@ -52,7 +52,7 @@ export function PageClient() {
           })
             .populate(3, { aspect: 1 })
         }
-        description={<h2><pre>childrenAspectSizeMode: "fill-tangent-space"</pre></h2>}
+        title={<h2><pre>childrenAspectSizeMode: "fill-tangent-space"</pre></h2>}
       />
 
       <CanvasBlock
@@ -70,7 +70,7 @@ export function PageClient() {
               new Space({ aspect: 1 }),
             )
         }
-        description={
+        title={
           <>
             <h2>
               <pre>
@@ -112,7 +112,7 @@ export function PageClient() {
               new Space({ aspect: 1, selfAspectSizeMode: 'fill-normal-space' }),
             )
         }
-        description={
+        title={
           <>
             <h2>
               <pre>"fill-tangent-space"</pre>

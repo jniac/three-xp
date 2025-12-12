@@ -1,7 +1,10 @@
 import { useEffects } from 'some-utils-react/hooks/effects'
 
+import { handleAnyUserInteraction } from 'some-utils-dom/handle/any-user-interaction'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
-import { colors } from './colors'
+import { onTick, Tick, Ticker } from 'some-utils-ts/ticker'
+import { ColorRepresentation } from 'three'
+import { colorValues } from './colors'
 
 function initFlexLayoutDemoCanvas(parent: HTMLElement, {
   width = 800,
@@ -18,6 +21,9 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
 
   const ctx = canvas.getContext('2d')!
   ctx.scale(pixelRatio, pixelRatio)
+  const ctxClear = () => {
+    ctx.clearRect(0, 0, width, height)
+  }
   const ctxRect = ({ x = 0, y = 0, width = 1, height = 1 }, {
     stroke = undefined as string | undefined,
     lineWidth = undefined as number | undefined,
@@ -33,37 +39,73 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
     if (stroke)
       ctx.stroke()
   }
-  return { canvas, ctx, ctxRect }
+  return { canvas, ctx, ctxClear, ctxRect }
 }
 
 export function CanvasBlock({
-  root,
+  root: rootArg,
+  size = [800, 600],
+  title,
   description,
   computeLayout = (space: Space) => space.computeLayout(),
+  colorRule = (space: Space) => colorValues[space.depth() % colorValues.length],
+  onStart = undefined,
+  tickDisabled = false,
+  onTick: onTickArg = undefined,
 }: {
-  root: Space
-  description: React.ReactNode
+  root: Space | Space[]
+  size?: [number, number]
+  title: React.ReactNode
+  description?: React.ReactNode
   computeLayout?: (space: Space) => void
+  colorRule?: (space: Space) => ColorRepresentation
+  onStart?: (roots: Space[]) => void
+  tickDisabled?: boolean
+  onTick?: (roots: Space[], tick: Tick) => void
 }) {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
-    const { ctxRect } = initFlexLayoutDemoCanvas(div)
+    const [width, height] = size
+    const { ctxClear, ctxRect } = initFlexLayoutDemoCanvas(div, { width, height })
 
-    computeLayout(root)
+    const roots = Array.isArray(rootArg) ? rootArg : [rootArg]
+    const draw = () => {
+      ctxClear()
 
-    const colorValues = Object.values(colors)
-    for (const child of root.allDescendants({ includeSelf: true })) {
-      const color = child.userData.color ?? colorValues[child.depth() % colorValues.length]
-      ctxRect(child.rect, { stroke: color })
+      for (const root of roots) {
+        computeLayout(root)
+
+        for (const child of root.allDescendants({ includeSelf: true })) {
+          const color = child.userData.color ?? colorRule(child)
+          ctxRect(child.rect, { stroke: color })
+        }
+      }
+    }
+
+    draw()
+
+    onStart?.(roots)
+
+    if (onTickArg && !tickDisabled) {
+      yield handleAnyUserInteraction(Ticker.get('three').set({ inactivityWaitDurationMinimum: 20 }).requestActivation)
+      yield onTick('three', tick => {
+        onTickArg(roots, tick)
+        draw()
+      })
     }
 
   }, 'always')
 
   return (
-    <div ref={ref} className='flex flex-col items-center gap-2 mt-8'>
+    <div ref={ref} className='flex flex-col items-center mt-32'>
       <canvas />
-      <div className='mb-2 flex flex-col items-center gap-2'>
-        {description}
+      <div className='mt-4 flex flex-col items-center gap-2'>
+        {title}
       </div>
+      {description && (
+        <div className='text-sm opacity-70 text-center'>
+          {description}
+        </div>
+      )}
     </div>
   )
 }

@@ -16,3 +16,5 @@ export const colors = {
   ...baseColors,
   ...extraColors,
 }
+
+export const colorValues = Object.values(colors)
