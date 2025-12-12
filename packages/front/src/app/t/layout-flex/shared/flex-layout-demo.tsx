@@ -36,22 +36,27 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
   return { canvas, ctx, ctxRect }
 }
 
-export function CanvasBlock({ root, description }: {
+export function CanvasBlock({
+  root,
+  description,
+  computeLayout = (space: Space) => space.computeLayout(),
+}: {
   root: Space
   description: React.ReactNode
+  computeLayout?: (space: Space) => void
 }) {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
-    const { ctx, ctxRect } = initFlexLayoutDemoCanvas(div)
+    const { ctxRect } = initFlexLayoutDemoCanvas(div)
 
-    root.computeLayout()
+    computeLayout(root)
 
-    ctxRect(root.rect, { stroke: colors.yellow })
-
-    for (const child of root.children) {
-      ctxRect(child.rect, { stroke: colors.vibrantBlue })
+    const colorValues = Object.values(colors)
+    for (const child of root.allDescendants({ includeSelf: true })) {
+      const color = child.userData.color ?? colorValues[child.depth() % colorValues.length]
+      ctxRect(child.rect, { stroke: color })
     }
 
-  }, [])
+  }, 'always')
 
   return (
     <div ref={ref} className='flex flex-col items-center gap-2 mt-8'>

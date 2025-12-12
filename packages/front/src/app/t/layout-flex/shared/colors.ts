@@ -1,9 +1,9 @@
 
 export const baseColors = {
   yellow: '#ffcc00',
+  blue: '#00ccff',
   magenta: '#cc00ff',
   paleGreen: '#00ffcc',
-  blue: '#00ccff',
   vibrantBlue: '#1c55ff',
   pink: '#ffccff',
 }
