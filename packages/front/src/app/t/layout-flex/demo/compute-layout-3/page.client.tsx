@@ -85,7 +85,30 @@ function D2() {
           spacing: 10,
           direction: 'vertical',
         }).add(
-          new Space({ spacing: 10, size: 'fit-children' }).add(
+          new Space({ spacing: 10 }).add(
+            new Space({ spacing: 10, size: 'fit-children' }),
+            new Space({ spacing: 10, size: 'fit-children' }),
+            new Space({ spacing: 10, size: 'fit-children' }),
+            new Space({ spacing: 10, size: 'fit-children' }).add(
+              new Space({ size: [100, 50] }),
+              new Space({ size: [50, 100] }),
+              new Space({ size: [100, 50] }),
+            ),
+            new Space({ aspect: 1 }),
+            new Space({ sizeY: '20%' }),
+            new Space({ spacing: 10, size: 'fit-children', direction: 'vertical' }).add(
+              new Space({ size: [100, 50] }),
+              new Space({ size: [50, 50] }),
+              new Space({ size: [100, 50] }),
+            ),
+          ),
+          new Space({ spacing: 10, direction: 'vertical' }).add(
+            new Space({ spacing: 10, size: 'fit-children' }),
+            new Space({ spacing: 10, size: 'fit-children' }).add(
+              new Space({ size: 100 }),
+              new Space({ size: 100 }),
+              new Space({ size: 100 }),
+            ),
           ),
         )
       }

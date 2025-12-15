@@ -70,6 +70,8 @@ class Node {
    */
   tgt_free = 0
 
+  // tgt_overflow = 0
+
   space: Space
 
   parent: Node | null = null
@@ -86,7 +88,8 @@ class Node {
    */
   fractionalInNormal: boolean
 
-  sizeIsComputed = false
+  sizeComputed = false
+  childrenSizesComputed = false
 
   constructor(space: Space, parent: Node | null = null) {
     this.space = space
@@ -94,12 +97,25 @@ class Node {
     this.p_is_h = parent?.is_h ?? true
     this.is_h = space.direction === Direction.Horizontal
     this.fractionalInTangent = this.p_is_h
-      ? isFractional(space.sizeX.type, space.aspect)
-      : isFractional(space.sizeY.type, space.aspect)
+      ? isFractional(space.sizeX.type, space.sizeXFitChildren)
+      : isFractional(space.sizeY.type, space.sizeYFitChildren)
     this.fractionalInNormal = this.p_is_h
-      ? isFractional(space.sizeY.type, space.aspect)
-      : isFractional(space.sizeX.type, space.aspect)
-    this.children = space.children.map(c => new Node(c, this))
+      ? isFractional(space.sizeY.type, space.sizeYFitChildren)
+      : isFractional(space.sizeX.type, space.sizeXFitChildren)
+    this.children = space.children
+      .filter(c => c.enabled)
+      .map(c => new Node(c, this))
+  }
+
+  setSize(sx: number, sy: number) {
+    this.sx = sx
+    this.sy = sy
+    this.sizeComputed = true
+  }
+
+  setInnerSize(inner_sx: number, inner_sy: number) {
+    this.inner_sx = inner_sx
+    this.inner_sy = inner_sy
   }
 
   /**
@@ -155,25 +171,29 @@ class Node {
   }
 }
 
+function nodeToString(n: Node): string {
+  const f = (n: number) => n.toFixed(2).replace(/\.?0+$/, '')
+  const childrenCount = n.children.length > 0 ? `(${n.children.length}) ` : ''
+  const rect = `r(${f(n.px)}, ${f(n.py)}, ${f(n.sx)}, ${f(n.sy)})`
+  const free = `tgt_free(${f(n.tgt_free)})`
+  const inner = `inner(${f(n.inner_sx)}, ${f(n.inner_sy)})`
+  return `s${n.id} ${childrenCount}${rect} ${free} ${inner}`
+}
+
 function treeString(root: Node): string {
   const lines = <string[]>[]
   let total = 0
-  const f = (n: number) => n.toFixed(2).replace(/\.?0+$/, '')
-  for (const s of root.allDescendants()) {
-    const indent = s.allAncestors()
+  for (const n of root.allDescendants()) {
+    const indent = n.allAncestors()
       .map(parentItem => {
         return parentItem.parent === null || parentItem.isLastChild() ? '   ' : '│  '
       })
       .toArray()
       .reverse()
       .join('')
-    const relation = s.depth() === 0 ? '->' :
-      s.isLastChild() === false ? '├─' : '└─'
-    const childrenCount = s.children.length > 0 ? `(${s.children.length}) ` : ''
-    const r = `r(${f(s.px)}, ${f(s.py)}, ${f(s.sx)}, ${f(s.sy)})`
-    const free = `tgt_free(${f(s.tgt_free)})`
-    const inner = `inner(${f(s.inner_sx)}, ${f(s.inner_sy)})`
-    const line = `${indent}${relation} s${s.id} ${childrenCount}${r} ${free} ${inner}`
+    const relation = n.depth() === 0 ? '->' :
+      n.isLastChild() === false ? '├─' : '└─'
+    const line = `${indent}${relation} ${nodeToString(n)}`
     lines.push(line)
     total++
   }
@@ -182,9 +202,9 @@ function treeString(root: Node): string {
   return str
 }
 
-function isFractional(scalarType: ScalarType, aspect: number | null) {
+function isFractional(scalarType: ScalarType, fitChildren: boolean): boolean {
   return scalarType === ScalarType.Fraction
-    || scalarType === ScalarType.Auto
+    || (scalarType === ScalarType.Auto && fitChildren === false)
   // || (scalarType === ScalarType.Auto && aspect === null) // Auto with no aspect is treated as fractional
 }
 
@@ -208,10 +228,6 @@ function computeSpacings(n: Node) {
   n.gap = n.is_h
     ? n.space.gap.compute(n.sx, n.sy)
     : n.space.gap.compute(n.sy, n.sx)
-}
-
-function computeFitSizes(root: Node) {
-
 }
 
 function* regularChildren(n: Node): Generator<Node> {
@@ -239,63 +255,136 @@ function computeChildrenSizes(root: Node) {
   const queue = [root]
   while (queue.length > 0) {
     const n = queue.shift()!
+
+    if (n.childrenSizesComputed)
+      continue
+
     computeSpacings(n)
     const isx = n.inner_sx
     const isy = n.inner_sy
 
     let tgt_free = n.is_h ? isx : isy
+
+    // HORIZONTAL LAYOUT
     if (n.is_h) {
-      // REGULAR CHILDREN
+      // 1. Regular children
       for (const c of regularChildren(n)) {
-        c.sx = c.space.sizeX.compute(isx, isy)
-        c.sy = c.space.sizeY.compute(isy, isx)
+        if (c.sizeComputed === false) {
+          const c_sx = c.space.sizeX.compute(isx, isy)
+          const c_sy = c.space.sizeY.compute(isy, isx)
+          c.setSize(c_sx, c_sy)
+        }
         tgt_free -= c.sx
       }
       tgt_free -= n.gap * Math.max(0, n.children.length - 1)
 
-      // FRACTIONAL CHILDREN
+      // 2. Fractional children
       let total = 0
       for (const c of fractionalChildren(n)) {
         total += c.space.sizeX.value
       }
       const tgt_free_clmp = Math.max(0, tgt_free)
       for (const c of fractionalChildren(n)) {
-        c.sx = tgt_free_clmp * (c.space.sizeX.value / total)
-        c.sy = c.space.aspect !== null
-          ? c.sx / c.space.aspect
+        const c_sx = tgt_free_clmp * (c.space.sizeX.value / total)
+        const c_sy = c.space.aspect !== null
+          ? c_sx / c.space.aspect
           : c.space.sizeY.compute(isy, isx)
+        c.setSize(c_sx, c_sy)
         tgt_free = 0 // Consumed all free spaces
       }
-    } else {
-      // REGULAR CHILDREN
+    }
+
+    // VERTICAL LAYOUT
+    else {
+      // 1. Regular children
       for (const c of regularChildren(n)) {
-        c.sx = c.space.sizeX.compute(isx, isy)
-        c.sy = c.space.sizeY.compute(isy, isx)
+        if (c.sizeComputed === false) {
+          const c_sx = c.space.sizeX.compute(isx, isy)
+          const c_sy = c.space.sizeY.compute(isy, isx)
+          c.setSize(c_sx, c_sy)
+        }
         tgt_free -= c.sy
       }
       tgt_free -= n.gap * Math.max(0, n.children.length - 1)
 
-      // FRACTIONAL CHILDREN
+      // 2. Fractional children
       let total = 0
       for (const c of fractionalChildren(n)) {
         total += c.space.sizeY.value
       }
       const tgt_free_clmp = Math.max(0, tgt_free)
       for (const c of fractionalChildren(n)) {
-        c.sy = tgt_free_clmp * (c.space.sizeY.value / total)
-        c.sx = c.space.aspect !== null
-          ? c.sy * c.space.aspect
+        const c_sy = tgt_free_clmp * (c.space.sizeY.value / total)
+        const c_sx = c.space.aspect !== null
+          ? c_sy * c.space.aspect
           : c.space.sizeX.compute(isx, isy)
+        c.setSize(c_sx, c_sy)
         tgt_free = 0 // Consumed all free spaces
       }
     }
     n.tgt_free = tgt_free
+    n.childrenSizesComputed = true
 
     queue.push(...n.children)
   }
 }
 
-function computeChildrenPositions(root: Node) {
+function computeFitChildrenSizes(node: Node) {
+  for (const c of node.children) {
+    const sx = c.space.sizeX.compute(0, 0)
+    const sy = c.space.sizeY.compute(0, 0)
+    c.setSize(sx, sy)
+    computeChildrenSizes(c)
+  }
+  computeSpacings(node)
+  const { is_h } = node
+
+  // HORIZONTAL LAYOUT
+  if (is_h) {
+    let total_sx = 0
+    let max_sy = 0
+    for (const c of node.children) {
+      total_sx += c.sx
+      if (c.sy > max_sy)
+        max_sy = c.sy
+    }
+    total_sx += node.gap * Math.max(0, node.children.length - 1)
+    node.setInnerSize(total_sx, max_sy)
+
+    const sx = total_sx + node.pl + node.pr
+    const sy = max_sy + node.pt + node.pb
+    node.setSize(sx, sy)
+  }
+
+  // VERTICAL LAYOUT
+  else {
+    let max_sx = 0
+    let total_sy = 0
+    for (const c of node.children) {
+      total_sy += c.sy
+      if (c.sx > max_sx)
+        max_sx = c.sx
+    }
+    total_sy += node.gap * Math.max(0, node.children.length - 1)
+    node.setInnerSize(max_sx, total_sy)
+
+    const sx = max_sx + node.pl + node.pr
+    const sy = total_sy + node.pt + node.pb
+    node.setSize(sx, sy)
+  }
+
+  node.childrenSizesComputed = true
+}
+
+function computeSizes(root: Node) {
+  for (const node of iterateTangentFit(root)) {
+    computeFitChildrenSizes(node)
+  }
+
+  computeChildrenSizes(root)
+}
+
+function computePositions(root: Node) {
   const queue = [root]
   while (queue.length > 0) {
     const n = queue.shift()!
@@ -329,8 +418,9 @@ function applyLayout(root: Node) {
   }
 }
 
-
 export function computeLayout3(rootSpace: Space) {
+  Node.nextId = 0
+
   const root = new Node(rootSpace)
 
   root.px = rootSpace.offsetX.value
@@ -339,9 +429,9 @@ export function computeLayout3(rootSpace: Space) {
   root.sy = root.space.sizeY.compute(0, 0)
   computeSpacings(root)
 
-  computeChildrenSizes(root)
+  computeSizes(root)
 
-  computeChildrenPositions(root)
+  computePositions(root)
 
   applyLayout(root)
 
