@@ -26,6 +26,16 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
     ctx.clearRect(0, 0, width, height)
   }
 
+  const ctxSpace = (space: Space, options?: Parameters<typeof ctxRect>[1]) => {
+    ctxRect(space.rect, options)
+    ctx.font = '16px sans-serif'
+    ctx.textBaseline = 'top'
+    ctx.fillStyle = options?.stroke ?? options?.fill ?? 'red'
+    if (space.aspect !== null) {
+      ctx.fillText(`A`, space.rect.x + 4, space.rect.y + 4)
+    }
+  }
+
   const ctxRect = ({ x = 0, y = 0, width = 1, height = 1 }, {
     arrow = undefined as Direction | undefined,
     stroke = undefined as string | undefined,
@@ -36,7 +46,7 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
     ctx.beginPath()
     ctx.arc(x, y, 3, 0, Math.PI * 2)
     ctx.fill()
-    if (width > 0 && height > 0) {
+    if (width > 0 || height > 0) {
       ctx.strokeStyle = stroke ?? ''
       ctx.lineWidth = lineWidth ?? 2
       ctx.fillStyle = fill ?? ''
@@ -83,7 +93,7 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
     }
   }
 
-  return { canvas, ctx, ctxClear, ctxRect }
+  return { canvas, ctx, ctxSpace, ctxClear, ctxRect }
 }
 
 export function CanvasBlock({
@@ -123,7 +133,7 @@ export function CanvasBlock({
         for (const child of root.allDescendants({ includeSelf: true })) {
           const color = child.userData.color ?? colorRule(child)
           const arrow = directionArrow ? child.direction : undefined
-          handler.ctxRect(child.rect, { stroke: color, arrow })
+          handler.ctxSpace(child, { stroke: color, arrow })
         }
       }
     }

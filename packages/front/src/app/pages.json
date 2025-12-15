@@ -180,6 +180,10 @@
     "dir": "t/layout-flex/demo/aspect-size-mode"
   },
   {
+    "page": "t/layout-flex/demo/compute-layout-3/page.tsx",
+    "dir": "t/layout-flex/demo/compute-layout-3"
+  },
+  {
     "page": "t/layout-flex/demo/fit-children/page.tsx",
     "dir": "t/layout-flex/demo/fit-children"
   },

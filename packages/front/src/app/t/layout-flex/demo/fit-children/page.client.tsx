@@ -1,17 +1,19 @@
-
 'use client'
 
+
 import { Direction, Space } from 'some-utils-ts/experimental/layout/flex'
+import { lerp } from 'some-utils-ts/math/basic'
 import { easing } from 'some-utils-ts/math/easing'
 
 import { CanvasBlock } from '../../shared/flex-layout-demo'
 
-import { useEffect, useState } from 'react'
-import { lerp } from 'some-utils-ts/math/basic'
 import { createRootD4 } from '../../grids/demo/d4-positioning'
-import '../../shared/flex-layout-demo.css'
 import { D3 } from './demo/d3'
 import { D5, D5_Vertical } from './demo/d5'
+import { D6 } from './demo/d6'
+
+import '../../shared/flex-layout-demo.css'
+import { useHash } from '../../shared/useHash'
 
 function DemoD4() {
   const d4 = createRootD4(800, 600)
@@ -59,6 +61,7 @@ function getCanvasBlocks() {
     D3,
     D5,
     D5_Vertical,
+    D6,
 
     () => (
       <CanvasBlock
@@ -115,26 +118,8 @@ function getCanvasBlocks() {
   ]
 }
 
-function useHash(initialHash = '') {
-  const [hash, setStateHash] = useState(initialHash)
-
-  useEffect(() => {
-    setStateHash(window.location.hash)
-  }, [])
-
-  function setHash(newHash: string | null) {
-    if (typeof window !== 'undefined') {
-      console.log('setHash', { newHash })
-      window.location.hash = newHash ?? ''
-      window.history.replaceState(null, '', newHash ?? '')
-    }
-    setStateHash(newHash ?? '')
-  }
-  return [hash, setHash] as const
-}
-
 export function PageClient() {
-  const [hash, setHash] = useHash('#demo-2')
+  const [hash, setHash] = useHash('#demo-4')
   const hashIndex = parseInt(hash.replace('#demo-', '') || '-1')
   const blocks = getCanvasBlocks().filter((_, i) => hashIndex === -1 || hashIndex === i)
   return (
