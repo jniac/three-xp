@@ -11,7 +11,13 @@ class Node {
   static nextId = 0
   static nextUid = 0
 
+  /**
+   * Node UID, unique across multiple layout computations.
+   */
   uid = Node.nextUid++
+  /**
+   * Node ID, unique per layout computation.
+   */
   id = Node.nextId++
 
   /**
@@ -77,29 +83,43 @@ class Node {
   parent: Node | null = null
   children: Node[]
 
-  p_is_h: boolean
-
   /**
    * Whether the space is "fractional" in the parent's tangent direction.
    */
-  fractionalInTangent: boolean
+  fractionalInTangentSpace: boolean
   /**
    * Whether the space is "fractional" in the parent's normal direction.
    */
-  fractionalInNormal: boolean
+  fractionalInNormalSpace: boolean
 
+  /**
+   * Whether this node's size has been computed.
+   * 
+   * Memo:
+   * - Node's traversal cannot be linear if we want to support fitting nodes, aspect ratios, and fractional sizes.
+   * - Therefore, we need to keep track of which nodes have had their sizes computed already.
+   * - ⚠️ Used to prevent double-computation.
+   */
   sizeComputed = false
+  /**
+   * Whether this node's children's sizes have been computed.
+   * 
+   * Memo:
+   * - Node's traversal cannot be linear if we want to support fitting nodes, aspect ratios, and fractional sizes.
+   * - Therefore, we need to keep track of which nodes have had their children's sizes computed already.
+   * - ⚠️ Used to prevent double-computation.
+   */
   childrenSizesComputed = false
 
   constructor(space: Space, parent: Node | null = null) {
     this.space = space
     this.parent = parent
-    this.p_is_h = parent?.is_h ?? true
     this.is_h = space.direction === Direction.Horizontal
-    this.fractionalInTangent = this.p_is_h
+    const p_is_h = parent?.is_h ?? true
+    this.fractionalInTangentSpace = p_is_h
       ? isFractional(space.sizeX.type, space.sizeXFitChildren)
       : isFractional(space.sizeY.type, space.sizeYFitChildren)
-    this.fractionalInNormal = this.p_is_h
+    this.fractionalInNormalSpace = p_is_h
       ? isFractional(space.sizeY.type, space.sizeYFitChildren)
       : isFractional(space.sizeX.type, space.sizeXFitChildren)
     this.children = space.children
@@ -114,11 +134,6 @@ class Node {
     this.sx = sx
     this.sy = sy
     this.sizeComputed = true
-  }
-
-  setInnerSize(inner_sx: number, inner_sy: number) {
-    this.inner_sx = inner_sx
-    this.inner_sy = inner_sy
   }
 
   /**
@@ -212,9 +227,12 @@ function treeString(root: Node): string {
 function isFractional(scalarType: ScalarType, fitChildren: boolean): boolean {
   return scalarType === ScalarType.Fraction
     || (scalarType === ScalarType.Auto && fitChildren === false)
-  // || (scalarType === ScalarType.Auto && aspect === null) // Auto with no aspect is treated as fractional
 }
 
+/**
+ * Yields all nodes in the tree rooted at `n` that have tangent fit enabled,
+ * in a bottom-up order (children before parents).
+ */
 function* iterateTangentFit(n: Node): Generator<Node> {
   for (const c of n.children) {
     yield* iterateTangentFit(c)
@@ -239,7 +257,7 @@ function computeSpacings(n: Node) {
 
 function* regularChildren(n: Node): Generator<Node> {
   for (const c of n.children) {
-    if (c.fractionalInTangent === false) {
+    if (c.fractionalInTangentSpace === false) {
       yield c
     }
   }
@@ -247,7 +265,7 @@ function* regularChildren(n: Node): Generator<Node> {
 
 function* fractionalChildren(n: Node): Generator<Node> {
   for (const c of n.children) {
-    if (c.fractionalInTangent === true) {
+    if (c.fractionalInTangentSpace === true) {
       yield c
     }
   }
@@ -358,11 +376,11 @@ function fitSizePass(node: Node) {
         max_sy = c.sy
     }
     total_sx += node.gap * Math.max(0, node.children.length - 1)
-    node.setInnerSize(total_sx, max_sy)
 
     const sx = total_sx + node.pl + node.pr
     const sy = max_sy + node.pt + node.pb
     node.setSize(sx, sy)
+    computeSpacings(node)
   }
 
   // VERTICAL LAYOUT
@@ -375,21 +393,22 @@ function fitSizePass(node: Node) {
         max_sx = c.sx
     }
     total_sy += node.gap * Math.max(0, node.children.length - 1)
-    node.setInnerSize(max_sx, total_sy)
 
     const sx = max_sx + node.pl + node.pr
     const sy = total_sy + node.pt + node.pb
     node.setSize(sx, sy)
+    computeSpacings(node)
   }
 
   node.childrenSizesComputed = true
 }
 
 function sizePass(root: Node) {
-  for (const node of iterateTangentFit(root)) {
+  // First pass for fitting nodes, from leaves to root (bottom-up)
+  for (const node of iterateTangentFit(root))
     fitSizePass(node)
-  }
 
+  // Final pass for non-fitting nodes that were not covered by the above, from root to leaves (top-down)
   nonFitSizePass(root)
 }
 
@@ -438,8 +457,20 @@ export function computeLayout3(rootSpace: Space) {
   root.sy = root.space.sizeY.compute(0, 0)
   computeSpacings(root)
 
+  /**
+   * SIZE PASS
+   * After this pass:
+   * - node.sx, node.sy are final
+   * - childrenSizesComputed === true for all nodes
+   */
   sizePass(root)
 
+  /**
+   * POSITION PASS
+   * After this pass:
+   * - node.px, node.py are final
+   * - that's it
+   */
   positionPass(root)
 
   applyLayout(root)
