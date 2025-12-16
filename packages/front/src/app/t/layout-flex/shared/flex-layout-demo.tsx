@@ -131,6 +131,9 @@ export function CanvasBlock({
         computeLayout(root)
 
         for (const child of root.allDescendants({ includeSelf: true })) {
+          if (child.enabled === false)
+            continue
+
           const color = child.userData.color ?? colorRule(child)
           const arrow = directionArrow ? child.direction : undefined
           handler.ctxSpace(child, { stroke: color, arrow })

@@ -108,6 +108,9 @@ class Node {
   }
 
   setSize(sx: number, sy: number) {
+    if (this.sizeComputed)
+      throw new Error(`Implementation Error: Size already computed for node s${this.id}`)
+
     this.sx = sx
     this.sy = sy
     this.sizeComputed = true
@@ -166,8 +169,12 @@ class Node {
     }
   }
 
-  treeString(): string {
+  toTreeString(): string {
     return treeString(this)
+  }
+
+  toString(): string {
+    return nodeToString(this)
   }
 }
 
@@ -251,7 +258,7 @@ function* fractionalChildren(n: Node): Generator<Node> {
  * 
  * - ⚠️ The given root node must have its size already computed.
  */
-function computeChildrenSizes(root: Node) {
+function nonFitSizePass(root: Node) {
   const queue = [root]
   while (queue.length > 0) {
     const n = queue.shift()!
@@ -329,12 +336,14 @@ function computeChildrenSizes(root: Node) {
   }
 }
 
-function computeFitChildrenSizes(node: Node) {
+function fitSizePass(node: Node) {
   for (const c of node.children) {
-    const sx = c.space.sizeX.compute(0, 0)
-    const sy = c.space.sizeY.compute(0, 0)
-    c.setSize(sx, sy)
-    computeChildrenSizes(c)
+    if (c.sizeComputed === false) {
+      const sx = c.space.sizeX.compute(0, 0)
+      const sy = c.space.sizeY.compute(0, 0)
+      c.setSize(sx, sy)
+    }
+    nonFitSizePass(c)
   }
   computeSpacings(node)
   const { is_h } = node
@@ -376,15 +385,15 @@ function computeFitChildrenSizes(node: Node) {
   node.childrenSizesComputed = true
 }
 
-function computeSizes(root: Node) {
+function sizePass(root: Node) {
   for (const node of iterateTangentFit(root)) {
-    computeFitChildrenSizes(node)
+    fitSizePass(node)
   }
 
-  computeChildrenSizes(root)
+  nonFitSizePass(root)
 }
 
-function computePositions(root: Node) {
+function positionPass(root: Node) {
   const queue = [root]
   while (queue.length > 0) {
     const n = queue.shift()!
@@ -429,13 +438,13 @@ export function computeLayout3(rootSpace: Space) {
   root.sy = root.space.sizeY.compute(0, 0)
   computeSpacings(root)
 
-  computeSizes(root)
+  sizePass(root)
 
-  computePositions(root)
+  positionPass(root)
 
   applyLayout(root)
 
-  console.log(treeString(root))
+  // console.log(treeString(root))
 
   return root
 }

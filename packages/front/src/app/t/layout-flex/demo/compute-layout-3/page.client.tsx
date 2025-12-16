@@ -4,6 +4,7 @@
 
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 
+import { colors } from '../../shared/colors'
 import { CanvasBlock } from '../../shared/flex-layout-demo'
 import { useHash } from '../../shared/useHash'
 import { layoutColorRule } from '../fit-children/demo/shared'
@@ -59,8 +60,8 @@ function D1() {
           new Space({ spacing: 10 }).add(
             new Space({ aspect: 1, alignSelf: 1 }),
             new Space({ aspect: 1 }),
-            new Space({ aspect: 1 / 2 }),
-            new Space({ aspect: 1 / 2 }),
+            new Space({ aspect: 1 / 2, direction: 'vertical', spacing: 10 }).populate(6),
+            new Space({ aspect: 1 / 2, direction: 'vertical', spacing: 10 }).populate(6),
             new Space({ aspect: 1 }),
             new Space({ aspect: 1, alignSelfY: 0 }),
           ),
@@ -113,7 +114,68 @@ function D2() {
         )
       }
       computeLayout={root => computeLayout3(root)}
-      title={<h2>(D2) Aspect</h2>}
+      title={<h2>(D2) "fit-children"</h2>}
+      description='flat spaces with size "fit-children"'
+    />
+  )
+}
+
+function D3() {
+  return (
+    <CanvasBlock
+      size={[800, 600]}
+      colorRule={layoutColorRule}
+      directionArrow
+      root={
+        new Space({
+          size: [700, 500],
+          offset: [50, 50],
+          spacing: 10,
+        }).add(
+          new Space({ spacing: 10, enabled: false }).add(
+            new Space({ spacing: 10, size: 'fit-children' }),
+            new Space({ spacing: 10, size: 'fit-children' }).add(
+              new Space({ size: 50 }),
+              new Space({ size: 50 }),
+              new Space({ size: 50 }),
+            ),
+          ),
+          new Space({ spacing: 10 }).add(
+            new Space({ spacing: 10, size: 'fit-children' }).add(
+              new Space({ spacing: 10, size: 'fit-children' }),
+              new Space({ spacing: 10, size: 'fit-children' }).add(
+                new Space({ size: 50 }),
+                new Space({ size: [50, 100] }),
+                new Space({ size: 50 }),
+              ),
+              new Space({
+                userData: {
+                  color: colors.yellow,
+                  comment: 'must be shrunk: no available space for expansion'
+                }
+              }),
+              new Space({ size: 50 }),
+              new Space({ spacing: 10, size: 'fit-children', direction: 'vertical' }).add(
+                new Space({ size: 50 }),
+                new Space({ size: [100, 50] }),
+                new Space({ size: 50 }),
+              ),
+            ),
+          ),
+        )
+      }
+      computeLayout={root => computeLayout3(root)}
+      title={<h2>(D2) "fit-children"</h2>}
+      description={
+        <>
+          <h2>Seems good:</h2>
+          <ul>
+            <li>disabled spaces are ignored</li>
+            <li>nested "fit-children" spaces work</li>
+
+          </ul>
+        </>
+      }
     />
   )
 }
@@ -123,13 +185,14 @@ function getCanvasBlocks() {
     D0,
     D1,
     D2,
+    D3,
   ]
 }
 
 export function PageClient() {
   const [hash, setHash] =
-    useHash('demo-2')
-  // useHash()
+    // useHash('demo-3')
+    useHash()
   const hashIndex = parseInt(hash.replace('#demo-', '') || '-1')
   const blocks = getCanvasBlocks().filter((_, i) => hashIndex === -1 || hashIndex === i)
   return (
