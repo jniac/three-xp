@@ -1,6 +1,7 @@
 import { ScalarType } from 'some-utils-ts/experimental/layout/flex/Scalar'
 import { Space } from 'some-utils-ts/experimental/layout/flex/Space'
 import { Direction } from 'some-utils-ts/experimental/layout/flex/types'
+import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
 
 const PT = 0
 const PR = 1
@@ -446,15 +447,37 @@ function applyLayout(root: Node) {
   }
 }
 
-export function computeLayout3(rootSpace: Space) {
+/**
+ * Compute the layout from a given node.
+ * 
+ * Note: 
+ * - The given root node may not be the actual root of the tree. This allows to
+ *   compute layouts for subtrees (partial updates).
+ * - If `rootRect` is given, the root node's position and size are defined by it,
+ *   otherwise they are computed from the root node's space properties (interpreted
+ *   as absolute values).
+ * 
+ * @param rootSpace 
+ * @param rootRect 
+ * @returns 
+ */
+export function computeLayout3(rootSpace: Space, rootRect?: RectangleDeclaration) {
   Node.nextId = 0
 
   const root = new Node(rootSpace)
 
-  root.px = rootSpace.offsetX.value
-  root.py = rootSpace.offsetY.value
-  root.sx = root.space.sizeX.compute(0, 0)
-  root.sy = root.space.sizeY.compute(0, 0)
+  if (rootRect) {
+    const { x, y, width, height } = Rectangle.from(rootRect)
+    root.px = x
+    root.py = y
+    root.sx = width
+    root.sy = height
+  } else {
+    root.px = rootSpace.offsetX.value
+    root.py = rootSpace.offsetY.value
+    root.sx = root.space.sizeX.compute(0, 0)
+    root.sy = root.space.sizeY.compute(0, 0)
+  }
   computeSpacings(root)
 
   /**
@@ -477,5 +500,5 @@ export function computeLayout3(rootSpace: Space) {
 
   // console.log(treeString(root))
 
-  return root
+  // return root
 }

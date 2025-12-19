@@ -37,7 +37,7 @@ export function D5() {
           )
       ]}
       colorRule={layoutColorRule}
-      directionArrow
+      drawDirection
       computeLayout={root => root.computeLayout2()}
       tickDisabled
       onTick={(roots, tick) => {
@@ -82,7 +82,7 @@ export function D5_Vertical() {
           )
       ]}
       colorRule={layoutColorRule}
-      directionArrow
+      drawDirection
       computeLayout={root => root.computeLayout2()}
       tickDisabled
       onTick={(roots, tick) => {

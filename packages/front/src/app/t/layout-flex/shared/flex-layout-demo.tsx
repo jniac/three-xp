@@ -38,14 +38,22 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
 
   const ctxRect = ({ x = 0, y = 0, width = 1, height = 1 }, {
     arrow = undefined as Direction | undefined,
+    origin = undefined as 'top-left' | 'center' | undefined,
     stroke = undefined as string | undefined,
     lineWidth = undefined as number | undefined,
     fill = undefined as string | undefined,
   } = {}) => {
-    ctx.fillStyle = stroke ?? fill ?? ''
-    ctx.beginPath()
-    ctx.arc(x, y, 3, 0, Math.PI * 2)
-    ctx.fill()
+    if (origin === 'center') {
+      ctx.fillStyle = stroke ?? fill ?? ''
+      ctx.beginPath()
+      ctx.arc(x + width / 2, y + height / 2, 3, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (origin === 'top-left') {
+      ctx.fillStyle = stroke ?? fill ?? ''
+      ctx.beginPath()
+      ctx.arc(x, y, 3, 0, Math.PI * 2)
+      ctx.fill()
+    }
     if (width > 0 || height > 0) {
       ctx.strokeStyle = stroke ?? ''
       ctx.lineWidth = lineWidth ?? 2
@@ -96,23 +104,32 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
   return { canvas, ctx, ctxSpace, ctxClear, ctxRect }
 }
 
+export enum DrawMode {
+  AllOutline,
+  LeavesFill,
+}
+
 export function CanvasBlock({
   root: rootArg,
   size = [800, 600],
   title,
   description,
-  directionArrow,
+  drawMode = DrawMode.AllOutline,
+  drawDirection,
+  drawOrigin,
   computeLayout = (space: Space) => space.computeLayout(),
   colorRule = (space: Space) => colorValues[space.depth() % colorValues.length],
   onStart = undefined,
   tickDisabled = false,
   onTick: onTickArg = undefined,
 }: {
-  root: Space | Space[]
+  root: Space | Space[] | ((size: [number, number]) => Space | Space[])
   size?: [number, number]
   title: React.ReactNode
   description?: React.ReactNode
-  directionArrow?: boolean
+  drawMode?: DrawMode
+  drawDirection?: boolean
+  drawOrigin?: boolean
   computeLayout?: (space: Space) => void
   colorRule?: (space: Space) => ColorRepresentation
   onStart?: (roots: Space[]) => void
@@ -123,20 +140,39 @@ export function CanvasBlock({
     const [width, height] = size
     const handler = initFlexLayoutDemoCanvas(div, { width, height })
 
-    const roots = Array.isArray(rootArg) ? rootArg : [rootArg]
+    const roots = (() => {
+      let arg = rootArg
+      if (typeof arg === 'function')
+        arg = arg(size)
+      return Array.isArray(arg) ? arg : [arg]
+    })()
+
     const draw = () => {
       handler.ctxClear()
 
       for (const root of roots) {
         computeLayout(root)
 
-        for (const child of root.allDescendants({ includeSelf: true })) {
-          if (child.enabled === false)
-            continue
+        switch (drawMode) {
+          case DrawMode.LeavesFill: {
+            for (const child of root.allLeaves()) {
+              if (child.enabled === false)
+                continue
 
-          const color = child.userData.color ?? colorRule(child)
-          const arrow = directionArrow ? child.direction : undefined
-          handler.ctxSpace(child, { stroke: color, arrow })
+              const color = child.userData.color ?? colorRule(child)
+              handler.ctxSpace(child, { fill: color })
+            }
+          }
+          default: {
+            for (const child of root.allDescendants({ includeSelf: true })) {
+              if (child.enabled === false)
+                continue
+
+              const color = child.userData.color ?? colorRule(child)
+              const arrow = drawDirection ? child.direction : undefined
+              handler.ctxSpace(child, { stroke: color, arrow, origin: drawOrigin ? 'top-left' : undefined })
+            }
+          }
         }
       }
     }
