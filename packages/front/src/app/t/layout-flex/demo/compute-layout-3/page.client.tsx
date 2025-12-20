@@ -181,50 +181,52 @@ function D3() {
   )
 }
 
+function createStressTestLayout([w, h]: [number, number]): Space {
+  const spacing = 4
+  const root = new Space({
+    offset: [50, 50],
+    size: [w - 100, h - 100],
+    spacing,
+  })
+  computeLayout3(root)
+  const depthMax = 10
+  const nodeCountMax = 1e5
+  let nodeCount = 1
+  const queue = [root]
+  while (nodeCount < nodeCountMax && queue.length > 0) {
+    const current = queue.shift()!
+    if (current.rect.area < 500)
+      continue
+    const direction = current.rect.aspect >= 1
+    current.set({ direction })
+    const childCount = 3
+    nodeCount += childCount
+    current.populate(childCount, { spacing })
+    for (let i = 0; i < childCount; i++) {
+      const size = RandomUtils.pick([1, 1, 3, 5, 10])
+      current.children[i].sizeX.value = size
+      current.children[i].sizeY.value = size
+    }
+    computeLayout3(current, current.rect)
+    if (current.depth() < depthMax)
+      queue.push(...current.children)
+  }
+  console.log(`${root.descendantsCount()} nodes (descendantsCount)`)
+  console.log(`${root.leavesCount()} leaves (leavesCount)`)
+
+  console.time('final layout')
+  computeLayout3(root)
+  console.timeEnd('final layout')
+  return root
+}
+
 function D4() {
   return (
     <CanvasBlock
       size={[1200, 1200]}
       drawMode={DrawMode.LeavesFill}
       // directionArrow
-      root={([w, h]) => {
-        const spacing = 4
-        const root = new Space({
-          offset: [50, 50],
-          size: [w - 100, h - 100],
-          spacing,
-        })
-        computeLayout3(root)
-        const depthMax = 10
-        const nodeCountMax = 1e5
-        let nodeCount = 1
-        const queue = [root]
-        while (nodeCount < nodeCountMax && queue.length > 0) {
-          const current = queue.shift()!
-          if (current.rect.area < 500)
-            continue
-          const direction = current.rect.aspect >= 1
-          current.set({ direction })
-          const childCount = 3
-          nodeCount += childCount
-          current.populate(childCount, { spacing })
-          for (let i = 0; i < childCount; i++) {
-            const size = RandomUtils.pick([1, 1, 3, 5, 10])
-            current.children[i].sizeX.value = size
-            current.children[i].sizeY.value = size
-          }
-          computeLayout3(current, current.rect)
-          if (current.depth() < depthMax)
-            queue.push(...current.children)
-        }
-        console.log(`${root.descendantsCount()} nodes (descendantsCount)`)
-        console.log(`${root.leavesCount()} leaves (leavesCount)`)
-
-        console.time('final layout')
-        computeLayout3(root)
-        console.timeEnd('final layout')
-        return root
-      }}
+      root={createStressTestLayout}
       computeLayout={root => computeLayout3(root)}
       title={<h2>(D4) Stress</h2>}
     />
