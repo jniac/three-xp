@@ -1,16 +1,16 @@
 'use client'
 
-import { Group, LineCurve3, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
+import { Group, LineCurve3, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
-import { TransformProps } from 'some-utils-three/utils/transform'
-import { setup } from 'some-utils-three/utils/tree'
-
 import { fromVector3Declaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
+import { TransformProps } from 'some-utils-three/utils/transform'
+import { setup } from 'some-utils-three/utils/tree'
 import { Vector3Declaration } from 'some-utils-ts/declaration'
 import { Tick } from 'some-utils-ts/ticker'
+
 import { StrokeGeometry } from '../geometries/stroke'
 import { SinCurve } from '../sin-curve'
 
@@ -36,8 +36,8 @@ class Spiral extends Group {
     {
       // const geometry = new SegmentGeometry(0, [length, 0, 0], .05)
       const curve = new LineCurve3(
-        fromVector3Declaration(0),
-        fromVector3Declaration([length, 0, 0]))
+        fromVector3Declaration<Vector3>(0),
+        fromVector3Declaration<Vector3>([length, 0, 0]))
       const geometry = new StrokeGeometry(curve, { width: .05, steps: 100 })
       const material = new MeshBasicMaterial({ color: '#1d1409' })
       setup(new Mesh(geometry, material), {
