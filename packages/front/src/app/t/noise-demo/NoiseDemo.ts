@@ -1,6 +1,7 @@
 import { Group, Mesh, PlaneGeometry, ShaderMaterial, TorusKnotGeometry } from 'three'
 
 import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { fromVector3Declaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { Vector3Declaration } from 'some-utils-ts/declaration'
@@ -9,7 +10,7 @@ import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { Tick } from 'some-utils-ts/ticker'
 
 export class NoiseDemo extends Group {
-  debugHelper = setup(new DebugHelper(), this)
+  debugHelper = setup(new DebugHelper({ texts: { lineCount: 3 } }).onTop(), this)
 
   uTime = { value: 0 }
   uTime2 = { value: 0 }
@@ -25,6 +26,7 @@ export class NoiseDemo extends Group {
     this.#plane()
     this.#knot1()
     this.#knot2()
+    this.#tilableNoise2D()
 
     setup(this, {
       position: [0, 4, 0],
@@ -50,7 +52,8 @@ export class NoiseDemo extends Group {
   }
 
   #text(position: Vector3Declaration, text: string) {
-    this.debugHelper.text(position, text, { size: .25, textColor: 'white', backgroundColor: 'black' })
+    const { x, y, z } = fromVector3Declaration(position)
+    this.debugHelper.text([x, y, z + .5], text, { size: .25, textColor: 'white', backgroundColor: 'black' })
   }
 
   #plane() {
@@ -88,12 +91,14 @@ export class NoiseDemo extends Group {
       `,
     })
 
+    const position = [0, 0, 0] as const
+
     setup(new Mesh(new PlaneGeometry(2, 2), material), {
       parent: this,
-      position: [0, 0, 0],
+      position,
     })
 
-    this.#text([0, 0, .666], 'warp in noise3D')
+    this.#text(position, 'warp in noise3D')
   }
 
   #knot1() {
@@ -143,12 +148,14 @@ export class NoiseDemo extends Group {
       `,
     })
 
+    const position = [0, 2, 0] as const
+
     setup(new Mesh(new TorusKnotGeometry(.5, .3, 256, 64), material), {
       parent: this,
-      position: [0, 2, 0],
+      position,
     })
 
-    this.#text([0, 2, .666], 'noise4D')
+    this.#text(position, 'noise4D')
   }
 
   #knot2() {
@@ -198,11 +205,70 @@ export class NoiseDemo extends Group {
       `,
     })
 
+    const position = [2, 0, 0] as const
+
     setup(new Mesh(new TorusKnotGeometry(.5, .3, 256, 64), material), {
       parent: this,
-      position: [2, 0, 0],
+      position,
     })
 
-    this.#text([2, 0, .666], 'snoiseFast4D\n(hash. 4D into noise2D)')
+    this.#text(position, 'snoiseFast4D\n(hash. 4D into noise2D)\ntoo much patterning...')
+  }
+
+  #tilableNoise2D() {
+    const material = new ShaderMaterial({
+      uniforms: {
+        uTime: this.uTime,
+        uTime2: this.uTime2,
+      },
+      vertexShader: /* glsl */ `
+        varying vec2 vUv;
+        varying vec3 vWorldPosition;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        ${glsl_stegu_snoise}
+        ${glsl_easings}
+
+        varying vec2 vUv;
+        varying vec3 vWorldPosition;
+        uniform float uTime, uTime2;
+
+        float remap1101(in float x) {
+          return (x + 1.0) * 0.5;
+        }
+
+        float tilableFNoise(vec2 point, vec2 period, int octaves, float persistence) {
+          float nx = point.x / period.x * 2.0 * 3.14159265;
+          float ny = point.y / period.y * 2.0 * 3.14159265;
+          vec4 point4 = vec4(
+            cos(nx),
+            sin(nx),
+            cos(ny),
+            sin(ny)
+          );
+          return fnoise(point4, octaves, persistence);
+        }
+
+        void main() {
+          float noise = tilableFNoise(vWorldPosition.xy, vec2(0.5), 8, 0.5);
+          vec3 color = vec3(remap1101(noise));
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `,
+    })
+
+    const position = [-2, 2, 0] as const
+
+    setup(new Mesh(new PlaneGeometry(2, 2), material), {
+      parent: this,
+      position,
+    })
+
+    this.#text(position, 'tilable noise2D\n(using 4D noise)')
   }
 }

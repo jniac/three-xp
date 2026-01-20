@@ -225,7 +225,7 @@ function MyScene() {
 
     console.time('create layout')
     const root = createStressTestLayout({
-      size: [6, 6],
+      size: [20, 20],
       spacing: .04,
     })
     console.timeEnd('create layout')
