@@ -6,6 +6,7 @@ import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { Vector3Declaration } from 'some-utils-ts/declaration'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
+import { glsl_stegu_psrdnoise } from 'some-utils-ts/glsl/stegu-psrdnoise'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { Tick } from 'some-utils-ts/ticker'
 
@@ -232,6 +233,7 @@ export class NoiseDemo extends Group {
       `,
       fragmentShader: /* glsl */ `
         ${glsl_stegu_snoise}
+        ${glsl_stegu_psrdnoise}
         ${glsl_easings}
 
         varying vec2 vUv;
@@ -242,21 +244,11 @@ export class NoiseDemo extends Group {
           return (x + 1.0) * 0.5;
         }
 
-        float tilableFNoise(vec2 point, vec2 period, int octaves, float persistence) {
-          float nx = point.x / period.x * 2.0 * 3.14159265;
-          float ny = point.y / period.y * 2.0 * 3.14159265;
-          vec4 point4 = vec4(
-            cos(nx),
-            sin(nx),
-            cos(ny),
-            sin(ny)
-          );
-          return fnoise(point4, octaves, persistence);
-        }
-
         void main() {
-          float noise = tilableFNoise(vWorldPosition.xy, vec2(0.5), 8, 0.5);
-          vec3 color = vec3(remap1101(noise));
+          // float noise = tilableFNoise(vWorldPosition.xy, vec2(0.5), 5, 0.5);
+          float period = 3.0;
+          float noise = fbm_psrdnoise(vWorldPosition.xyz * period * 2.0, vec3(period), 4, 0.5);
+          vec3 color = vec3(pow(remap1101(noise), 1.0));
           gl_FragColor = vec4(color, 1.0);
         }
       `,
