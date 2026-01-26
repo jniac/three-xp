@@ -245,9 +245,9 @@ export class NoiseDemo extends Group {
         }
 
         void main() {
-          // float noise = tilableFNoise(vWorldPosition.xy, vec2(0.5), 5, 0.5);
           float period = 3.0;
-          float noise = fbm_psrdnoise(vWorldPosition.xyz * period * 2.0, vec3(period), 4, 0.5);
+          // float noise = fbm_psrdnoise(vWorldPosition.xyz * period * 2.0, vec3(period), 4, 0.5);
+          float noise = fbm_psrdnoise(vec3(vUv, 0.0) * period * 3.0, vec3(period), 4, 0.5);
           vec3 color = vec3(pow(remap1101(noise), 1.0));
           gl_FragColor = vec4(color, 1.0);
         }

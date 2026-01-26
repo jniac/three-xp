@@ -140,6 +140,10 @@
     "dir": "m/context-test"
   },
   {
+    "page": "m/debug/page.tsx",
+    "dir": "m/debug"
+  },
+  {
     "page": "m/page.tsx",
     "dir": "m"
   },

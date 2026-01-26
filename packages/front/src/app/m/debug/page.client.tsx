@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Color, Group } from 'three'
@@ -5,7 +6,7 @@ import { Color, Group } from 'three'
 import { ThreeInstance, ThreeProvider } from 'some-utils-misc/three-provider'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/types'
 
-import { NoiseDemo } from './NoiseDemo'
+import { DebugGroup } from './DebugGroup'
 
 class Setup extends Group {
   *onInitialize(three: ThreeBaseContext) {
@@ -13,7 +14,7 @@ class Setup extends Group {
   }
 }
 
-export function Client() {
+export function PageClient() {
   return (
     <div className={`layer thru`}>
       <ThreeProvider
@@ -23,7 +24,7 @@ export function Client() {
         }}
       >
         <ThreeInstance value={Setup} />
-        <ThreeInstance value={NoiseDemo} />
+        <ThreeInstance value={DebugGroup} />
       </ThreeProvider>
     </div>
   )
