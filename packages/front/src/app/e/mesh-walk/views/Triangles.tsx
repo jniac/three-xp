@@ -55,7 +55,9 @@ export function Triangles() {
       helper.point(t0_dest, { color: '#3ff', shape: 'ring', size: .3 })
 
       const t1_dest_uv = walker.solver.t1_I_uv.clone().add(walker.solver.t1_remaining_delta_uv)
-      const t1_dest = walker.getTriangle(1).getPosition(t1_dest_uv)
+      const t1_dest = walker.path?.[1]
+        ? walker.getTriangle(walker.path[1].triangleIndex).getPosition(t1_dest_uv)
+        : t0_dest
       helper.point(t1_dest, { color: '#3ff', shape: 'x', size: .3 })
 
       helper.polyline([walker.path[0].getPosition0(), walker.path[0].getPosition1(), t1_dest], { color: '#0ff', points: { shape: 'circle' } })

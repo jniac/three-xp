@@ -1,5 +1,6 @@
-import { Vector2Like } from 'some-utils-ts/types'
 import { Vector2, Vector3 } from 'three'
+
+import { Vector2Like } from 'some-utils-ts/types'
 
 const distancePointToLine_cache = {
   op: new Vector3(),
@@ -75,10 +76,13 @@ export function findFirstEdgeIntersection(
  * - Edge indices are 0, 1, 2 corresponding to the triangle's edges. 0 is U, 2 is V
  */
 export function transposeIntersectionUV(
+  // inputs
   t0_I_uv: Vector2,
   t0_I_edge: number,
   t1_I_edge: number,
-  out: Vector2,
+
+  // output
+  t1_I_uv: Vector2,
 ) {
   const u = t0_I_uv.x
   const v = t0_I_uv.y
@@ -86,29 +90,29 @@ export function transposeIntersectionUV(
     case 0: // t0.u
       switch (t1_I_edge) {
         case 0: // t1.u
-          return out.set(1 - u, 0)
+          return t1_I_uv.set(1 - u, 0)
         case 1: // t1.w
-          return out.set(u, 1 - u)
+          return t1_I_uv.set(u, 1 - u)
         case 2: // t1.v
-          return out.set(0, u)
+          return t1_I_uv.set(0, u)
       }
     case 1: // t0.w
       switch (t1_I_edge) {
         case 0: // t1.u
-          return out.set(1 - v, 0)
+          return t1_I_uv.set(1 - v, 0)
         case 1: // t1.w
-          return out.set(v, u)
+          return t1_I_uv.set(v, u)
         case 2: // t1.v
-          return out.set(0, 1 - u)
+          return t1_I_uv.set(0, 1 - u)
       }
     case 2: // t0.v
       switch (t1_I_edge) {
         case 0: // t1.u
-          return out.set(v, 0)
+          return t1_I_uv.set(v, 0)
         case 1: // t1.w
-          return out.set(1 - v, v)
+          return t1_I_uv.set(1 - v, v)
         case 2: // t1.v
-          return out.set(0, 1 - v)
+          return t1_I_uv.set(0, 1 - v)
       }
   }
 }
@@ -249,6 +253,7 @@ export function solveTriangle2D(
       }
       break
     }
+
     case 1: {
       switch (t1_I_edge) {
         case 0: {
@@ -275,6 +280,7 @@ export function solveTriangle2D(
       }
       break
     }
+
     case 2: {
       switch (t1_I_edge) {
         case 0: {
