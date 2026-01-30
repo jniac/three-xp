@@ -15,6 +15,7 @@ import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
 import * as ladyEthereal from './lady-ethereal/page'
 import * as me from './me/page'
+import * as meshWalk from './mesh-walk/page'
 import * as nineCircles from './nine-circles/page'
 import * as ovvoLayers from './ovvo/layers/page'
 import * as pathWithLoop from './path-with-loop/page'
@@ -36,6 +37,7 @@ const pages = {
   'from-earth-to': fromEarthTo,
   'lady-ethereal': ladyEthereal,
   'me': me,
+  'mesh-walk': meshWalk,
   'nine-circles': nineCircles,
   'ovvo/layers': ovvoLayers,
   'path-with-loop': pathWithLoop,

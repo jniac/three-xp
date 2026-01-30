@@ -48,6 +48,10 @@
     "dir": "e/me"
   },
   {
+    "page": "e/mesh-walk/page.tsx",
+    "dir": "e/mesh-walk"
+  },
+  {
     "page": "e/nine-circles/page.tsx",
     "dir": "e/nine-circles"
   },
