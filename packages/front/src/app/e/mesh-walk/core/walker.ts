@@ -6,7 +6,7 @@ import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { fromVector3Declaration } from 'some-utils-ts/declaration'
 
 import { HashMapArray } from './hash-map'
-import { circleIntersection, distancePointToLine, findFirstEdgeIntersection, invertMatrix2, Matrix2 } from './math'
+import { circleIntersection, distancePointToLine, findFirstEdgeIntersection, invertMatrix2, Matrix2, transposeIntersectionUV } from './math'
 
 class TriangleView {
   walker!: GeometryWalker
@@ -176,6 +176,8 @@ class Triangle2DSolver {
       .clear()
       .setTransformMatrix(makeMatrix4({ y: -3 }))
       .debugTriangle([new Vector2(0, 0), this.t0_p1, this.t0_p2], { color: 'cyan' })
+
+    return this
 
     switch (t1_I_edge) {
       case 1:
@@ -459,6 +461,18 @@ export class GeometryWalker {
         tri1.AB.angleTo(tri1.AC),
         edgeIndex1,
       )
+
+      const t1_I_uv = new Vector2()
+      transposeIntersectionUV(
+        intersection.uv,
+        edgeIndex0,
+        edgeIndex1,
+        t1_I_uv,
+      )
+      console.log(edgeIndex0, edgeIndex1, 't1_I_uv', ...t1_I_uv)
+      debugHelper
+        .resetTransformMatrix()
+        .point(tri1.getPosition(t1_I_uv), { color: 'orange', size: 0.5, shape: 'x-thin' })
 
       // Compute 2D transformation from triangle 1 to triangle 2
     }

@@ -14,13 +14,21 @@ export function Triangles() {
     setup(debugHelper, group)
     const geometry = new BufferGeometry()
     const positions = new Float32Array([
-      0, 1, 0,
-      -1, -1, 0,
-      .5, -1, 0,
+      0, 2, 0,
+      -1, 0, 0,
+      .5, 0, 0,
 
-      0, 1, 0,
-      .5, -1, 0,
-      2, 1, 0,
+      0, 2, 0,
+      .5, 0, 0,
+      2, 2, 0,
+
+      0, 2, 0,
+      -2, 2, 0,
+      -1, 0, 0,
+
+      -1, 0, 0,
+      0, -1, 0,
+      .5, 0, 0,
     ])
     geometry.setAttribute('position', new BufferAttribute(positions, 3))
     geometry.computeVertexNormals()
@@ -32,14 +40,16 @@ export function Triangles() {
     const startUV = new Vector2(.3, .1)
     const deltaUV = new Vector2(-.5, .5)
 
-    walker.rotateVertexIndex(1, -1)
+    walker.rotateVertexIndex(3, -1)
 
     yield onTick('three', () => {
       walker.walk(0, startUV, deltaUV)
 
       helper.clear()
-      helper.debugTriangle([geometry, 0], { color: 'yellow' })
-      helper.debugTriangle([geometry, 1], { color: 'red' })
+      helper.debugTriangle([geometry, 0], { text: 0, color: 'yellow' })
+      helper.debugTriangle([geometry, 1], { text: 1, color: '#f30' })
+      helper.debugTriangle([geometry, 2], { text: 2, color: '#f82' })
+      helper.debugTriangle([geometry, 3], { text: 3, color: '#c3f' })
       helper.line(
         walker.path[0].getPosition0(),
         walker.path[0].getPosition1(),

@@ -28,7 +28,7 @@ const findFirstEdgeIntersectionResultCache = {
   uv: new Vector2(),
 }
 /**
- * ⚠️ IMPORTANT!
+ * ✅ ALGO!
  * 
  * Computes the first edge intersection of a movement within a triangle in UV
  * space (using barycentric coordinates).
@@ -63,14 +63,53 @@ export function findFirstEdgeIntersection(
 
 
 
-export function transposeIntersection(
+/**
+ * ✅ ALGO!
+ * 
+ * Transposes the intersection UV coordinates from one triangle to another
+ * based on the edges involved in the intersection.
+ * 
+ * Notes:
+ * - The result is stored in the `out` parameter.
+ * - This function assumes that the triangles are connected along the specified edges.
+ * - Edge indices are 0, 1, 2 corresponding to the triangle's edges. 0 is U, 2 is V
+ */
+export function transposeIntersectionUV(
   t0_I_uv: Vector2,
   t0_I_edge: number,
   t1_I_edge: number,
   out: Vector2,
 ) {
+  const u = t0_I_uv.x
+  const v = t0_I_uv.y
   switch (t0_I_edge) {
-
+    case 0: // t0.u
+      switch (t1_I_edge) {
+        case 0: // t1.u
+          return out.set(1 - u, 0)
+        case 1: // t1.w
+          return out.set(u, 1 - u)
+        case 2: // t1.v
+          return out.set(0, u)
+      }
+    case 1: // t0.w
+      switch (t1_I_edge) {
+        case 0: // t1.u
+          return out.set(1 - v, 0)
+        case 1: // t1.w
+          return out.set(v, u)
+        case 2: // t1.v
+          return out.set(0, 1 - u)
+      }
+    case 2: // t0.v
+      switch (t1_I_edge) {
+        case 0: // t1.u
+          return out.set(v, 0)
+        case 1: // t1.w
+          return out.set(1 - v, v)
+        case 2: // t1.v
+          return out.set(0, 1 - v)
+      }
   }
 }
 
