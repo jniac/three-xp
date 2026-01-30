@@ -28,7 +28,7 @@ const findFirstEdgeIntersectionResultCache = {
   uv: new Vector2(),
 }
 /**
- * ✅ ALGO!
+ * ## 🧐 ALGO!
  * 
  * Computes the first edge intersection of a movement within a triangle in UV
  * space (using barycentric coordinates).
@@ -64,7 +64,7 @@ export function findFirstEdgeIntersection(
 
 
 /**
- * ✅ ALGO!
+ * ## 🧐 ALGO!
  * 
  * Transposes the intersection UV coordinates from one triangle to another
  * based on the edges involved in the intersection.
@@ -161,66 +161,254 @@ export function circleIntersection(
 }
 
 
+/**
+ * ## 🧐 ALGO!
+ * 
+ * ### What we want?
+ * - To compute the positions of T1's vertices in 2D orthogonal space.
+ * 
+ * ### What we have?
+ * - T0's vertices positions in 2D orthogonal space where:
+ *    - T0.p0 is at (0,0)
+ *    - T0.p1 is at (some_given_length, 0)
+ *    - T0.p2 is at (some_given_value, some_given_value)
+ * - T1's edge lengths:
+ *   - t1_u_length (edge from p0 to p1)
+ *   - t1_v_length (edge from p0 to p2)
+ *   - t1_w_length (edge from p1 to p2)
+ * 
+ * ### What's hard here?
+ *   - Depending on which edges are involved in the intersection, the known points 
+ *     change. We have to handle all combinations of edge intersections.
+ * 
+ * ### Notes:
+ * - Edges are indexed as follows:
+ *   - 0: edge from p0 to p1 (u)
+ *   - 1: edge from p1 to p2 (w)
+ *   - 2: edge from p0 to p2 (v)
+ * - Source of confusion:
+ *   - u and v refer to the barycentric coordinates within the triangle.
+ *   - w refers to the third edge of the triangle.
+ *   - So edges in the direct order are: u, w , inverse(v)
+ * 
+ * @param t0_I_edge 
+ * @param t1_I_edge 
+ * @param t0_u 
+ * @param t0_v 
+ * @param t1_u_length 
+ * @param t1_v_length 
+ * @param t1_w_length 
+ * @param t1_p0 
+ * @param t1_p1 
+ * @param t1_p2 
+ */
+export function solveTriangle2D(
+  // inputs
+  // edges involved in the intersection
+  t0_I_edge: number,
+  t1_I_edge: number,
 
-export function invertMatrix2(m: Matrix2): Matrix2 {
-  const det = m.elements[0] * m.elements[3] - m.elements[1] * m.elements[2]
-  if (det === 0) {
-    throw new Error('Matrix is not invertible')
+  // - t0:
+  t0_u: Vector2,
+  t0_v: Vector2,
+
+  // - t1:
+  t1_u_length: number,
+  t1_v_length: number,
+  t1_w_length: number,
+
+  // outputs
+  t1_p0: Vector2,
+  t1_p1: Vector2,
+  t1_p2: Vector2,
+) {
+  switch (t0_I_edge) {
+    case 0: {
+      switch (t1_I_edge) {
+        case 0: {
+          t1_p0.copy(t0_u)
+          t1_p1.set(0, 0)
+          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s)
+          break
+        }
+        case 1: {
+          t1_p1.copy(t0_u)
+          t1_p2.set(0, 0)
+          const [s,] = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_v_length)
+          t1_p0.copy(s)
+          break
+        }
+        case 2: {
+          t1_p2.copy(t0_u)
+          t1_p0.set(0, 0)
+          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
+          t1_p1.copy(s)
+          break
+        }
+      }
+      break
+    }
+    case 1: {
+      switch (t1_I_edge) {
+        case 0: {
+          t1_p0.copy(t0_v)
+          t1_p1.copy(t0_u)
+          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s)
+          break
+        }
+        case 1: {
+          t1_p1.copy(t0_v)
+          t1_p2.copy(t0_u)
+          const [s,] = circleIntersection(t1_p1, t1_u_length, t1_p2, t1_v_length)
+          t1_p0.copy(s)
+          break
+        }
+        case 2: {
+          t1_p2.copy(t0_v)
+          t1_p0.copy(t0_u)
+          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
+          t1_p1.copy(s)
+          break
+        }
+      }
+      break
+    }
+    case 2: {
+      switch (t1_I_edge) {
+        case 0: {
+          t1_p0.set(0, 0)
+          t1_p1.copy(t0_v)
+          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s)
+          break
+        }
+        case 1: {
+          t1_p1.set(0, 0)
+          t1_p2.copy(t0_v)
+          const [s,] = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_u_length)
+          t1_p0.copy(s)
+          break
+        }
+        case 2: {
+          t1_p2.set(0, 0)
+          t1_p0.copy(t0_v)
+          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_v_length)
+          t1_p1.copy(s)
+          break
+        }
+      }
+      break
+    }
   }
-  const invDet = 1 / det
-  return new Matrix2().set(
-    m.elements[3] * invDet,
-    -m.elements[1] * invDet,
-    -m.elements[2] * invDet,
-    m.elements[0] * invDet
-  )
 }
+
+
 
 export class Matrix2 {
   elements: number[]
+
   constructor() {
     this.elements = [
-      1, 0,
-      0, 1,
+      1, 0,  // column 1
+      0, 1,  // column 2
     ]
   }
 
+  // Accepts matrix in row-major order: (m11, m12, m21, m22)
+  // Stores in column-major: [m11, m21, m12, m22]
   set(
     m11: number, m12: number,
     m21: number, m22: number
   ): this {
     const e = this.elements
-    e[0] = m11
-    e[1] = m21
-    e[2] = m12
-    e[3] = m22
+    e[0] = m11  // col1 row1
+    e[1] = m21  // col1 row2
+    e[2] = m12  // col2 row1
+    e[3] = m22  // col2 row2
     return this
   }
 
-  multiplyMatrices(m1: Matrix2, m2: Matrix2): Matrix2 {
-    const a = m1.elements
-    const b = m2.elements
+  setBasis(u: Vector2, v: Vector2): this {
+    // u is first column, v is second column
     return this.set(
-      a[0] * b[0] + a[2] * b[1],
-      a[1] * b[0] + a[3] * b[1],
-      a[0] * b[2] + a[2] * b[3],
-      a[1] * b[2] + a[3] * b[3],
+      u.x, v.x,  // row1 col1, row1 col2
+      u.y, v.y   // row2 col1, row2 col2
     )
   }
 
-  multiply(m: Matrix2): Matrix2 {
+  copy(m: Matrix2): this {
+    const te = this.elements
+    const me = m.elements
+    te[0] = me[0]
+    te[1] = me[1]
+    te[2] = me[2]
+    te[3] = me[3]
+    return this
+  }
+
+  clone(): Matrix2 {
+    return new Matrix2().copy(this)
+  }
+
+  invert(): this {
+    const e = this.elements
+    const det = e[0] * e[3] - e[2] * e[1]  // m11*m22 - m12*m21
+
+    if (det === 0) {
+      console.warn('Matrix2: .invert() can\'t invert matrix, determinant is 0')
+      return this.set(
+        1, 0,
+        0, 1
+      )
+    }
+
+    const detInv = 1 / det
+    const m11 = e[3] * detInv    // m22 / det
+    const m12 = -e[2] * detInv   // -m12 / det
+    const m21 = -e[1] * detInv   // -m21 / det
+    const m22 = e[0] * detInv    // m11 / det
+
+    return this.set(
+      m11, m12,
+      m21, m22
+    )
+  }
+
+  multiplyMatrices(m1: Matrix2, m2: Matrix2): this {
+    const a = m1.elements
+    const b = m2.elements
+
+    // Matrix multiplication for column-major storage
+    const a11 = a[0], a12 = a[2]  // col1 row1, col2 row1
+    const a21 = a[1], a22 = a[3]  // col1 row2, col2 row2
+    const b11 = b[0], b12 = b[2]
+    const b21 = b[1], b22 = b[3]
+
+    const m11 = a11 * b11 + a12 * b21
+    const m12 = a11 * b12 + a12 * b22
+    const m21 = a21 * b11 + a22 * b21
+    const m22 = a21 * b12 + a22 * b22
+
+    return this.set(
+      m11, m12,
+      m21, m22
+    )
+  }
+
+  multiply(m: Matrix2): this {
     return this.multiplyMatrices(this, m)
   }
 
-  premultiply(m: Matrix2): Matrix2 {
+  premultiply(m: Matrix2): this {
     return this.multiplyMatrices(m, this)
   }
 
   multiplyVector2(v: Vector2, out = v): Vector2 {
     const e = this.elements
-    return out.set(
-      e[0] * v.x + e[2] * v.y,
-      e[1] * v.x + e[3] * v.y
-    )
+    const x = e[0] * v.x + e[2] * v.y  // m11*x + m12*y
+    const y = e[1] * v.x + e[3] * v.y  // m21*x + m22*y
+    return out.set(x, y)
   }
 }

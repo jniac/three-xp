@@ -6,7 +6,7 @@ import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { fromVector3Declaration } from 'some-utils-ts/declaration'
 
 import { HashMapArray } from './hash-map'
-import { circleIntersection, distancePointToLine, findFirstEdgeIntersection, invertMatrix2, Matrix2, transposeIntersectionUV } from './math'
+import { circleIntersection, distancePointToLine, findFirstEdgeIntersection, Matrix2, transposeIntersectionUV } from './math'
 
 class TriangleView {
   walker!: GeometryWalker
@@ -136,96 +136,181 @@ class PathNode {
 }
 
 class Triangle2DSolver {
-  t0_p0 = new Vector2() // Always (0,0)
-  t0_p1 = new Vector2()
-  t0_p1_length = 0
-  t0_p2 = new Vector2()
-  t0_p2_length = 0
+  // t0_p0 = new Vector2() // Always (0,0)
+  t0_u = new Vector2()
+  t0_u_length = 0
+  t0_v = new Vector2()
+  t0_v_length = 0
+  t0_uv_angle = 0
   t0_w = new Vector2()
   t0_w_length = 0
 
+  t1_u_length = 0
+  t1_v_length = 0
+  t1_w_length = 0
   t1_p0 = new Vector2()
   t1_p1 = new Vector2()
   t1_p2 = new Vector2()
   t1_u = new Vector2()
   t1_v = new Vector2()
 
-  set(
-    t0_p1_length: number,
-    t0_p2_length: number,
-    t0_uv_angle: number,
+  // What we want to solve:
+  t1_I_uv = new Vector2()
+  t1_remaining_delta_uv = new Vector2()
+
+  solve(
+    tri0: TriangleView,
     t0_I_edge: number,
+    t0_I_t: number,
     t0_I_uv: Vector2,
+    t0_start_uv: Vector2,
     t0_delta_uv: Vector2,
-    t1_u_length: number,
-    t1_v_length: number,
-    t1_uv_angle: number,
+    tri1: TriangleView,
     t1_I_edge: number,
   ): this {
-    this.t0_p1.set(t0_p1_length, 0)
-    this.t0_p1_length = t0_p1_length
-    this.t0_p2.set(
-      t0_p2_length * Math.cos(t0_uv_angle),
-      t0_p2_length * Math.sin(t0_uv_angle)
+    this.t0_u_length = tri0.AB_length
+    this.t0_u.set(this.t0_u_length, 0)
+    this.t0_uv_angle = tri0.AB.angleTo(tri0.AC)
+    this.t0_v_length = tri0.AC_length
+    this.t0_v.set(
+      this.t0_v_length * Math.cos(this.t0_uv_angle),
+      this.t0_v_length * Math.sin(this.t0_uv_angle)
     )
-    this.t0_p2_length = t0_p2_length
-    this.t0_w.subVectors(this.t0_p2, this.t0_p1)
+    this.t0_w.subVectors(this.t0_v, this.t0_u)
     this.t0_w_length = this.t0_w.length()
 
-    debugHelper
-      .clear()
-      .setTransformMatrix(makeMatrix4({ y: -3 }))
-      .debugTriangle([new Vector2(0, 0), this.t0_p1, this.t0_p2], { color: 'cyan' })
+    transposeIntersectionUV(
+      t0_I_uv,
+      t0_I_edge,
+      t1_I_edge,
+      this.t1_I_uv,
+    )
 
-    return this
+    this.t1_u_length = tri1.AB_length
+    this.t1_v_length = tri1.AC_length
+    this.t1_w_length = tri1.B.distanceTo(tri1.C)
 
-    switch (t1_I_edge) {
-      case 1:
-        // Opposite edge0
-        switch (t0_I_edge) {
-          // AB
+    switch (t0_I_edge) {
+      case 0: {
+        switch (t1_I_edge) {
           case 0: {
-            this.t1_p1.copy(this.t0_p1)
-            this.t1_p2.copy(this.t0_p0)
-            const [s0, s1] = circleIntersection(
-              this.t1_p1, t1_u_length,
-              this.t1_p2, t1_v_length
-            )
-            throw new Error('Not implemented yet')
+            this.t1_p0.copy(this.t0_u)
+            this.t1_p1.set(0, 0)
+            const [s,] = circleIntersection(this.t1_p0, this.t1_v_length, this.t1_p1, this.t1_w_length)
+            this.t1_p2.copy(s)
             break
           }
-
-          // AC: ✅
+          case 1: {
+            this.t1_p1.copy(this.t0_u)
+            this.t1_p2.set(0, 0)
+            const [s,] = circleIntersection(this.t1_p1, this.t1_w_length, this.t1_p2, this.t1_v_length)
+            this.t1_p0.copy(s)
+            break
+          }
           case 2: {
-            this.t1_p1.copy(this.t0_p0)
-            this.t1_p2.copy(this.t0_p2)
-            // Always the first solution?
-            const [s0, _] = circleIntersection(
-              this.t1_p1, t1_u_length,
-              this.t1_p2, t1_v_length
-            )
-            this.t1_p0.copy(s0)
-            this.t1_u.subVectors(this.t1_p1, this.t1_p0)
-            this.t1_v.subVectors(this.t1_p2, this.t1_p0)
-            debugHelper
-              .debugTriangle([this.t1_p0, this.t1_p1, this.t1_p2], { color: '#9ff' })
-
-            const m0 = new Matrix2().set(
-              this.t0_p1.x, this.t0_p2.x,
-              this.t0_p1.y, this.t0_p2.y,
-            )
-            const m1_inv = invertMatrix2(new Matrix2().set(
-              this.t1_u.x, this.t1_v.x,
-              this.t1_u.y, this.t1_v.y,
-            ))
-            const m_01 = new Matrix2().multiplyMatrices(m0, m1_inv)
-
-            const t1_delta_uv = m_01.multiplyVector2(t0_delta_uv.clone())
-
+            this.t1_p2.copy(this.t0_u)
+            this.t1_p0.set(0, 0)
+            const [s,] = circleIntersection(this.t1_p2, this.t1_w_length, this.t1_p0, this.t1_u_length)
+            this.t1_p1.copy(s)
             break
           }
         }
+        break
+      }
+      case 1: {
+        switch (t1_I_edge) {
+          case 0: {
+            this.t1_p0.copy(this.t0_v)
+            this.t1_p1.copy(this.t0_u)
+            const [s,] = circleIntersection(this.t1_p0, this.t1_v_length, this.t1_p1, this.t1_w_length)
+            this.t1_p2.copy(s)
+            break
+          }
+          case 1: {
+            this.t1_p1.copy(this.t0_v)
+            this.t1_p2.copy(this.t0_u)
+            const [s,] = circleIntersection(this.t1_p1, this.t1_u_length, this.t1_p2, this.t1_v_length)
+            this.t1_p0.copy(s)
+            break
+          }
+          case 2: {
+            this.t1_p2.copy(this.t0_v)
+            this.t1_p0.copy(this.t0_u)
+            const [s,] = circleIntersection(this.t1_p2, this.t1_w_length, this.t1_p0, this.t1_u_length)
+            this.t1_p1.copy(s)
+            break
+          }
+        }
+        break
+      }
+      case 2: {
+        switch (t1_I_edge) {
+          case 0: {
+            this.t1_p0.set(0, 0)
+            this.t1_p1.copy(this.t0_v)
+            const [s,] = circleIntersection(this.t1_p0, this.t1_v_length, this.t1_p1, this.t1_w_length)
+            this.t1_p2.copy(s)
+            break
+          }
+          case 1: {
+            this.t1_p1.set(0, 0)
+            this.t1_p2.copy(this.t0_v)
+            const [s,] = circleIntersection(this.t1_p1, this.t1_w_length, this.t1_p2, this.t1_u_length)
+            this.t1_p0.copy(s)
+            break
+          }
+          case 2: {
+            this.t1_p2.set(0, 0)
+            this.t1_p0.copy(this.t0_v)
+            const [s,] = circleIntersection(this.t1_p2, this.t1_w_length, this.t1_p0, this.t1_v_length)
+            this.t1_p1.copy(s)
+            break
+          }
+        }
+        break
+      }
     }
+
+    // Compute t1_u, t1_v basis
+    this.t1_u.subVectors(this.t1_p1, this.t1_p0)
+    this.t1_v.subVectors(this.t1_p2, this.t1_p0)
+
+    const m0 = new Matrix2().setBasis(this.t0_u, this.t0_v)
+    const m1_inv = new Matrix2().setBasis(this.t1_u, this.t1_v).invert()
+    const m = new Matrix2().multiplyMatrices(m1_inv, m0)
+
+    this.t1_remaining_delta_uv = t0_delta_uv.clone().multiplyScalar(1 - t0_I_t)
+    m.multiplyVector2(this.t1_remaining_delta_uv)
+
+    const p_start = new Vector2()
+      .addScaledVector(this.t0_u, t0_start_uv.x)
+      .addScaledVector(this.t0_v, t0_start_uv.y)
+    const p_i0 = new Vector2()
+      .addScaledVector(this.t0_u, t0_I_uv.x)
+      .addScaledVector(this.t0_v, t0_I_uv.y)
+    const p_i1 = new Vector2()
+      .copy(this.t1_p0)
+      .addScaledVector(this.t1_u, this.t1_I_uv.x)
+      .addScaledVector(this.t1_v, this.t1_I_uv.y)
+    const p_end = new Vector2()
+      .copy(this.t1_p0)
+      .addScaledVector(this.t1_u, this.t1_I_uv.x + this.t1_remaining_delta_uv.x)
+      .addScaledVector(this.t1_v, this.t1_I_uv.y + this.t1_remaining_delta_uv.y)
+
+
+    debugHelper
+      .resetTransformMatrix()
+      .point(tri1.getPosition(this.t1_I_uv), { color: 'red', size: 0.5, shape: 'x-ultra-thin' })
+
+    debugHelper
+      .setTransformMatrix(makeMatrix4({ y: -3 }))
+      .debugTriangle([new Vector2(0, 0), this.t0_u, this.t0_v], { color: 'cyan' })
+
+    debugHelper.point(p_i0, { color: 'yellow', size: 0.5, shape: 'ring-thin' })
+    debugHelper.point(p_i1, { color: 'yellow', size: 0.5, shape: 'x-ultra-thin' })
+    debugHelper.polyline([p_start, p_i0, p_i1, p_end], { color: 'yellow', points: { size: 0.1, shape: 'circle' } })
+    // debugHelper.points([s0, s1], { color: 'orange', size: 0.1, shape: 'circle' })
+    debugHelper.debugTriangle([this.t1_p0, this.t1_p1, this.t1_p2], { color: 'orange' })
 
     return this
   }
@@ -447,34 +532,19 @@ export class GeometryWalker {
       const intersectionPoint = tri0.getPosition(intersection.uv)
       const edgeIndex1 = tri1.getClosestEdgeIndex(intersectionPoint)
 
-      this.solver.set(
-        // Triangle 0
-        tri0.AB_length,
-        tri0.AC_length,
-        tri0.AB.angleTo(tri0.AC),
-        edgeIndex0,
-        intersection.uv,
-        deltaUV,
-        // Triangle 1
-        tri1.AB_length,
-        tri1.AC_length,
-        tri1.AB.angleTo(tri1.AC),
-        edgeIndex1,
-      )
-
-      const t1_I_uv = new Vector2()
-      transposeIntersectionUV(
-        intersection.uv,
-        edgeIndex0,
-        edgeIndex1,
-        t1_I_uv,
-      )
-      console.log(edgeIndex0, edgeIndex1, 't1_I_uv', ...t1_I_uv)
       debugHelper
-        .resetTransformMatrix()
-        .point(tri1.getPosition(t1_I_uv), { color: 'orange', size: 0.5, shape: 'x-thin' })
+        .clear()
 
-      // Compute 2D transformation from triangle 1 to triangle 2
+      this.solver.solve(
+        tri0,
+        edgeIndex0,
+        intersection.t,
+        intersection.uv,
+        startUV,
+        deltaUV,
+        tri1,
+        edgeIndex1,
+      )
     }
   }
 }

@@ -20,10 +20,10 @@ export function Triangles() {
 
       0, 2, 0,
       .5, 0, 0,
-      2, 2, 0,
+      2, 2, -2,
 
       0, 2, 0,
-      -2, 2, 0,
+      -1, 2.5, 0,
       -1, 0, 0,
 
       -1, 0, 0,
@@ -38,9 +38,9 @@ export function Triangles() {
     const walker = new GeometryWalker()
       .fromGeometry(geometry)
     const startUV = new Vector2(.3, .1)
-    const deltaUV = new Vector2(-.5, .5)
+    const deltaUV = new Vector2(.5, .5)
 
-    walker.rotateVertexIndex(3, -1)
+    walker.rotateVertexIndex(3, 0)
 
     yield onTick('three', () => {
       walker.walk(0, startUV, deltaUV)
@@ -50,13 +50,15 @@ export function Triangles() {
       helper.debugTriangle([geometry, 1], { text: 1, color: '#f30' })
       helper.debugTriangle([geometry, 2], { text: 2, color: '#f82' })
       helper.debugTriangle([geometry, 3], { text: 3, color: '#c3f' })
-      helper.line(
-        walker.path[0].getPosition0(),
-        walker.path[0].getPosition1(),
-        { points: { shape: 'circle' } })
 
-      const dest = walker.getTriangle(0).getPosition(startUV.clone().add(deltaUV))
-      helper.point(dest, { color: '#3ff', shape: 'ring', size: .3 })
+      const t0_dest = walker.getTriangle(0).getPosition(startUV.clone().add(deltaUV))
+      helper.point(t0_dest, { color: '#3ff', shape: 'ring', size: .3 })
+
+      const t1_dest_uv = walker.solver.t1_I_uv.clone().add(walker.solver.t1_remaining_delta_uv)
+      const t1_dest = walker.getTriangle(1).getPosition(t1_dest_uv)
+      helper.point(t1_dest, { color: '#3ff', shape: 'x', size: .3 })
+
+      helper.polyline([walker.path[0].getPosition0(), walker.path[0].getPosition1(), t1_dest], { color: '#0ff', points: { shape: 'circle' } })
     })
 
     const controls = Message.requireInstanceOrThrow(VertigoControls)
