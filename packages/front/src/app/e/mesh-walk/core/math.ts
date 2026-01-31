@@ -7,6 +7,19 @@ const distancePointToLine_cache = {
   n: new Vector3(),
 }
 /**
+ * Returns the *squared* distance from point p to the line defined by origin o and direction v.
+ * @param p A point.
+ * @param o The origin of the line.
+ * @param v The direction vector of the line.
+ * @returns
+ */
+export function distancePointToLineSq(p: Vector3, o: Vector3, v: Vector3): number {
+  const { op, n } = distancePointToLine_cache
+  op.subVectors(p, o)
+  n.crossVectors(op, v)
+  return n.lengthSq() / v.lengthSq()
+}
+/**
  * Returns the distance from point p to the line defined by origin o and direction v.
  * @param p A point.
  * @param o The origin of the line.

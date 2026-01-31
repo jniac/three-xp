@@ -1,12 +1,10 @@
 import { BufferGeometry, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration, Vector2Declaration, Vector3Declaration } from 'some-utils-three/declaration'
-import { debugHelper } from 'some-utils-three/helpers/debug'
-import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { fromVector3Declaration } from 'some-utils-ts/declaration'
 
 import { HashMapArray } from './hash-map'
-import { distancePointToLine, findFirstEdgeIntersection, Matrix2, solveTriangle2D, transposeIntersectionUV } from './math'
+import { distancePointToLineSq, findFirstEdgeIntersection, Matrix2, solveTriangle2D, transposeIntersectionUV } from './math'
 
 class TriangleView {
   walker!: GeometryWalker
@@ -84,9 +82,9 @@ class TriangleView {
     const { A, B, C, AB, AC } = this
     fromVector3Declaration(pointArg, P)
 
-    const scoreAB = distancePointToLine(P, A, AB)
-    const scoreBC = distancePointToLine(P, B, BC.subVectors(C, B))
-    const scoreAC = distancePointToLine(P, A, AC)
+    const scoreAB = distancePointToLineSq(P, A, AB)
+    const scoreBC = distancePointToLineSq(P, B, BC.subVectors(C, B))
+    const scoreAC = distancePointToLineSq(P, A, AC)
     if (scoreAB <= scoreBC) {
       if (scoreAB <= scoreAC) {
         return 0
@@ -144,6 +142,8 @@ class Triangle2DSolver {
   t0_uv_angle = 0
   t0_w = new Vector2()
   t0_w_length = 0
+  t0_start_uv = new Vector2()
+  t0_delta_uv = new Vector2()
 
   t1_u_length = 0
   t1_v_length = 0
@@ -166,12 +166,14 @@ class Triangle2DSolver {
     tri0: TriangleView,
     t0_I_edge: number,
     t0_I_t: number,
-    t0_I_uv: Vector2,
     t0_start_uv: Vector2,
     t0_delta_uv: Vector2,
+    t0_I_uv: Vector2,
     tri1: TriangleView,
     t1_I_edge: number,
   ): this {
+    this.t0_start_uv = t0_start_uv
+    this.t0_delta_uv = t0_delta_uv
     this.t0_u_length = tri0.AB_length
     this.t0_u.set(this.t0_u_length, 0)
     this.t0_uv_angle = tri0.AB.angleTo(tri0.AC)
@@ -219,35 +221,6 @@ class Triangle2DSolver {
 
     this.t1_remaining_delta_uv.copy(t0_delta_uv).multiplyScalar(1 - t0_I_t)
     this.m_01.multiplyVector2(this.t1_remaining_delta_uv)
-
-    const p_start = new Vector2()
-      .addScaledVector(this.t0_u, t0_start_uv.x)
-      .addScaledVector(this.t0_v, t0_start_uv.y)
-    const p_i0 = new Vector2()
-      .addScaledVector(this.t0_u, t0_I_uv.x)
-      .addScaledVector(this.t0_v, t0_I_uv.y)
-    const p_i1 = new Vector2()
-      .copy(this.t1_p0)
-      .addScaledVector(this.t1_u, this.t1_I_uv.x)
-      .addScaledVector(this.t1_v, this.t1_I_uv.y)
-    const p_end = new Vector2()
-      .copy(this.t1_p0)
-      .addScaledVector(this.t1_u, this.t1_I_uv.x + this.t1_remaining_delta_uv.x)
-      .addScaledVector(this.t1_v, this.t1_I_uv.y + this.t1_remaining_delta_uv.y)
-
-    debugHelper
-      .resetTransformMatrix()
-      .point(tri1.getPosition(this.t1_I_uv), { color: 'red', size: 0.5, shape: 'x-ultra-thin' })
-
-    debugHelper
-      .setTransformMatrix(makeMatrix4({ y: -3 }))
-      .debugTriangle([new Vector2(0, 0), this.t0_u, this.t0_v], { color: 'cyan' })
-
-    debugHelper.point(p_i0, { color: 'yellow', size: 0.5, shape: 'ring-thin' })
-    debugHelper.point(p_i1, { color: 'yellow', size: 0.5, shape: 'x-ultra-thin' })
-    debugHelper.polyline([p_start, p_i0, p_i1, p_end], { color: 'yellow', points: { size: 0.1, shape: 'circle' } })
-    // debugHelper.points([s0, s1], { color: 'orange', size: 0.1, shape: 'circle' })
-    debugHelper.debugTriangle([this.t1_p0, this.t1_p1, this.t1_p2], { color: 'orange' })
 
     return this
   }
@@ -465,25 +438,24 @@ export class GeometryWalker {
       const nextTriangleIndex = this.getTriangleAdjacency(currentTriangleIndex)[edgeIndex0]
 
       this.tri1.set(this, nextTriangleIndex)
-      // console.log('intersection.edgeIndex', intersection.edgeIndex, 'nextTriangleIndex', nextTriangleIndex)
       const intersectionPoint = this.tri0.getPosition(intersection.uv)
       const edgeIndex1 = this.tri1.getClosestEdgeIndex(intersectionPoint)
-
-      debugHelper
-        .clear()
 
       this.solver.solve(
         this.tri0,
         edgeIndex0,
         intersection.t,
-        intersection.uv,
         startUV,
         deltaUV,
+        intersection.uv,
         this.tri1,
         edgeIndex1,
       )
 
       this.path.push(new PathNode(this, nextTriangleIndex, this.solver.t1_I_uv.clone(), this.solver.t1_I_uv.clone().add(this.solver.t1_remaining_delta_uv)))
+
+      // TODO
+      // Recursive steps to walk across all necessary triangles.
     }
   }
 }
