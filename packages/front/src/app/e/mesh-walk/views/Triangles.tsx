@@ -8,7 +8,7 @@ import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { GeometryWalker } from '../core/walker'
+import { SurfaceWalker } from '../core/walker'
 
 const drawTriangle2DSolver_cache = {
   p0: new Vector2(),
@@ -16,7 +16,7 @@ const drawTriangle2DSolver_cache = {
   p2: new Vector2(),
 }
 function drawTriangle2DSolver(
-  walker: GeometryWalker,
+  walker: SurfaceWalker,
   debugHelper: DebugHelper,
 ) {
   const {
@@ -48,29 +48,37 @@ export function Triangles() {
   useGroup('Triangles', function* (group, three) {
     setup(debugHelper, group)
     const geometry = new BufferGeometry()
+    const A = [0, 2, 0]
+    const B = [-1, 0, 0]
+    const C = [.5, 0, 0]
+    const D = [2, 2, -2]
     const positions = new Float32Array([
-      0, 2, 0,
-      -1, 0, 0,
-      .5, 0, 0,
+      ...A,
+      ...B,
+      ...C,
 
-      0, 2, 0,
-      .5, 0, 0,
-      2, 2, -2,
+      ...A,
+      ...C,
+      ...D,
 
-      0, 2, 0,
+      ...A,
       -1, 2.5, 0,
-      -1, 0, 0,
+      ...B,
 
-      -1, 0, 0,
+      ...B,
       0, -1, 0,
-      .5, 0, 0,
+      ...C,
+
+      ...C,
+      2, 0, 0,
+      ...D,
     ])
     geometry.setAttribute('position', new BufferAttribute(positions, 3))
     geometry.computeVertexNormals()
     // setup(new AutoLitWireframeMesh(geometry, { wireframeColor: '#f00' }), group)
     const helper = setup(new DebugHelper(), group)
 
-    const walker = new GeometryWalker()
+    const walker = new SurfaceWalker()
       .fromGeometry(geometry)
     const startUV = new Vector2(.3, .1)
     const deltaUV = new Vector2(.5, .5)
@@ -79,14 +87,22 @@ export function Triangles() {
     walker.rotateVertexIndex(2, 0)
     walker.rotateVertexIndex(3, 0)
 
+    const triangle3DColors = [
+      '#ff0',
+      '#f30',
+      '#f82',
+      '#c3f',
+    ]
+
     yield onTick('three', () => {
-      walker.walk(0, startUV, deltaUV)
+      const result = walker.walk(0, startUV, deltaUV)
 
       helper.clear()
-      helper.debugTriangle([geometry, 0], { text: 0, color: 'yellow' })
-      helper.debugTriangle([geometry, 1], { text: 1, color: '#f30' })
-      helper.debugTriangle([geometry, 2], { text: 2, color: '#f82' })
-      helper.debugTriangle([geometry, 3], { text: 3, color: '#c3f' })
+      helper.debugTriangle([geometry, 0], { text: 0, color: triangle3DColors[0] })
+      helper.debugTriangle([geometry, 1], { text: 1, color: triangle3DColors[1] })
+      helper.debugTriangle([geometry, 2], { text: 2, color: triangle3DColors[2] })
+      helper.debugTriangle([geometry, 3], { text: 3, color: triangle3DColors[3] })
+      helper.debugTriangle([geometry, 4], { text: 4, color: triangle3DColors[0] })
 
       const t0_dest = walker.getTriangle(0).getPosition(startUV.clone().add(deltaUV))
       helper.point(t0_dest, { color: '#3ff', shape: 'ring', size: .3 })
@@ -97,7 +113,12 @@ export function Triangles() {
         : t0_dest
       helper.point(t1_dest, { color: '#3ff', shape: 'x', size: .3 })
 
-      helper.polyline([walker.path[0].getPosition0(), walker.path[0].getPosition1(), t1_dest], { color: '#0ff', points: { shape: 'circle' } })
+      console.log(result.path.length)
+      helper.polyline([
+        result.path[0].getPosition0(),
+        ...result.path.map(segment => segment.getPosition1()),
+      ], { color: '#0ff', points: { shape: 'circle' } })
+      // helper.polyline([walker.path[0].getPosition0(), walker.path[0].getPosition1(), t1_dest], { color: '#0ff', points: { shape: 'circle' } })
 
       helper.setTransformMatrix({ y: -3 })
       drawTriangle2DSolver(walker, helper)

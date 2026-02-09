@@ -135,44 +135,55 @@ const circleIntersection_cache = {
   ex: new Vector2(),
   ey: new Vector2(),
   p: new Vector2(),
-  s0: new Vector2(),
-  s1: new Vector2(),
+  result: {
+    count: 0,
+    s0: new Vector2(),
+    s1: new Vector2(),
+  },
 }
 export function circleIntersection(
   A: Vector2,
   rA: number,
   B: Vector2,
   rB: number
-): Vector2[] {
-  const { AB, ex, ey, p, s0, s1 } = circleIntersection_cache
+): typeof circleIntersection_cache.result {
+  const { AB, ex, ey, p, result } = circleIntersection_cache
   AB.subVectors(B, A)
   const d = AB.length()
 
+  result.count = 0
+
   // No solution cases
-  if (d > rA + rB) return []
-  if (d < Math.abs(rA - rB)) return []
-  if (d === 0 && rA === rB) return [] // infinite solutions
+  if (d > rA + rB)
+    return result
+  if (d < Math.abs(rA - rB))
+    return result
+  if (d === 0 && rA === rB)
+    return result // infinite solutions
 
   ex.copy(AB).normalize()
 
   const x = (rA * rA - rB * rB + d * d) / (2 * d)
   const h2 = rA * rA - x * x
 
-  if (h2 < 0) return []
+  if (h2 < 0)
+    return result
 
   const h = Math.sqrt(h2)
 
   p.copy(A).addScaledVector(ex, x)
   ey.set(-ex.y, ex.x) // perpendicular vector
 
+  // tangent
   if (h === 0) {
-    return [p] // tangent
+    result.count = 1
+    return result
   }
 
-  s0.copy(p).addScaledVector(ey, h)
-  s1.copy(p).addScaledVector(ey, -h)
+  result.s0.copy(p).addScaledVector(ey, h)
+  result.s1.copy(p).addScaledVector(ey, -h)
 
-  return [s0, s1]
+  return result
 }
 
 
@@ -243,22 +254,22 @@ export function solveTriangle2D(
         case 0: {
           t1_p0.copy(t0_u)
           t1_p1.set(0, 0)
-          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
-          t1_p2.copy(s)
+          const { s0 } = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s0)
           break
         }
         case 1: {
           t1_p1.copy(t0_u)
           t1_p2.set(0, 0)
-          const [s,] = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_v_length)
-          t1_p0.copy(s)
+          const { s0 } = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_v_length)
+          t1_p0.copy(s0)
           break
         }
         case 2: {
           t1_p2.copy(t0_u)
           t1_p0.set(0, 0)
-          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
-          t1_p1.copy(s)
+          const { s0 } = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
+          t1_p1.copy(s0)
           break
         }
       }
@@ -270,22 +281,22 @@ export function solveTriangle2D(
         case 0: {
           t1_p0.copy(t0_v)
           t1_p1.copy(t0_u)
-          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
-          t1_p2.copy(s)
+          const { s0 } = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s0)
           break
         }
         case 1: {
           t1_p1.copy(t0_v)
           t1_p2.copy(t0_u)
-          const [s,] = circleIntersection(t1_p1, t1_u_length, t1_p2, t1_v_length)
-          t1_p0.copy(s)
+          const { s0 } = circleIntersection(t1_p1, t1_u_length, t1_p2, t1_v_length)
+          t1_p0.copy(s0)
           break
         }
         case 2: {
           t1_p2.copy(t0_v)
           t1_p0.copy(t0_u)
-          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
-          t1_p1.copy(s)
+          const { s0 } = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
+          t1_p1.copy(s0)
           break
         }
       }
@@ -297,22 +308,22 @@ export function solveTriangle2D(
         case 0: {
           t1_p0.set(0, 0)
           t1_p1.copy(t0_v)
-          const [s,] = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
-          t1_p2.copy(s)
+          const { s0 } = circleIntersection(t1_p0, t1_v_length, t1_p1, t1_w_length)
+          t1_p2.copy(s0)
           break
         }
         case 1: {
           t1_p1.set(0, 0)
           t1_p2.copy(t0_v)
-          const [s,] = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_u_length)
-          t1_p0.copy(s)
+          const { s0 } = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_u_length)
+          t1_p0.copy(s0)
           break
         }
         case 2: {
           t1_p2.set(0, 0)
           t1_p0.copy(t0_v)
-          const [s,] = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_v_length)
-          t1_p1.copy(s)
+          const { s0 } = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_v_length)
+          t1_p1.copy(s0)
           break
         }
       }
