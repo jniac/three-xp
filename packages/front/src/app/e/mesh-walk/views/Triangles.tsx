@@ -8,7 +8,7 @@ import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { SurfaceWalker } from '../core/walker'
+import { SurfaceWalker } from '../surface-walker'
 
 const drawTriangle2DSolver_cache = {
   p0: new Vector2(),
@@ -76,12 +76,14 @@ export function Triangles() {
     geometry.setAttribute('position', new BufferAttribute(positions, 3))
     geometry.computeVertexNormals()
     // setup(new AutoLitWireframeMesh(geometry, { wireframeColor: '#f00' }), group)
-    const helper = setup(new DebugHelper(), group)
+    const helper = setup(new DebugHelper({
+
+    }), group)
 
     const walker = new SurfaceWalker()
       .fromGeometry(geometry)
     const startUV = new Vector2(.3, .1)
-    const deltaUV = new Vector2(.5, .5)
+    const deltaUV = new Vector2(-1.8, 2)
 
     walker.rotateVertexIndex(1, 0)
     walker.rotateVertexIndex(2, 0)
@@ -113,14 +115,14 @@ export function Triangles() {
         : t0_dest
       helper.point(t1_dest, { color: '#3ff', shape: 'x', size: .3 })
 
-      console.log(result.path.length)
       helper.polyline([
         result.path[0].getPosition0(),
         ...result.path.map(segment => segment.getPosition1()),
       ], { color: '#0ff', points: { shape: 'circle' } })
       // helper.polyline([walker.path[0].getPosition0(), walker.path[0].getPosition1(), t1_dest], { color: '#0ff', points: { shape: 'circle' } })
 
-      helper.setTransformMatrix({ y: -3 })
+      helper.setTransformMatrix({ y: -4 })
+      helper.text(0, `Fig. of the last\ntriangle solver step`, { size: .5, color: '#0ff', offset: [0, -.25] })
       drawTriangle2DSolver(walker, helper)
       helper.resetTransformMatrix()
     })

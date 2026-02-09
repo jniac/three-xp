@@ -352,6 +352,10 @@ export class SurfaceWalker {
    * indices or positions).
    * 
    * Useful for testing different edge cases in the walk algorithm, by changing which edge is considered edge 0, 1, or 2.
+   * 
+   * Notes:
+   * - ⚠️ This mutates the underlying geometry data and adjacency information, 
+   *   so it should only be used for testing and debugging, not in production code.
    */
   rotateVertexIndex(triangleIndex: number, offset = 1): this {
     offset = (offset % 3 + 3) % 3
