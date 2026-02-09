@@ -1,6 +1,4 @@
-import { Vector2, Vector3 } from 'three'
-
-import { Vector2Like } from 'some-utils-ts/types'
+import { Vector2, Vector2Like, Vector3 } from 'three'
 
 const distancePointToLine_cache = {
   op: new Vector3(),

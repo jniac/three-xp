@@ -1,7 +1,6 @@
 import { BufferGeometry, Vector2, Vector3 } from 'three'
 
-import { fromVector2Declaration, Vector2Declaration, Vector3Declaration } from 'some-utils-three/declaration'
-import { fromVector3Declaration } from 'some-utils-ts/declaration'
+import { fromVector2Declaration, fromVector3Declaration, Vector2Declaration, Vector3Declaration } from 'some-utils-three/declaration'
 
 import { HashMapArray } from './hash-map'
 import { distancePointToLineSq, findFirstEdgeIntersection, Matrix2, solveTriangle2D, transposeIntersectionUV } from './math'
