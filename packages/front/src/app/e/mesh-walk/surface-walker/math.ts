@@ -190,10 +190,10 @@ export function circleIntersection(
 /**
  * ## 🧐 ALGO!
  * 
- * ### What we want?
+ * ### What do we want?
  * - To compute the positions of T1's vertices in 2D orthogonal space.
  * 
- * ### What we have?
+ * ### What do we have?
  * - T0's vertices positions in 2D orthogonal space where:
  *    - T0.p0 is at (0,0)
  *    - T0.p1 is at (some_given_length, 0)
@@ -261,7 +261,7 @@ export function solveTriangle2D(
         case 1: {
           t1_p1.copy(t0_u)
           t1_p2.set(0, 0)
-          const { s0 } = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_v_length)
+          const { s0 } = circleIntersection(t1_p1, t1_u_length, t1_p2, t1_v_length)
           t1_p0.copy(s0)
           break
         }
@@ -315,14 +315,14 @@ export function solveTriangle2D(
         case 1: {
           t1_p1.set(0, 0)
           t1_p2.copy(t0_v)
-          const { s0 } = circleIntersection(t1_p1, t1_w_length, t1_p2, t1_u_length)
+          const { s0 } = circleIntersection(t1_p1, t1_u_length, t1_p2, t1_v_length)
           t1_p0.copy(s0)
           break
         }
         case 2: {
           t1_p2.set(0, 0)
           t1_p0.copy(t0_v)
-          const { s0 } = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_v_length)
+          const { s0 } = circleIntersection(t1_p2, t1_w_length, t1_p0, t1_u_length)
           t1_p1.copy(s0)
           break
         }

@@ -269,6 +269,9 @@ export class WalkResult {
     /** The walker instance used for this walk */
     public walker: SurfaceWalker,
 
+    /** Time taken for the walk operation in milliseconds (for performance analysis) */
+    public computeTime: number,
+
     /** The final triangle reached */
     public finalTriangleIndex: number,
 
@@ -284,6 +287,14 @@ export class WalkResult {
     /** Whether the walk completed fully (true) or stopped at a boundary (false) */
     public status: WalkResultStatus,
   ) { }
+
+  get statusString(): string {
+    return WalkResultStatus[this.status]
+  }
+
+  getFinalPosition(out = new Vector3()): Vector3 {
+    return this.walker.getTriangle(this.finalTriangleIndex).getPosition(this.finalUV, out)
+  }
 }
 
 export class SurfaceWalker {
@@ -359,6 +370,24 @@ export class SurfaceWalker {
    */
   rotateVertexIndex(triangleIndex: number, offset = 1): this {
     offset = (offset % 3 + 3) % 3
+
+    // Rotate adjacency info
+    if (this.triangleAdjacency.length > 0) {
+      const adj0 = this.triangleAdjacency[triangleIndex * 3 + 0]
+      const adj1 = this.triangleAdjacency[triangleIndex * 3 + 1]
+      const adj2 = this.triangleAdjacency[triangleIndex * 3 + 2]
+      if (offset === 1) {
+        this.triangleAdjacency[triangleIndex * 3 + 0] = adj1
+        this.triangleAdjacency[triangleIndex * 3 + 1] = adj2
+        this.triangleAdjacency[triangleIndex * 3 + 2] = adj0
+      } else if (offset === 2) {
+        this.triangleAdjacency[triangleIndex * 3 + 0] = adj2
+        this.triangleAdjacency[triangleIndex * 3 + 1] = adj0
+        this.triangleAdjacency[triangleIndex * 3 + 2] = adj1
+      }
+    }
+
+    // Rotate triangle vertices in geometry buffers
     if (this.indicesBuffer) {
       const i0 = this.indicesBuffer[triangleIndex * 3 + 0]
       const i1 = this.indicesBuffer[triangleIndex * 3 + 1]
@@ -533,6 +562,9 @@ export class SurfaceWalker {
     deltaUVArg: Vector2Declaration,
     maxIterations: number = 1000,
   ): WalkResult {
+    const now = () => globalThis.performance?.now?.() ?? Date.now()
+    const tStart = now()
+
     const startUV = fromVector2Declaration(startUVArg)
     const deltaUV = fromVector2Declaration(deltaUVArg)
 
@@ -562,6 +594,7 @@ export class SurfaceWalker {
 
         return new WalkResult(
           this,
+          now() - tStart,
           currentTriangleIndex,
           finalUV,
           path,
@@ -589,6 +622,7 @@ export class SurfaceWalker {
         // Hit a boundary edge - cannot continue
         return new WalkResult(
           this,
+          now() - tStart,
           currentTriangleIndex,
           state.intersectionUV.clone(),
           path,
@@ -624,9 +658,10 @@ export class SurfaceWalker {
     }
 
     // Max iterations reached
-    console.warn(`GeometryWalker.walk: Maximum iterations (${maxIterations}) reached`)
+    // console.warn(`GeometryWalker.walk: Maximum iterations (${maxIterations}) reached`)
     return new WalkResult(
       this,
+      now() - tStart,
       currentTriangleIndex,
       state.currentUV.clone(),
       path,
