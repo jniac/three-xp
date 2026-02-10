@@ -1,12 +1,16 @@
 'use client'
-import { BufferGeometry, Mesh, MeshBasicMaterial } from 'three'
+import { BufferGeometry, ColorRepresentation, Mesh, MeshBasicMaterial } from 'three'
 
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 
 export class AutoLitWireframeMesh extends Mesh {
-  constructor(geometry: BufferGeometry, { baseColor = 'white', wireframeColor = 'black' } = {}) {
-    const autolitMaterial = new AutoLitMaterial({ color: baseColor })
+  constructor(geometry: BufferGeometry, {
+    baseColor = 'white',
+    wireframeColor = 'black',
+    shadowColor = undefined as ColorRepresentation | undefined,
+  } = {}) {
+    const autolitMaterial = new AutoLitMaterial({ color: baseColor, shadowColor })
     super(geometry, autolitMaterial)
 
     const wireframe = new Mesh(geometry, new MeshBasicMaterial({

@@ -8,6 +8,7 @@ import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { onTick } from 'some-utils-ts/ticker'
 
+import { TransformDeclaration } from 'some-utils-three/declaration'
 import { SurfaceWalker } from '../surface-walker'
 
 const drawTriangle2DSolver_cache = {
@@ -44,8 +45,8 @@ function drawTriangle2DSolver(
     .polyline([p0, p1, p2], { points: { shape: 'circle' } })
 }
 
-export function Triangles() {
-  useGroup('Triangles', function* (group, three) {
+export function Triangles(props: TransformDeclaration) {
+  useGroup('Triangles', props, function* (group, three) {
     setup(debugHelper, group)
     const geometry = new BufferGeometry()
     const A = [0, 2, 0]
@@ -147,7 +148,7 @@ export function Triangles() {
         if (dragging) {
           const { intersected, point } = three.pointer.intersectPlane('xy')
           if (intersected) {
-            const uv = walker.getTriangle(0).getUV(point)
+            const uv = walker.getTriangle(0).getUV(point.sub(group.position))
             deltaUV.subVectors(uv, startUV)
           }
         }

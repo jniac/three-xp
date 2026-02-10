@@ -1,5 +1,5 @@
 'use client'
-import { BoxGeometry, Vector2 } from 'three'
+import { BoxGeometry, BufferGeometry, Mesh, Vector2 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
@@ -7,10 +7,13 @@ import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setup } from 'some-utils-three/utils/tree'
 import { onTick } from 'some-utils-ts/ticker'
 
+import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { useEffects } from 'some-utils-react/hooks/effects'
 import { AutoLitWireframeMesh } from './AutoLitWireframeMesh'
 import { OptimizedTriangleWalker } from './deepseek'
 import { GeometryTriangleHelper } from './GeometryTriangleHelper'
 import { HalfEdgeMesh } from './half-edge-mesh'
+import { TorusKnotGroup, TorusKnotInspector } from './views/TorusKnot'
 import { Triangles } from './views/Triangles'
 
 function ThreeSettings() {
@@ -25,6 +28,61 @@ function ThreeSettings() {
   }, [])
 
   return null
+}
+
+function RaycastInfo() {
+  const three = useThreeWebGL()
+  const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    const triToDraw = [] as [geometry: BufferGeometry, triangleIndex: number][]
+
+    const helper = setup(new DebugHelper(), three.scene).onTop()
+    yield () => {
+      helper.clear()
+      helper.removeFromParent()
+    }
+    const updateHelper = () => {
+      helper.clear()
+      for (const [geometry, triangleIndex] of triToDraw) {
+        helper.debugTriangle([geometry, triangleIndex], { color: '#c03' })
+      }
+    }
+
+    yield handlePointer(three.domElement, {
+      onTap: () => {
+        const [intersection] = three.pointer.raycast(three.scene)
+        if (intersection) {
+          const currentGeometry = (intersection.object as Mesh).geometry
+          const { faceIndex: currentTriangleIndex } = intersection
+          if (currentTriangleIndex === null || currentTriangleIndex === undefined)
+            return
+          const existingIndex = triToDraw.findIndex(([geometry, triangleIndex]) => geometry === currentGeometry && triangleIndex === currentTriangleIndex)
+          if (existingIndex !== -1) {
+            triToDraw.splice(existingIndex, 1)
+          } else {
+            triToDraw.push([currentGeometry, currentTriangleIndex])
+          }
+          updateHelper()
+        }
+      },
+    })
+
+    yield onTick('three', tick => {
+      const [intersection] = three.pointer.raycast(three.scene)
+      if (intersection) {
+        div.innerText = `${intersection.object.name || intersection.object.constructor.name}`
+          + `\nUV: (${intersection.uv?.x.toFixed(2)}, ${intersection.uv?.y.toFixed(2)})`
+          + `\ntri: ${intersection.faceIndex}`
+      }
+    })
+  }, [])
+  return (
+    <div
+      ref={ref}
+      className='p-4 backdrop-blur-2xl bg-black/30 rounded border border-[#fff6]'
+    >
+      Hello
+    </div>
+  )
 }
 
 export function MyScene() {
@@ -75,7 +133,6 @@ export function MyScene() {
 
       const tri1 = new GeometryTriangleHelper(mesh.geometry, result.triangleIndex, result.uv)
       triangleHelper.point(tri1.P, { color: 'purple', size: 0.4, shape: 'ring-thin' })
-
     }
   }, [])
 
@@ -90,7 +147,12 @@ export function PageClient() {
         size: 7,
       }}>
       <ThreeSettings />
-      <Triangles />
+      <Triangles x={-5} />
+      <TorusKnotGroup />
+      <div className='thru p-8 flex flex-col gap-1 items-start'>
+        <RaycastInfo />
+        <TorusKnotInspector />
+      </div>
       {/* <MyScene /> */}
     </ThreeProvider>
   )
