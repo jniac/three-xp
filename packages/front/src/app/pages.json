@@ -160,6 +160,10 @@
     "dir": "t/easing-graph"
   },
   {
+    "page": "t/extrusion/page.tsx",
+    "dir": "t/extrusion"
+  },
+  {
     "page": "t/flexible-layout/page.tsx",
     "dir": "t/flexible-layout"
   },
