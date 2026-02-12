@@ -5,6 +5,7 @@ import { SummaryPage } from '@/components/summary'
 
 import * as css3d from './css-3d/page'
 import * as easingGraph from './easing-graph/page'
+import * as extrusion from './extrusion/page'
 import * as flexibleLayout from './flexible-layout/page'
 import * as fuzzyRange from './fuzzy-range/page'
 import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
@@ -39,6 +40,7 @@ import * as voxel from './voxel/page'
 const pages = {
   'css-3d': css3d,
   'easing-graph': easingGraph,
+  'extrusion': extrusion,
   'flexible-layout': flexibleLayout,
   'fuzzy-range': fuzzyRange,
   'gpu-compute/game-of-life': gpuComputeGameOfLife,
