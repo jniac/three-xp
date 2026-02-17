@@ -2,7 +2,7 @@ import { XpMetadata } from '@/types'
 import { Client } from './page.client'
 
 export const metadata = new XpMetadata({
-  slug: 'fun/extrusion',
+  slug: 'extrusion/fun',
 })
 
 export default function ExtrusionPage() {
