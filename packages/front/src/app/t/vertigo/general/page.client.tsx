@@ -89,7 +89,7 @@ class SceneA extends Group {
   }
 }
 
-export function Client() {
+export function PageClient() {
   const core = useMemo(() => {
     const main = new Vertigo({
       size: [4.2, 4.2],

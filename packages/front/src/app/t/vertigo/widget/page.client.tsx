@@ -2,29 +2,35 @@
 
 import { IcosahedronGeometry, Mesh } from 'three'
 
-import { EditorProvider, ThreeProvider, useThree } from 'some-three-editor/editor-provider'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 
+import { ThreeProvider, useThree } from 'some-utils-misc/three-provider'
 import { VertigoWidget } from '../general/VertigoWidget'
 
 function MyScene() {
   useThree(function* (three) {
     setup(new Mesh(new IcosahedronGeometry(1, 0), new AutoLitMaterial()), { parent: three.scene, x: -4 })
-    setup(new VertigoWidget(), { parent: three.scene })
+    const widget = setup(new VertigoWidget(), { parent: three.scene })
+    yield three.ticker.onTick(tick => {
+      widget.widgetUpdate(
+        three.pointer.screenPosition,
+        three.pointer.buttonDown(),
+        three.camera,
+        tick.deltaTime,
+      )
+    })
   }, [])
   return null
 }
 
-export function Client() {
+export function PageClient() {
   return (
     <ThreeProvider>
-      <EditorProvider>
-        <div className={`layer thru p-4`}>
-          <h1>Vertigo Widget</h1>
-        </div>
-        <MyScene />
-      </EditorProvider>
+      <div className={`layer thru p-4`}>
+        <h1>Vertigo Widget</h1>
+      </div>
+      <MyScene />
     </ThreeProvider>
   )
 }
