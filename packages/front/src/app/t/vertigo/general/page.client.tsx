@@ -186,7 +186,7 @@ export function PageClient() {
       tick.propagate(scene)
 
       scene.parts.widget.widgetUpdate(ndcPointer, pointerDown, camera)
-      if (scene.parts.widget.getHovered() !== null) {
+      if (scene.parts.widget.getHoveredPart() !== null) {
         document.body.style.cursor = 'pointer'
       } else {
         document.body.style.removeProperty('cursor')
@@ -208,7 +208,7 @@ export function PageClient() {
         pointerDown = false
       },
       onTap: () => {
-        const pressed = scene.parts.widget.getPressed()
+        const pressed = scene.parts.widget.getPressedPart()
         if (pressed !== null) {
           vertigoControls.actions.focus([0, 0, 0])
         }
@@ -245,9 +245,11 @@ export function PageClient() {
       },
     })
 
-    for (const vertigo of Object.values(core.vertigos)) {
-      setup(new VertigoHelper(vertigo), scene)
+    for (const [name, vertigo] of Object.entries(core.vertigos)) {
+      const helper = setup(new VertigoHelper(vertigo), scene)
+      helper.name = `vertigo-helper-${name}`
     }
+    console.log(new Vertigo().stateIsValid())
 
     const someScene = new SceneA()
     scene.add(someScene)
@@ -265,7 +267,9 @@ export function PageClient() {
     <div ref={ref} className={`${s.VertigoWidgetClient} layer thru`}>
       <div className='layer thru p-4 flex flex-col gap-4 items-start'>
 
-        <h1 className='text-2xl self-start'>Vertigo-widget</h1>
+        <h1 className='text-2xl self-start'>
+          Vertigo General
+        </h1>
 
         <div
           className={`${s.BgBlur} thru flex flex-col gap-1 items-start p-1 border border-white rounded`}

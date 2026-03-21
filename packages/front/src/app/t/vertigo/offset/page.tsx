@@ -1,17 +1,17 @@
 import { XpMetadata } from '@/types'
 
-import { Client } from './client'
+import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'offset',
-  title: 'Vertigo Offset Widget',
+  title: 'Vertigo Offset',
   status: 'wip',
 })
 
-export default function VertigoWidgetPage() {
+export default function Page() {
   return (
-    <div className='VertigoWidgetPage page'>
-      <Client />
+    <div className='page'>
+      <PageClient />
     </div>
   )
 }

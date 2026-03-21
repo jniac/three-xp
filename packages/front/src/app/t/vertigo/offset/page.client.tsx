@@ -248,7 +248,7 @@ function HUD() {
   )
 }
 
-export function Client() {
+export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{

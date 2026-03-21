@@ -118,7 +118,7 @@ export class VertigoWidgetPlane extends Mesh<BufferGeometry, VertigoMaterial> {
         pointer.y = -((info.localPosition.y) / rect.w * 2 - 1)
       },
       onTap: () => {
-        switch (widget.getPressed()) {
+        switch (widget.getPressedPart()) {
           case VertigoWidgetPart.BOX: {
             vertigoControls.actions.togglePerspective()
             break
@@ -164,7 +164,7 @@ export class VertigoWidgetPlane extends Mesh<BufferGeometry, VertigoMaterial> {
       widget.widgetUpdate(pointer, pointerDown, camera)
 
       if (pointer.x >= -1 && pointer.x <= 1 && pointer.y >= -1 && pointer.y <= 1) {
-        if (widget.getHovered() !== null) {
+        if (widget.getHoveredPart() !== null) {
           document.body.style.cursor = 'pointer'
         } else {
           document.body.style.removeProperty('cursor')

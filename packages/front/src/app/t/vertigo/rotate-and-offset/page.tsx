@@ -1,9 +1,11 @@
 import { XpMetadata } from '@/types'
+
 import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
-  slug: 'vertigo-widget',
-  status: 'done',
+  slug: 'rotate-and-offset',
+  title: 'Vertigo Rotate & Offset',
+  status: 'wip',
 })
 
 export default function Page() {

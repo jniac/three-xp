@@ -197,11 +197,11 @@ export class VertigoWidget extends Group {
     }
   }
 
-  getHovered() {
+  getHoveredPart() {
     return this.internal.hovered
   }
 
-  getPressed() {
+  getPressedPart() {
     return this.internal.pressed
   }
 
@@ -266,7 +266,8 @@ export class VertigoWidget extends Group {
       })
 
     // Press:
-    if (pointerDown && this.internal.pointerDown === false) {
+    const wasPressedThisFrame = pointerDown && this.internal.pointerDown === false
+    if (wasPressedThisFrame) {
       this.internal.pointerDown = true
       this.internal.pointerDownPosition.copy(ndcPointer)
       this.internal.pressed = first ?? null
@@ -281,10 +282,10 @@ export class VertigoWidget extends Group {
     }
 
     // Release:
-    if (pointerDown === false && this.internal.pointerDown) {
+    const wasReleasedThisFrame = pointerDown === false && this.internal.pointerDown === true
+    if (wasReleasedThisFrame) {
       this.internal.pointerDown = false
       this.internal.dragging = false
-      this.internal.pressed = null
     }
 
     const hoveredNew = this.internal.dragging ? null : first ?? null
