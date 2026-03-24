@@ -1,8 +1,9 @@
 'use client'
-import { Group, Mesh, TorusKnotGeometry } from 'three'
+import { Group, Mesh, TorusKnotGeometry, Vector3 } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/Addons.js'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { useEffects } from 'some-utils-react/hooks/effects'
 import { Vertigo } from 'some-utils-three/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { VertigoHelper } from 'some-utils-three/camera/vertigo/helper'
@@ -12,6 +13,9 @@ import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
+import { onTick } from 'some-utils-ts/ticker'
+
+import { VertigoWidgetPlane } from '../general/VertigoWidgetPlane'
 
 class SceneMesh extends Group {
   parts = (() => {
@@ -41,6 +45,18 @@ class SceneMesh extends Group {
       scale: 3,
       parent: this,
     })
+
+    const helper = setup(new DebugHelper({
+      texts: {
+        textDefaults: { color: 'white', size: .1, offset: [0, .075, 0] },
+      }
+    }), this)
+    const p1 = new Vector3(-2, 2, -4).add(new Vector3(-1, -1, -1).multiplyScalar(.2))
+    const p2 = new Vector3(1.3, 0.421, -8.481)
+    helper
+      .points([p1, p2], { color: 'white', shape: 'plus-thin' })
+      .text(p1, 'Hard-To-Reach\nSpot #1')
+      .text(p2, 'Hard-To-Reach\nSpot #2')
   })()
 }
 
@@ -51,7 +67,9 @@ function ThreeSettings() {
 }
 
 function MyScene() {
-  useGroup('my-scene', function* (group, three) {
+  const three = useThreeWebGL()
+
+  useGroup('my-scene', function* (group) {
     setup(new AxesHelper(), group)
 
     let testVertigoHelper = false
@@ -91,6 +109,8 @@ function MyScene() {
     controls.actions.setFocusAndScreenOffset([-1, -1, 0])
     // const vertigoHelper = setup(new VertigoHelper(controls.dampedVertigo, { color: 'magenta' }), group)
 
+    const plane = setup(new VertigoWidgetPlane(), group)
+    yield* plane.initialize(three.renderer, controls)
   }, [])
 
   return null
@@ -117,11 +137,41 @@ function MyScene2() {
   return null
 }
 
+function VertigoSlider() {
+  const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    const slider = div.querySelector('input')!
+    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    slider.addEventListener('input', () => {
+      controls.vertigo.perspective = parseFloat(slider.value)
+    })
+    yield onTick('three', tick => {
+      slider.value = controls.vertigo.perspective.toString()
+    })
+  }, [])
+  return (
+    <div ref={ref} className='pointer-events-auto'>
+      <label className='flex items-center gap-2 text-sm'>
+        <span>
+          Perspective
+        </span>
+        <input
+          type='range'
+          min={0}
+          max={2}
+          step={0.01}
+          defaultValue={1}
+        />
+      </label>
+    </div>
+  )
+}
+
 export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 10,
+        size: 14,
+        eventTarget: 'canvas',
         // rotation: `-20deg, 30deg, 0deg`,
         // zoom: 1.5,
         // screenOffset: [-2 / 3, 0, 0],
@@ -133,6 +183,12 @@ export function PageClient() {
         after: 80,
       }}
     >
+      <div className='layer pointer-events-none p-8 flex flex-col gap-2'>
+        <h1 className='text-2xl'>
+          Vertigo Camera Demo
+        </h1>
+        <VertigoSlider />
+      </div>
       <ThreeSettings />
       <MyScene />
     </ThreeProvider>

@@ -151,7 +151,7 @@ export class VertigoWidgetPlane extends Mesh<BufferGeometry, VertigoMaterial> {
       },
     })
 
-    yield onTick('three', { order: 1 }, () => {
+    yield onTick('three', { order: 1 }, tick => {
       renderer.getSize(bufferSize)
       resolution.set(bufferSize.x, bufferSize.y, renderer.getPixelRatio(), 0)
       rect.x = bufferSize.x - rect.z
@@ -161,7 +161,7 @@ export class VertigoWidgetPlane extends Mesh<BufferGeometry, VertigoMaterial> {
       vertigo.perspective = vertigoControls.vertigo.perspective
       vertigo.apply(camera, 1)
 
-      widget.widgetUpdate(pointer, pointerDown, camera)
+      widget.widgetUpdate(pointer, pointerDown, camera, tick.deltaTime)
 
       if (pointer.x >= -1 && pointer.x <= 1 && pointer.y >= -1 && pointer.y <= 1) {
         if (widget.getHoveredPart() !== null) {
