@@ -249,7 +249,6 @@ export function PageClient() {
       const helper = setup(new VertigoHelper(vertigo), scene)
       helper.name = `vertigo-helper-${name}`
     }
-    console.log(new Vertigo().stateIsValid())
 
     const someScene = new SceneA()
     scene.add(someScene)

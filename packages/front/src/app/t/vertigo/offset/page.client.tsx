@@ -66,7 +66,7 @@ function PointerHandler() {
         const [intersection] = three.pointer.raycast(three.scene)
         if (intersection) {
           vertigo
-            .ndcToScreen(three.pointer.screenPosition, screenPoint)
+            .ndcToVertigoScreen(three.pointer.screenPosition, screenPoint)
 
           pointerMesh.position.copy(intersection.point)
           controls.vertigo.focus.copy(intersection.point)
@@ -80,7 +80,7 @@ function PointerHandler() {
           (x / three.domContainer.clientWidth) * 2 - 1,
           -(y / three.domContainer.clientHeight) * 2 + 1,
         )
-        const p = vertigo.ndcToScreen(ndc, new Vector2())
+        const p = vertigo.ndcToVertigoScreen(ndc, new Vector2())
         console.log(...p)
       },
     })
