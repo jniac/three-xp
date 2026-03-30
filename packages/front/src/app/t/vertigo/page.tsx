@@ -1,7 +1,7 @@
 import { SummaryPage } from '@/components/summary'
 import { XpMetadata } from '@/types'
 
-import { voxelPages } from './pages'
+import { vertigoPages } from './pages'
 
 export const metadata = new XpMetadata({
   slug: 't/vertigo',
@@ -15,7 +15,7 @@ export default function Page() {
       className='ToolsPage'
       path='vertigo'
       metadata={metadata}
-      pages={voxelPages}
+      pages={vertigoPages}
     />
   )
 }

@@ -8,7 +8,7 @@ import { Vertigo } from 'some-utils-three/camera/vertigo'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { VertigoHelper } from 'some-utils-three/camera/vertigo/helper'
 import { AxesHelper } from 'some-utils-three/helpers/axes'
-import { DashedGrid } from 'some-utils-three/helpers/dashed-grid'
+import { DashedGridHelper } from 'some-utils-three/helpers/dashed-grid'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
@@ -121,7 +121,7 @@ function MyScene2() {
     setup(new DebugHelper(), group)
       .regularGrid()
 
-    const grid = setup(new DashedGrid({
+    const grid = setup(new DashedGridHelper({
       color: '#F0F',
       dashRatio: 2 / 3,
       dashSize: 1 / 5,
