@@ -12,6 +12,18 @@
     "dir": "e/art-2"
   },
   {
+    "page": "e/art-3/page.tsx",
+    "dir": "e/art-3"
+  },
+  {
+    "page": "e/art-3/stencil-test/direct-test/page.tsx",
+    "dir": "e/art-3/stencil-test/direct-test"
+  },
+  {
+    "page": "e/art-3/stencil-test/simple/page.tsx",
+    "dir": "e/art-3/stencil-test/simple"
+  },
+  {
     "page": "e/circle-packing/p0/page.tsx",
     "dir": "e/circle-packing/p0"
   },

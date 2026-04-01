@@ -6,6 +6,9 @@ import { SummaryPage } from '@/components/summary'
 import * as aoTransparent from './ao-transparent/page'
 import * as art1 from './art-1/page'
 import * as art2 from './art-2/page'
+import * as art3 from './art-3/page'
+import * as art3StencilTestDirectTest from './art-3/stencil-test/direct-test/page'
+import * as art3StencilTestSimple from './art-3/stencil-test/simple/page'
 import * as circlePackingP0 from './circle-packing/p0/page'
 import * as circlePackingP1 from './circle-packing/p1/page'
 import * as depthPlay from './depth-play/page'
@@ -28,6 +31,9 @@ const pages = {
   'ao-transparent': aoTransparent,
   'art-1': art1,
   'art-2': art2,
+  'art-3': art3,
+  'art-3/stencil-test/direct-test': art3StencilTestDirectTest,
+  'art-3/stencil-test/simple': art3StencilTestSimple,
   'circle-packing/p0': circlePackingP0,
   'circle-packing/p1': circlePackingP1,
   'depth-play': depthPlay,
