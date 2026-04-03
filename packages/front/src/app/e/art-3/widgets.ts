@@ -36,29 +36,78 @@ const Colors = {
 
 class CustomMaterial extends MeshBasicMaterial {
   static defaultProps = {
-    color: <ColorRepresentation>'#333',
     depthOffset: 0,
+  }
+
+  uniforms = {
+    uDepthOffset: { value: 0 },
   }
 
   constructor(userProps: Partial<MeshBasicMaterialParameters> & Partial<typeof CustomMaterial.defaultProps>) {
     const {
-      color,
       depthOffset,
       ...parameters
     } = { ...CustomMaterial.defaultProps, ...userProps }
 
-    super({
-      color,
-      ...parameters,
-    })
+    super(parameters)
 
     if (depthOffset) {
+      this.uniforms.uDepthOffset.value = depthOffset
       this.onBeforeCompile = shader => ShaderForge.with(shader)
-        .uniforms({ uDepthOffset: { value: depthOffset } })
+        .uniforms(this.uniforms)
         .vertex.mainAfterAll(/* glsl */ `
           gl_Position.z += -uDepthOffset;
         `)
     }
+  }
+}
+
+class SphereImpostorMaterial extends MeshBasicMaterial {
+  static defaultProps = {
+    depthOffset: 0,
+  }
+
+  uniforms = {
+    uDepthOffset: { value: 0 },
+  }
+
+  constructor(userProps?: Partial<MeshBasicMaterialParameters> & Partial<typeof SphereImpostorMaterial.defaultProps>) {
+    const {
+      depthOffset,
+      ...parameters
+    } = { ...SphereImpostorMaterial.defaultProps, ...userProps }
+
+    super(parameters)
+
+    this.uniforms.uDepthOffset.value = depthOffset
+
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .uniforms(this.uniforms)
+      .defines('USE_UV')
+      .vertex.mainAfterAll(/* glsl */ `
+          gl_Position.z += -uDepthOffset;
+        `)
+      .fragment.top(/* glsl */`
+        float spow(float x, float p) {
+          return sign(x) * pow(abs(x), p);
+        }
+        vec3 spow(vec3 v, float p) {
+          return sign(v) * pow(abs(v), vec3(p));
+        }
+        float computeLight(vec3 normal, vec3 lightDirection, float rampPower) {
+          float light = dot(normal, lightDirection) * 0.5 + 0.5;
+          light = pow(light, rampPower);
+          return light;
+        }
+      `)
+      .fragment.after('color_fragment', /* glsl */ `
+        vec3 n = vec3(vUv * 2.0 - 1.0, 0.0);
+        float z = sqrt(1.0 - n.x * n.x - n.y * n.y);
+        n.z = z;
+        float light = computeLight(n, normalize(vec3(0.5, 0.7, 0.3)), 1.5);
+        light = pow(light, 1.0 / 1.5);
+        diffuseColor.rgb *= light;
+      `)
   }
 }
 
@@ -367,10 +416,10 @@ class SplittedDisc extends Group {
       parent: instance,
     })
 
-    setup(new Mesh(
+    const splittedDisc = setup(new Mesh(
       SplittedDisc.shared.discGeometry,
       [
-        new CustomMaterial({
+        new SphereImpostorMaterial({
           color: instance.props.discColors[0],
           side: 2,
           stencilRef: 1,
@@ -378,7 +427,7 @@ class SplittedDisc extends Group {
           stencilWrite: true,
           stencilFunc: EqualStencilFunc,
         }),
-        new CustomMaterial({
+        new SphereImpostorMaterial({
           color: instance.props.discColors[1],
           side: 2,
           stencilRef: 1,
@@ -390,10 +439,12 @@ class SplittedDisc extends Group {
     ), {
       name: 'disc',
       parent: instance,
+      // visible: false,
     })
 
     return {
       background,
+      splittedDisc,
     }
   }
 
