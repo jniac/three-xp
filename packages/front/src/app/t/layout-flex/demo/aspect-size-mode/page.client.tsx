@@ -28,6 +28,38 @@ export function PageClient() {
       />
 
       <CanvasBlock
+        root={() => {
+          const root = new Space({
+            offset: [100, 100],
+            size: [600, 400],
+            spacing: 10,
+          })
+            .populate(4)
+          for (const column of root.children.slice(0, 3)) {
+            column.set({ spacing: 10 })
+            column.add(
+              new Space({ aspect: 1 }),
+              new Space({ aspect: 1 }),
+              new Space({ aspect: 1 }),
+              new Space({ aspect: 1 }),
+            )
+          }
+          root.children.at(3)?.set({
+            sizeY: 'fit-children',
+            spacing: 10,
+          })
+            .add(
+              new Space({ size: 40 }),
+              new Space({ size: 40 }),
+            )
+
+          return root
+        }}
+        computeLayout={r => r.computeLayout2()}
+        title={<h2><pre>childrenAspectSizeMode: undefined</pre> (default)</h2>}
+      />
+
+      <CanvasBlock
         root={
           new Space({
             offset: [100, 100],
@@ -52,6 +84,7 @@ export function PageClient() {
           })
             .populate(3, { aspect: 1 })
         }
+        computeLayout={r => r.computeLayout2()}
         title={<h2><pre>childrenAspectSizeMode: "fill-tangent-space"</pre></h2>}
       />
 

@@ -1,30 +1,42 @@
+
+
 export class HashMap<Key, Value> {
   #internal: {
-    cloneKey: (key: Key) => Key
-    hashDelegate: (key: Key) => number
-    equalsDelegate: (a: Key, b: Key) => boolean
+    clone: (key: Key) => Key
+    hash: (key: Key) => number
+    equals: (a: Key, b: Key) => boolean
     map: Map<number, Array<{ key: Key; value: Value }>>
+    size: number
   }
 
-  constructor(
-    hashDelegate: (key: Key) => number,
-    equalsDelegate: (a: Key, b: Key) => boolean,
-    cloneKey: (key: Key) => Key,
-  ) {
+  get size() {
+    return this.#internal.size
+  }
+
+  constructor(parameters: {
+    hash: (key: Key) => number,
+    equals: (a: Key, b: Key) => boolean,
+    clone: (key: Key) => Key,
+  }) {
+    const { hash, equals, clone } = parameters
+    if (!hash || !equals || !clone) {
+      throw new Error('HashMap requires hash, equals, and clone functions')
+    }
     this.#internal = {
-      hashDelegate,
-      equalsDelegate,
-      cloneKey,
+      hash,
+      equals,
+      clone,
       map: new Map(),
+      size: 0,
     }
   }
 
   hasKey(key: Key): boolean {
-    const hash = this.#internal.hashDelegate(key)
+    const hash = this.#internal.hash(key)
     const bucket = this.#internal.map.get(hash)
     if (bucket) {
       for (const entry of bucket) {
-        if (this.#internal.equalsDelegate(entry.key, key)) {
+        if (this.#internal.equals(entry.key, key)) {
           return true
         }
       }
@@ -33,11 +45,11 @@ export class HashMap<Key, Value> {
   }
 
   get(key: Key): Value | undefined {
-    const hash = this.#internal.hashDelegate(key)
+    const hash = this.#internal.hash(key)
     const bucket = this.#internal.map.get(hash)
     if (bucket) {
       for (const entry of bucket) {
-        if (this.#internal.equalsDelegate(entry.key, key)) {
+        if (this.#internal.equals(entry.key, key)) {
           return entry.value
         }
       }
@@ -46,20 +58,27 @@ export class HashMap<Key, Value> {
   }
 
   set(key: Key, value: Value): this {
-    key = this.#internal.cloneKey(key)
-    const hash = this.#internal.hashDelegate(key)
+    key = this.#internal.clone(key)
+    const hash = this.#internal.hash(key)
     let bucket = this.#internal.map.get(hash)
+
     if (!bucket) {
       bucket = []
       this.#internal.map.set(hash, bucket)
     }
+
+    // Check if the key already exists in the bucket
     for (const entry of bucket) {
-      if (this.#internal.equalsDelegate(entry.key, key)) {
+      if (this.#internal.equals(entry.key, key)) {
         entry.value = value
         return this
       }
     }
+
+    // If the key does not exist, add a new entry to the bucket
     bucket.push({ key, value })
+    this.#internal.size++
+
     return this
   }
 

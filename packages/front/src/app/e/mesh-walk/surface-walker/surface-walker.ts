@@ -454,8 +454,8 @@ export class SurfaceWalker {
   }
 
   #computeAdjacency() {
-    const vertexToTriangleMap = new HashMapArray<Vector3, { triangleIndex: number; localVertexIndex: number }>(
-      v => {
+    const vertexToTriangleMap = new HashMapArray<Vector3, { triangleIndex: number; localVertexIndex: number }>({
+      hash: v => {
         const prime = 31
         let hash = 17
         hash = hash * prime + Math.floor(v.x * 1000000)
@@ -463,9 +463,9 @@ export class SurfaceWalker {
         hash = hash * prime + Math.floor(v.z * 1000000)
         return hash
       },
-      (a, b) => a.x === b.x && a.y === b.y && a.z === b.z,
-      v => v.clone()
-    )
+      equals: (a, b) => a.x === b.x && a.y === b.y && a.z === b.z,
+      clone: v => v.clone()
+    })
 
     const triangleCount = this.triangleCount
     this.triangleAdjacency = new Uint16Array(triangleCount * 3)

@@ -160,6 +160,10 @@
     "dir": "m/debug"
   },
   {
+    "page": "m/model-preview/page.tsx",
+    "dir": "m/model-preview"
+  },
+  {
     "page": "m/page.tsx",
     "dir": "m"
   },
@@ -274,6 +278,10 @@
   {
     "page": "t/transform-with-shear/page.tsx",
     "dir": "t/transform-with-shear"
+  },
+  {
+    "page": "t/triangle-intersection/page.tsx",
+    "dir": "t/triangle-intersection"
   },
   {
     "page": "t/variable/demo/page.tsx",

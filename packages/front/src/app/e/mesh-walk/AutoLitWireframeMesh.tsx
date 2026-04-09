@@ -10,7 +10,7 @@ export class AutoLitWireframeMesh extends Mesh {
     wireframeColor = 'black',
     shadowColor = undefined as ColorRepresentation | undefined,
   } = {}) {
-    const autolitMaterial = new AutoLitMaterial({ color: baseColor, shadowColor })
+    const autolitMaterial = new AutoLitMaterial({ color: baseColor, shadowColor: shadowColor ?? wireframeColor })
     super(geometry, autolitMaterial)
 
     const wireframe = new Mesh(geometry, new MeshBasicMaterial({

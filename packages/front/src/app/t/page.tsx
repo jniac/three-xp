@@ -30,6 +30,7 @@ import * as threeProviderPointer from './three-provider/pointer/page'
 import * as tickerBasic from './ticker/basic/page'
 import * as track from './track/page'
 import * as transformWithShear from './transform-with-shear/page'
+import * as triangleIntersection from './triangle-intersection/page'
 import * as variableDemo from './variable/demo/page'
 import * as variableSample from './variable/sample/page'
 import * as vertexBendBasic from './vertex-bend/basic/page'
@@ -65,6 +66,7 @@ const pages = {
   'ticker/basic': tickerBasic,
   'track': track,
   'transform-with-shear': transformWithShear,
+  'triangle-intersection': triangleIntersection,
   'variable/demo': variableDemo,
   'variable/sample': variableSample,
   'vertex-bend/basic': vertexBendBasic,
