@@ -25,7 +25,7 @@ const Colors = {
   pink: '#E67BB6',
   green: '#56AB6D',
   vividBlue: '#1B2995',
-  greyedPurple: '#565DAB',
+  liberty: '#565DAB',
   greyedCyan: '#588988',
   lightPink: '#FFC3FF',
   coralTree: '#A36868',
@@ -65,21 +65,25 @@ class CustomMaterial extends MeshBasicMaterial {
 class SphereImpostorMaterial extends MeshBasicMaterial {
   static defaultProps = {
     depthOffset: 0,
+    roundPower: 1,
   }
 
   uniforms = {
     uDepthOffset: { value: 0 },
+    uRoundPower: { value: 1 },
   }
 
   constructor(userProps?: Partial<MeshBasicMaterialParameters> & Partial<typeof SphereImpostorMaterial.defaultProps>) {
     const {
       depthOffset,
+      roundPower,
       ...parameters
     } = { ...SphereImpostorMaterial.defaultProps, ...userProps }
 
     super(parameters)
 
     this.uniforms.uDepthOffset.value = depthOffset
+    this.uniforms.uRoundPower.value = roundPower
 
     this.onBeforeCompile = shader => ShaderForge.with(shader)
       .uniforms(this.uniforms)
@@ -102,6 +106,8 @@ class SphereImpostorMaterial extends MeshBasicMaterial {
       `)
       .fragment.after('color_fragment', /* glsl */ `
         vec3 n = vec3(vUv * 2.0 - 1.0, 0.0);
+        float len = length(n);
+        n.xy *= pow(len, uRoundPower);
         float z = sqrt(1.0 - n.x * n.x - n.y * n.y);
         n.z = z;
         float light = computeLight(n, normalize(vec3(0.5, 0.7, 0.3)), 1.5);
@@ -277,7 +283,7 @@ class OpenRoundedRingMaterial extends MeshBasicMaterial {
 class Knob extends Group {
   static defaultProps = {
     backgroundColor: <ColorRepresentation>'#56AB6D',
-    discColor: <ColorRepresentation>'#D9D9D9',
+    discColor: <ColorRepresentation>Colors.white,
     handleColor: <ColorRepresentation>'#333',
     handleTurnOffset: 0,
     handleAperture: 0.25,
@@ -296,18 +302,20 @@ class Knob extends Group {
 
     const disc = setup(new Mesh(
       new CircleGeometry(.4, 96),
-      new MeshBasicMaterial({
+      new SphereImpostorMaterial({
+        depthOffset: .001,
         color: instance.props.discColor,
+        roundPower: 10,
       })
     ), {
       name: 'disc',
-      z: .001,
       parent: instance,
     })
 
     const handle = setup(new Mesh(
       new RingGeometry(.3, .35, 96),
       new OpenRoundedRingMaterial({
+        depthOffset: .002,
         color: instance.props.handleColor,
         aperture: instance.props.handleAperture,
       })
@@ -348,7 +356,7 @@ class SplittedDisc extends Group {
       Colors.pink,
     ],
     discColors: <[ColorRepresentation, ColorRepresentation]>[
-      Colors.pink,
+      Colors.lightPink,
       Colors.white,
     ],
   }
@@ -422,6 +430,7 @@ class SplittedDisc extends Group {
         new SphereImpostorMaterial({
           color: instance.props.discColors[0],
           side: 2,
+          roundPower: 10,
           stencilRef: 1,
           depthOffset: .001,
           stencilWrite: true,
@@ -430,6 +439,7 @@ class SplittedDisc extends Group {
         new SphereImpostorMaterial({
           color: instance.props.discColors[1],
           side: 2,
+          roundPower: 10,
           stencilRef: 1,
           depthOffset: .001,
           stencilWrite: true,
@@ -440,6 +450,15 @@ class SplittedDisc extends Group {
       name: 'disc',
       parent: instance,
       // visible: false,
+    })
+
+    setup(new Mesh(
+      Common.circleGeometry,
+      new SphereImpostorMaterial({})
+    ), {
+      parent: instance,
+      position: [0, 0, 1],
+      visible: false,
     })
 
     return {
@@ -683,9 +702,9 @@ class Dashy extends Group {
     const dashGeometry = new PlaneGeometry()
 
     {
-      const w2 = .15
-      const h2 = .4
-      const off = .15
+      const w2 = .2
+      const h2 = .45
+      const off = -.25
       const v = new Vector3()
 
       const positions = dashGeometry.attributes.position.array as Float32Array
@@ -772,10 +791,22 @@ class Torus extends Group {
       parent: instance,
     })
 
+    const sphere = setup(new Mesh(
+      Common.sphereGeometry,
+      new AutoLitMaterial({
+        color: instance.props.torusColor,
+      }),
+    ), {
+      name: 'sphere',
+      parent: instance,
+      scale: .2,
+    })
+
     return {
       background,
       torus,
       openRing,
+      sphere,
     }
   }
 
@@ -802,7 +833,7 @@ class RoundedBox extends Group {
   }
 
   static shared = {
-    boxGeometry: new SmoothBoxGeometry(.8, .8, .4, 12, .2, 1.5),
+    boxGeometry: new SmoothBoxGeometry(.8, .8, .4, 8, .2, 3.5),
   }
 
   static createParts = (instance: RoundedBox) => {

@@ -9,7 +9,7 @@ import { glob } from 'glob'
 import path from 'path'
 import { generatePagesSummary } from './pages-summary'
 
-const pageDir = path.join(import.meta.dirname, '../packages/front/src/app')
+const pageDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../packages/front/src/app')
 
 let dirty = true
 

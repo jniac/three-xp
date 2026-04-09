@@ -89,12 +89,24 @@ function Art() {
     setup(new widgets.CrossyDiamond({
       crossColor: widgets.Colors.lightGrey,
       backgroundColors: [
-        widgets.Colors.greyedPurple,
+        widgets.Colors.liberty,
         widgets.Colors.vividBlue,
       ]
     }), {
       parent: group,
       position: [-.25, -1.75, 0],
+      scale: 1 / 2,
+    })
+
+    setup(new widgets.CrossyDiamond({
+      crossColor: widgets.Colors.lightGrey,
+      backgroundColors: [
+        widgets.Colors.liberty,
+        widgets.Colors.vividBlue,
+      ]
+    }), {
+      parent: group,
+      position: [2.25, .75, 0],
       scale: 1 / 2,
     })
 
@@ -160,6 +172,16 @@ function Art() {
     }), {
       parent: group,
       position: [1, 0, 0],
+    })
+
+    setup(new widgets.RoundedBox({
+      backgroundColor: widgets.Colors.vividBlue,
+      boxColor: widgets.Colors.lightPink,
+      buttonColor: widgets.Colors.vividBlue,
+    }), {
+      parent: group,
+      position: [1.75, .75, 0],
+      scale: 1 / 2,
     })
 
   }, [])
