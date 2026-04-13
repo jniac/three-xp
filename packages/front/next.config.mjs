@@ -21,13 +21,27 @@ const nextConfig = {
 
   webpack(config) {
     config.module.rules.push({
+      resourceQuery: /raw/, // support ?raw
+      type: 'asset/source',
+    })
+
+    config.module.rules.push({
       test: /\.md$/,
       use: 'raw-loader',
     })
 
     config.module.rules.push({
       test: /\.svg$/,
-      use: ['@svgr/webpack'],
+      oneOf: [
+        {
+          resourceQuery: /raw/, // support ?raw (e.g. import icon from './icon.svg?raw')
+          type: 'asset/source',
+        },
+        {
+          issuer: /\.[jt]sx?$/,
+          use: ['@svgr/webpack'],
+        }
+      ],
     })
 
     // Deliver svg from public assets folder (double usage of svg, as source file (component) or as asset).

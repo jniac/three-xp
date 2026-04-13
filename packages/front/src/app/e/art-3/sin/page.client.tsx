@@ -12,7 +12,7 @@ import { lerp } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { computeExponentialLerpFactor } from 'some-utils-ts/math/misc/exponential-lerp'
 import { Message } from 'some-utils-ts/message'
-import { Spawner } from '../spawn/spawn'
+import { Spawner, SpawnerArtyMaterial } from '../spawn/spawn'
 
 function sinCurve(t: number, out = new Vector3()) {
   const x = lerp(-50, 50, t)
@@ -42,8 +42,9 @@ function Art() {
     })
 
     const spawner = setup(new Spawner(), group)
+    spawner.state.instances.material = new SpawnerArtyMaterial()
 
-    const viewRect = Rectangle.from({ size: 5 })
+    const viewRect = Rectangle.from({ size: 8 })
 
     const controls = Message.requireInstanceOrThrow(VertigoControls)
 

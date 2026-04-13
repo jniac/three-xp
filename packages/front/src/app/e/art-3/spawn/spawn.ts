@@ -1,16 +1,31 @@
 'use client'
 import RBush from 'rbush'
 
-import { Box3, Color, ColorRepresentation, Group, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, MeshBasicMaterialParameters, PlaneGeometry, Sphere, Vector3 } from 'three'
+import { Box3, Color, ColorRepresentation, Group, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial, MeshBasicMaterialParameters, PlaneGeometry, Sphere, Texture, Vector3, Vector4 } from 'three'
 
-import { Vector3Declaration, fromVector3Declaration } from 'some-utils-three/declaration'
+import { fromVector3Declaration, Vector3Declaration } from 'some-utils-three/declaration'
 import { ShaderForge } from 'some-utils-three/shader-forge'
+import { WhiteTexture } from 'some-utils-three/textures/white'
 import { makeColor, makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
+import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
 import { computeExponentialLerpFactor } from 'some-utils-ts/math/misc/exponential-lerp'
 import { getRandom } from 'some-utils-ts/random/algorithm/parkmiller-c-iso'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
+
+import svgString from './mix-match-pattern.svg?raw'
+import { createTextureAtlasFromGrid, TextureAtlasResult } from './texture-atlas'
+
+function getMixMatchPatternAtlas() {
+  const source = new Image()
+  source.src = 'data:image/svg+xml;base64,' + btoa(svgString)
+  return new Promise<TextureAtlasResult>(resolve => {
+    source.onload = () => {
+      resolve(createTextureAtlasFromGrid(source, 4))
+    }
+  })
+}
 
 const _v1 = new Vector3()
 const _v2 = new Vector3()
@@ -68,13 +83,88 @@ class SpawnerMaterial extends MeshBasicMaterial {
     super({ side: 2, ...parameters })
     this.onBeforeCompile = shader => ShaderForge.with(shader)
       .vertex.top(/* glsl */`
-        attribute vec4 aInfo;
+        attribute vec4 aSpawnInfo;
       `)
       .vertex.mainAfterAll(/* glsl */`
-        gl_Position.z += 0.01 * aInfo.x; // apply z-offset for sorting
+        gl_Position.z += 0.01 * aSpawnInfo.x; // apply z-offset for sorting
       `)
   }
 }
+
+class SpawnerArtyMaterial extends MeshBasicMaterial {
+  constructor(parameters: MeshBasicMaterialParameters = {}) {
+    super({ side: 2, ...parameters })
+    const uniforms = {
+      uAtlasMap: { value: new WhiteTexture() as Texture },
+      uAtlasInfo: { value: new Vector4() },
+    }
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .defines('USE_UV')
+      .uniforms(uniforms)
+      .varying({
+        vSpawnInfo: 'vec4',
+      })
+      .vertex.top(/* glsl */ `
+        attribute vec4 aSpawnInfo;
+      `)
+      .vertex.mainAfterAll(/* glsl */ `
+        vSpawnInfo = aSpawnInfo;
+
+        gl_Position.z += 0.01 * aSpawnInfo.x; // apply z-offset for sorting
+      `)
+      .fragment.top(glsl_utils)
+      .fragment.top(/* glsl */ `
+        vec2 computeTileUv(vec4 atlasInfo, int index, vec2 uv) {
+          float gridSize = atlasInfo.x;
+          float atlasSize = atlasInfo.y;
+          float paddingSize = atlasInfo.z;
+          float tileSize = atlasInfo.w;
+
+          float gx = float(index % int(gridSize));
+          float gy = float(index / int(gridSize));
+
+          float x0 = paddingSize + gx * (tileSize + paddingSize);
+          float y0 = paddingSize + gy * (tileSize + paddingSize);
+          float x1 = x0 + tileSize;
+          float y1 = y0 + tileSize;
+
+          return mix(vec2(x0, y0), vec2(x1, y1), uv) / atlasSize;
+          // return mix(vec2(256.0, 256.0), vec2(256.0 + 256.0, 256.0 + 256.0), uv) / 2304.0;
+        }
+        vec2 tile(float r) {
+          int index = int(r * 16.0);
+          return computeTileUv(uAtlasInfo, index, vUv);
+        }
+      `)
+      .fragment.after('color_fragment', /* glsl */ `
+        if (vSpawnInfo.y < 1.5) {
+          float r0 = vSpawnInfo.x;
+          float r1 = hash(r0);
+          float r2 = hash(r1);
+          float r3 = hash(r2);
+          vec4 color0 = texture2D(uAtlasMap, tile(r0));
+          vec4 color1 = texture2D(uAtlasMap, tile(r1));
+          vec4 color2 = texture2D(uAtlasMap, tile(r2));
+          vec4 color3 = texture2D(uAtlasMap, tile(r3));
+          vec4 color = max4(color0, color1, color2, color3);
+          // diffuseColor.rgb = max(diffuseColor.rgb, color.rgb);
+          if (color.r > 0.5) discard; // apply alpha test
+          diffuseColor.rgb = 1.0 - (1.0 - diffuseColor.rgb) * (1.0 - color.rgb); // apply "screen" blend mode
+          // diffuseColor.rgb *= 1.0 - color.rgb;
+        }
+      `)
+    getMixMatchPatternAtlas().then(atlas => {
+      uniforms.uAtlasMap.value = atlas.texture
+      uniforms.uAtlasInfo.value.set(atlas.gridSize, atlas.atlasSize, atlas.paddingSize, atlas.tileSize)
+      console.log(atlas)
+      this.needsUpdate = true
+    })
+  }
+  customProgramCacheKey(): string {
+    return `instance-material-${Date.now()}`
+  }
+}
+
 
 class SpawnerInstanceMesh extends InstancedMesh {
   readonly props: Readonly<{ size: number }>
@@ -105,7 +195,7 @@ class SpawnerInstanceMesh extends InstancedMesh {
     this.pivotBuffer = new Float32Array(size * 3)
     this.infoBuffer = new Float32Array(size * 4)
     this.infoAttribute = new InstancedBufferAttribute(this.infoBuffer, 4)
-    this.geometry.setAttribute('aInfo', this.infoAttribute)
+    this.geometry.setAttribute('aSpawnInfo', this.infoAttribute)
 
     // Initialize the color attribute:
     this.setColorAt(0, makeColor('#ffffff'))
@@ -138,6 +228,7 @@ class SpawnerInstanceMesh extends InstancedMesh {
     pivotY: number,
     color: ColorRepresentation,
     randomId: number,
+    type: number,
   ): { index: number } {
     const index = this.state.nextIndex < this.props.size ? this.state.nextIndex : 0
     this.state.nextIndex = index + 1
@@ -156,7 +247,7 @@ class SpawnerInstanceMesh extends InstancedMesh {
     this.pivotBuffer[index * 3 + 2] = 0
     this.scaleBuffer[index] = 0
     this.infoBuffer[index * 4 + 0] = randomId
-    this.infoBuffer[index * 4 + 1] = 0 // can be used for anything, currently unused
+    this.infoBuffer[index * 4 + 1] = type
     this.infoBuffer[index * 4 + 2] = 0 // can be used for anything, currently unused
     this.infoBuffer[index * 4 + 3] = 0 // can be used for anything, currently unused
     this.setColorAt(index, makeColor(color))
@@ -252,7 +343,7 @@ class RectangleWithId {
   ) { }
 }
 
-export class Spawner extends Group {
+class Spawner extends Group {
   static sizes = [1, .5, .25]
   static sizeWeights = [1, 2, 4]
 
@@ -283,10 +374,19 @@ export class Spawner extends Group {
 
     const position = fromVector3Declaration(opt.position, _v1)
     const pivotSourcePosition = opt.pivotSourcePosition ? fromVector3Declaration(opt.pivotSourcePosition, _v2) : position
-    const pivot = _v3.copy(position).sub(pivotSourcePosition).multiplyScalar(size * .5)
+    const pivot = _v3.copy(position).sub(pivotSourcePosition).multiplyScalar(size * .75)
 
     const { tree, instances, rectanglesById } = this.state
-    const { index } = instances.setNextInstance(position.x, position.y, size, pivot.x, pivot.y, color, this.state.random())
+    const { index } = instances.setNextInstance(
+      position.x,
+      position.y,
+      size,
+      pivot.x,
+      pivot.y,
+      color,
+      this.state.random(),
+      Spawner.sizes.indexOf(size),
+    )
     const existingRect = rectanglesById.get(index)
     if (existingRect)
       tree.remove(existingRect) // remove previous rect with the same id, if exists
@@ -396,3 +496,12 @@ export class Spawner extends Group {
     return done(null)
   }
 }
+
+export {
+  Spawner,
+  SpawnerArtyMaterial,
+  SpawnerMaterial,
+  type Margin,
+  type RectangleWithId
+}
+

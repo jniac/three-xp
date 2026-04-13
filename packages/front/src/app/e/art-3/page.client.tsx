@@ -192,6 +192,7 @@ export function PageClient() {
   return (
     <div className='absolute-through'>
       <ThreeProvider
+        fxaa
         stencil
         vertigoControls={{
           size: 4.5,

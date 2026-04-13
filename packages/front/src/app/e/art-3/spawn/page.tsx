@@ -4,6 +4,7 @@ import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'art-3/spawn',
+  status: 'done',
 })
 
 export default function Exp1() {

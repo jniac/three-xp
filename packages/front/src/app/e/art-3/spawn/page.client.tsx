@@ -12,7 +12,8 @@ import { Message } from 'some-utils-ts/message'
 import { superEnum } from 'some-utils-ts/misc/super-enum'
 import { Observable } from 'some-utils-ts/observables'
 import { onTick } from 'some-utils-ts/ticker'
-import { Colors, Spawner } from './spawn'
+
+import { Colors, Spawner, SpawnerArtyMaterial } from './spawn'
 
 const ArtMode = superEnum({
   Normal: 0,
@@ -24,13 +25,14 @@ function Art() {
   three.scene.background = new Color('#ccc')
   three.renderer.localClippingEnabled = true
 
-  useGroup('art', function* (group) {
+  useGroup('art', async function* (group) {
     setup(new DebugHelper(), group)
       .regularGrid({ color: '#333', opacity: [1, .25] })
 
     const helper = setup(new DebugHelper().onTop(), group)
 
     const spawner = setup(new Spawner(), group)
+    spawner.state.instances.material = new SpawnerArtyMaterial()
     yield Message.dispatchInstance(Spawner, spawner)
 
     const modeObs = new Observable(ArtMode.Normal)
