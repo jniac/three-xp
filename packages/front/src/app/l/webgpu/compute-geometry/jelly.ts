@@ -1,3 +1,5 @@
+// @ts-nocheck (webgpu is not stable yet)
+
 import { attribute, Fn, If, instanceIndex, objectWorldMatrix, storage, uniform, vec4 } from 'three/tsl'
 import { MeshNormalNodeMaterial, StorageBufferAttribute } from 'three/webgpu'
 

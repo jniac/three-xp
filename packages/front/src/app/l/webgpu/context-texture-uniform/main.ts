@@ -1,3 +1,5 @@
+// @ts-nocheck (webgpu is not stable yet)
+
 'use client'
 
 import { color, float, Fn, If, instanceIndex, mix, mx_noise_float, mx_worley_noise_float, saturation, texture, textureStore, uniform, uvec2, vec3, vec4 } from 'three/tsl'

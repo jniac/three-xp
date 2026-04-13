@@ -40,7 +40,7 @@ function ScatteredDemo() {
     texture.colorSpace = SRGBColorSpace
     const scattered = addTo(new ScatteredPlane(), group)
     scattered.internal.plane.material.map = texture
-    scattered.internal.plane.material.mapAspect = texture.image.width / texture.image.height
+    scattered.internal.plane.material.mapAspect = (texture.image as any).width / (texture.image as any).height
 
     const d0 = scattered.getDistribution({ seed: 4789, position: [-2, 0], size: [2, 3] })
     const d1 = scattered.getDistribution({ seed: 3249, position: [2, 0], size: [2, 4] })

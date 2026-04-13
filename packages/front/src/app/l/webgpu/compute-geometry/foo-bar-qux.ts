@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BufferGeometry, RepeatWrapping, TextureLoader } from 'three'
 import { Fn, attribute, float, instanceIndex, mx_noise_vec3, storage, texture, transformNormalToView, uniform, uv, vec3, vec4 } from 'three/tsl'
 import { MeshPhysicalNodeMaterial } from 'three/webgpu'

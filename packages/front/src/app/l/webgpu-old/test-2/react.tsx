@@ -33,6 +33,7 @@ function* create(three: Three) {
 
   // @ts-ignore
   const computeTexture = Fn(({ storageTexture }) => {
+    // @ts-ignore
     const posX = instanceIndex.modInt(width)
     const posY = instanceIndex.div(width)
     const indexUV = uvec2(posX, posY)

@@ -54,7 +54,7 @@ export function createSky(envMap1: Texture, envMap2: Texture) {
     texelWidth,
     texelHeight,
     maxMip,
-  } = _generateCubeUVSize(envMap1.image.height)
+  } = _generateCubeUVSize((envMap1.image as any).height)
 
   const sky = new Mesh(
     new IcosahedronGeometry(10, 8),
