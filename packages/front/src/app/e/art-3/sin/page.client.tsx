@@ -2,9 +2,10 @@
 
 import { Color, Vector3 } from 'three'
 
-import { leak } from '@/utils/leak'
+import { handleElementEvent } from 'some-utils-dom/handle/element-event'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { useEffects } from 'some-utils-react/hooks/effects'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
@@ -12,6 +13,9 @@ import { lerp } from 'some-utils-ts/math/basic'
 import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { computeExponentialLerpFactor } from 'some-utils-ts/math/misc/exponential-lerp'
 import { Message } from 'some-utils-ts/message'
+
+import { leak } from '@/utils/leak'
+
 import { Spawner, SpawnerArtyMaterial } from '../spawn/spawn'
 
 function sinCurve(t: number, out = new Vector3()) {
@@ -93,6 +97,30 @@ function Art() {
   return null
 }
 
+function UI() {
+  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    yield handleElementEvent(document.documentElement, {
+      fullscreenchange: () => {
+        if (document.fullscreenElement) {
+          div.style.setProperty('display', 'none')
+        } else {
+          div.style.removeProperty('display')
+        }
+      }
+    })
+  }, [])
+
+  return (
+    <div ref={ref} className='text-[#333] p-4 flex flex-col items-start gap-4'>
+      <div className='p-2 flex flex-col gap-2 rounded bg-[#fffe]'>
+        <h1 className='text-xl'>
+          Sinusoidal
+        </h1>
+      </div>
+    </div>
+  )
+}
+
 export function PageClient() {
   return (
     <div className='absolute-through'>
@@ -106,11 +134,7 @@ export function PageClient() {
           perspective: .5,
         }}
       >
-        <div className='text-[#333] p-4'>
-          <h1>
-            Sin
-          </h1>
-        </div>
+        <UI />
         <Art />
       </ThreeProvider>
     </div>
