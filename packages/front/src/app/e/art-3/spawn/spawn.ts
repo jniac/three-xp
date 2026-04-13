@@ -19,7 +19,13 @@ import { createTextureAtlasFromGrid, TextureAtlasResult } from './texture-atlas'
 
 function getMixMatchPatternAtlas() {
   const source = new Image()
-  source.src = 'data:image/svg+xml;base64,' + btoa(svgString)
+
+  const scaleFactor = 3
+  const resizedSvgString = svgString
+    .replace(/width="(\d+)"/, (match, p1) => `width="${p1 * scaleFactor}"`)
+    .replace(/height="(\d+)"/, (match, p1) => `height="${p1 * scaleFactor}"`)
+
+  source.src = 'data:image/svg+xml;base64,' + btoa(resizedSvgString)
   return new Promise<TextureAtlasResult>(resolve => {
     source.onload = () => {
       resolve(createTextureAtlasFromGrid(source, 4))
@@ -137,7 +143,7 @@ class SpawnerArtyMaterial extends MeshBasicMaterial {
         }
       `)
       .fragment.after('color_fragment', /* glsl */ `
-        if (vSpawnInfo.y < 1.5) {
+        if (vSpawnInfo.y < 0.5) {
           float r0 = vSpawnInfo.x;
           float r1 = hash(r0);
           float r2 = hash(r1);
@@ -148,9 +154,35 @@ class SpawnerArtyMaterial extends MeshBasicMaterial {
           vec4 color3 = texture2D(uAtlasMap, tile(r3));
           vec4 color = max4(color0, color1, color2, color3);
           // diffuseColor.rgb = max(diffuseColor.rgb, color.rgb);
-          if (color.r > 0.5) discard; // apply alpha test
-          diffuseColor.rgb = 1.0 - (1.0 - diffuseColor.rgb) * (1.0 - color.rgb); // apply "screen" blend mode
+          if (color.r > 0.5) 
+            discard;
+          // diffuseColor.rgb = 1.0 - (1.0 - diffuseColor.rgb) * (1.0 - color.rgb); // apply "screen" blend mode
           // diffuseColor.rgb *= 1.0 - color.rgb;
+        }
+
+        else if (vSpawnInfo.y < 1.5) {
+          float r = vSpawnInfo.x;
+          vec4 color = texture2D(uAtlasMap, tile(r));
+          if (color.r > 0.5)
+            discard;
+        }
+
+        // "small" type
+        else {
+          float r = vSpawnInfo.x;
+          
+          if (r < 0.25) {
+            r = hash(r);
+            float d = 0.0;
+            switch (int(floor(r * 4.0))) {
+              case 0: d = vUv.x + vUv.y; break;
+              case 1: d = vUv.x + 1.0 - vUv.y; break;
+              case 2: d = 1.0 - vUv.x + vUv.y; break;
+              case 3: d = 1.0 - vUv.x + 1.0 - vUv.y; break;
+            }
+            if (d > 1.0)
+              discard;
+          }
         }
       `)
     getMixMatchPatternAtlas().then(atlas => {

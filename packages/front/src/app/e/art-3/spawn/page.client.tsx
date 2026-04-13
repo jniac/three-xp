@@ -3,6 +3,7 @@
 import { Color } from 'three'
 
 import { Leak } from '@/utils/leak'
+import { handleElementEvent } from 'some-utils-dom/handle/element-event'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
@@ -26,7 +27,10 @@ function Art() {
   three.renderer.localClippingEnabled = true
 
   useGroup('art', async function* (group) {
-    setup(new DebugHelper(), group)
+    setup(new DebugHelper(), {
+      parent: group,
+      visible: false,
+    })
       .regularGrid({ color: '#333', opacity: [1, .25] })
 
     const helper = setup(new DebugHelper().onTop(), group)
@@ -91,7 +95,7 @@ function Art() {
 }
 
 function SpawnerInfo() {
-  const { ref } = useEffects<HTMLDivElement>(async function* () {
+  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
     const spawner = await Message.waitForInstance(Spawner)
     yield onTick('three', { timeInterval: .5 }, tick => {
       ref.current!.textContent = `count: ${spawner.state.instances.count}`
@@ -106,8 +110,21 @@ function SpawnerInfo() {
 }
 
 export function PageClient() {
+  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    const ui = div.querySelector<HTMLElement>('.ui')!
+    yield handleElementEvent(document.documentElement, {
+      fullscreenchange: () => {
+        if (document.fullscreenElement) {
+          ui.style.setProperty('display', 'none')
+        } else {
+          ui.style.removeProperty('display')
+        }
+      }
+    })
+  }, [])
+
   return (
-    <div className='absolute-through'>
+    <div ref={ref} className='absolute-through'>
       <ThreeProvider
         stencil
         vertigoControls={{
@@ -117,7 +134,7 @@ export function PageClient() {
           perspective: .5,
         }}
       >
-        <div className='text-[#333] p-4 flex flex-col items-start gap-4'>
+        <div className='ui text-[#333] p-4 flex flex-col items-start gap-4'>
           <div className='p-2 flex flex-col gap-2 rounded bg-[#fffe]'>
             <h1 className='text-xl'>
               Spawn
