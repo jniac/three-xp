@@ -149,7 +149,10 @@ class FourBlades extends Group {
       renderer.clearStencil()
     }
 
-    const bladeWrapper = setup(new Group(), this)
+    const bladeWrapper = setup(new Group(), {
+      parent: this,
+      rotationZ: '30deg',
+    })
     const blades = [
       {
         color: '#E67BB6'
@@ -192,7 +195,7 @@ class FourBlades extends Group {
   })();
 
   onTick(tick: Tick) {
-    this.parts.bladeWrapper.rotation.z += tick.deltaTime * .1
+    // this.parts.bladeWrapper.rotation.z += tick.deltaTime * .1
     for (const [index, { blade }] of this.parts.blades.entries()) {
       const u = new Vector3(1, 0, 0).applyMatrix4(blade.matrix)
       const v = new Vector3(0, -1, 0).applyMatrix4(blade.matrix)

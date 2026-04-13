@@ -4,6 +4,7 @@ import * as THREE from 'three'
 
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import * as highOrder from 'some-utils-ts/iteration/high-order'
+import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { waveform } from 'some-utils-ts/math/waveform'
 import { Message } from 'some-utils-ts/message'
 import * as observables from 'some-utils-ts/observables'
@@ -24,6 +25,7 @@ export function leak(leakedProps?: Record<string, any>) {
       dedent,
       Ticker,
       controls,
+      Rectangle,
     })
   }
 }
