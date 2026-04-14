@@ -3,34 +3,24 @@ import Markdown from 'react-markdown'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
-import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
+import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { PassType } from 'some-utils-three/contexts/webgl'
 import { setup } from 'some-utils-three/utils/tree'
-import { onTick, Ticker } from 'some-utils-ts/ticker'
+import { Ticker } from 'some-utils-ts/ticker'
 
-import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 import { leak } from '@/utils/leak'
 
 import { Main } from './main'
 
 import s from '../md.module.css'
+
 import Readme from './README.md'
 
-function Controller() {
-  useThree(function* (three) {
+function ThreeSettings() {
+  useThreeWebGL(function* (three) {
     leak({ three })
-    const controls = new VertigoControls({
-      size: 50,
-      perspective: 1,
-      rotation: ['-20deg', '-45deg', 0],
-    })
-    yield controls.start(three.renderer.domElement)
     const ticker = Ticker.get('three')
     ticker.set({ minActiveDuration: 60 })
-    yield onTick('three', tick => {
-      const { aspect, camera } = three
-      controls.update(camera, aspect, tick.deltaTime)
-    })
     yield handleKeyboard([
       [{ code: 'Space', modifiers: 'shift' }, () => {
         document.body.requestFullscreen()
@@ -62,8 +52,13 @@ function MainComponent() {
 export function Client() {
   return (
     <div>
-      <ThreeProvider>
-        <Controller />
+      <ThreeProvider
+        vertigoControls={{
+          size: 50,
+          rotation: '-20deg, -45deg, 0'
+        }}
+      >
+        <ThreeSettings />
         <MainComponent />
         <div className='layer thru flex flex-col p-4 gap-2'>
           <Markdown className={s.Markdown}>{Readme}</Markdown>
