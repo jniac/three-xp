@@ -33,18 +33,23 @@
     <path d="M796.5 464.5C796.5 474.993 805.007 483.5 815.5 483.5C825.993 483.5 834.5 474.993 834.5 464.5C834.5 454.007 825.993 445.5 815.5 445.5C805.007 445.5 796.5 454.007 796.5 464.5Z" fill="white"/>
   </g>
   <g clip-path="url(#clip7_1122_306)">
+    <rect x="768" y="512" width="256" height="256" fill="black"/>
+    <circle cx="815" cy="721" r="26.5" stroke="white" stroke-width="4"/>
+    <circle cx="976.5" cy="559.5" r="26.5" stroke="white" stroke-width="4"/>
+  </g>
+  <g clip-path="url(#clip8_1122_306)">
     <rect x="256" width="256" height="256" fill="black"/>
     <circle cx="384" cy="128" r="54" stroke="white" stroke-width="48"/>
   </g>
-  <g clip-path="url(#clip8_1122_306)">
+  <g clip-path="url(#clip9_1122_306)">
     <rect x="256" y="512" width="256" height="256" fill="black"/>
     <circle cx="384" cy="640" r="26" fill="white"/>
   </g>
-  <g clip-path="url(#clip9_1122_306)">
+  <g clip-path="url(#clip10_1122_306)">
     <rect x="512" width="256" height="256" fill="black"/>
     <path d="M768 78C724.922 78 690 43.0782 690 0M512 178C555.078 178 590 212.922 590 256" stroke="white" stroke-width="4"/>
   </g>
-  <g clip-path="url(#clip10_1122_306)">
+  <g clip-path="url(#clip11_1122_306)">
     <rect x="768" width="256" height="256" fill="black"/>
     <path d="M874.787 128L896 106.787L917.214 128L896 149.213L874.787 128Z" fill="white"/>
     <path d="M819.633 72.8457L840.846 51.6325L862.059 72.8457L840.846 94.0589L819.633 72.8457Z" fill="white"/>
@@ -73,15 +78,18 @@
       <rect width="256" height="256" fill="white" transform="translate(768 256)"/>
     </clipPath>
     <clipPath id="clip7_1122_306">
-      <rect width="256" height="256" fill="white" transform="translate(256)"/>
+      <rect width="256" height="256" fill="white" transform="translate(768 512)"/>
     </clipPath>
     <clipPath id="clip8_1122_306">
-      <rect width="256" height="256" fill="white" transform="translate(256 512)"/>
+      <rect width="256" height="256" fill="white" transform="translate(256)"/>
     </clipPath>
     <clipPath id="clip9_1122_306">
-      <rect width="256" height="256" fill="white" transform="translate(512)"/>
+      <rect width="256" height="256" fill="white" transform="translate(256 512)"/>
     </clipPath>
     <clipPath id="clip10_1122_306">
+      <rect width="256" height="256" fill="white" transform="translate(512)"/>
+    </clipPath>
+    <clipPath id="clip11_1122_306">
       <rect width="256" height="256" fill="white" transform="translate(768)"/>
     </clipPath>
   </defs>

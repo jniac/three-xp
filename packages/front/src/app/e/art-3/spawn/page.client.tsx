@@ -14,6 +14,7 @@ import { superEnum } from 'some-utils-ts/misc/super-enum'
 import { Observable } from 'some-utils-ts/observables'
 import { onTick } from 'some-utils-ts/ticker'
 
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { Colors, Spawner, SpawnerArtyMaterial } from './spawn'
 
 const ArtMode = superEnum({
@@ -111,6 +112,12 @@ function SpawnerInfo() {
 
 function UI() {
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    yield handleKeyboard([
+      [{ code: 'Space', noModifiers: true }, () => {
+        div.style.setProperty('display', 'none')
+        document.documentElement.requestFullscreen()
+      }]
+    ])
     yield handleElementEvent(document.documentElement, {
       fullscreenchange: () => {
         if (document.fullscreenElement) {

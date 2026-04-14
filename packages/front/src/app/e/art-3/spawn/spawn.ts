@@ -56,8 +56,9 @@ export const Colors = (() => {
     darkBlue1: new ColorEntry(2, '#33099c'),
     blue: new ColorEntry(2, '#4800ff'),
     darkBlue2: new ColorEntry(.3, '#231455'),
-    pink: new ColorEntry(1, '#ce51bb'),
+    softGreen: new ColorEntry(1, '#5b8a75'),
     yellow: new ColorEntry(.3, '#c7ec33'),
+    red: new ColorEntry(.1, '#d20a35'),
   }
   const random = getRandom(123456)
   const colorValues = Object.values(colors).map(color => color.value)
@@ -99,7 +100,11 @@ class SpawnerMaterial extends MeshBasicMaterial {
 
 class SpawnerArtyMaterial extends MeshBasicMaterial {
   constructor(parameters: MeshBasicMaterialParameters = {}) {
-    super({ side: 2, ...parameters })
+    super({
+      side: 2,
+      transparent: true,
+      ...parameters
+    })
     const uniforms = {
       uAtlasMap: { value: new WhiteTexture() as Texture },
       uAtlasInfo: { value: new Vector4() },
@@ -153,18 +158,23 @@ class SpawnerArtyMaterial extends MeshBasicMaterial {
           vec4 color2 = texture2D(uAtlasMap, tile(r2));
           vec4 color3 = texture2D(uAtlasMap, tile(r3));
           vec4 color = max4(color0, color1, color2, color3);
-          // diffuseColor.rgb = max(diffuseColor.rgb, color.rgb);
-          if (color.r > 0.5) 
-            discard;
+          diffuseColor.a *= oneMinus(color.r);
+          // if (color.r > 0.5) 
+          //   discard;
           // diffuseColor.rgb = 1.0 - (1.0 - diffuseColor.rgb) * (1.0 - color.rgb); // apply "screen" blend mode
           // diffuseColor.rgb *= 1.0 - color.rgb;
         }
 
         else if (vSpawnInfo.y < 1.5) {
-          float r = vSpawnInfo.x;
-          vec4 color = texture2D(uAtlasMap, tile(r));
-          if (color.r > 0.5)
-            discard;
+          float r0 = vSpawnInfo.x;
+          vec4 color0 = texture2D(uAtlasMap, tile(r0));
+          float r1 = hash(r0);
+          vec4 color1 = texture2D(uAtlasMap, tile(r1));
+
+          vec4 color = max(color0, color1);
+          diffuseColor.a *= oneMinus(color.r);
+          // if (color.r > 0.5)
+          //   discard;
         }
 
         // "small" type
@@ -180,8 +190,9 @@ class SpawnerArtyMaterial extends MeshBasicMaterial {
               case 2: d = 1.0 - vUv.x + vUv.y; break;
               case 3: d = 1.0 - vUv.x + 1.0 - vUv.y; break;
             }
-            if (d > 1.0)
-              discard;
+            // if (d > 1.0)
+            //   discard;
+            diffuseColor.a *= smoothstep(0.99, 1.01, d);
           }
         }
       `)
@@ -384,7 +395,7 @@ class Spawner extends Group {
   state = {
     tree: new RBush<RectangleWithId>(),
     rectanglesById: new Map<number, RectangleWithId>(),
-    instances: setup(new SpawnerInstanceMesh(1_000), this),
+    instances: setup(new SpawnerInstanceMesh(5_000), this),
     random: getRandom(123456),
   }
 
