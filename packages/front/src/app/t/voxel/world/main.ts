@@ -74,6 +74,7 @@ export class Main extends Group {
       const { x, y, z } = world.metrics.fromIndexes(superChunkIndex, chunkIndex, 0)
       setup(new Mesh(geometry, material), {
         parent: this,
+        name: `chunk-mesh-${superChunkIndex}-${chunkIndex}`,
         x,
         y,
         z,

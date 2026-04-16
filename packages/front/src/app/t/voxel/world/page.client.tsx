@@ -1,12 +1,17 @@
 'use client'
 import Markdown from 'react-markdown'
+import { BufferGeometry, Mesh } from 'three'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { PassType } from 'some-utils-three/contexts/webgl'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
+import { Message } from 'some-utils-ts/message'
 import { Ticker } from 'some-utils-ts/ticker'
+import { tryCast } from 'some-utils-ts/types/cast'
 
 import { leak } from '@/utils/leak'
 
@@ -17,7 +22,7 @@ import s from '../md.module.css'
 import Readme from './README.md'
 
 function ThreeSettings() {
-  useThreeWebGL(function* (three) {
+  useThreeWebGL(async function* (three) {
     leak({ three })
     const ticker = Ticker.get('three')
     ticker.set({ minActiveDuration: 60 })
@@ -39,6 +44,21 @@ function ThreeSettings() {
     })
     three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
   }, [])
+
+  useGroup('debug', async function* (group, three) {
+    const controls = await Message.waitForInstance(VertigoControls)
+    const helper = setup(new DebugHelper().onTop(), group)
+    yield three.ticker.onTick(() => {
+      helper.clear()
+      tryCast(controls.downIntersection?.object, Mesh, mesh => {
+        (mesh.geometry as BufferGeometry).computeBoundingBox()
+        const bounds = (mesh.geometry as BufferGeometry).boundingBox!
+        helper.setTransformMatrix(mesh.matrixWorld)
+        helper.box(bounds, { color: 'red' })
+      })
+    })
+  }, [])
+
   return null
 }
 
@@ -49,7 +69,7 @@ function MainComponent() {
   return null
 }
 
-export function Client() {
+export function PageClient() {
   return (
     <div>
       <ThreeProvider

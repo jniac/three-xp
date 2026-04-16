@@ -1,6 +1,7 @@
 
 import { XpMetadata } from '@/types'
-import { Client } from './client'
+
+import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
   title: 'Voxel World',
@@ -11,7 +12,7 @@ export const metadata = new XpMetadata({
 export default function VertigoWidgetPage() {
   return (
     <div className='VertigoWidgetPage page'>
-      <Client />
+      <PageClient />
     </div>
   )
 }
