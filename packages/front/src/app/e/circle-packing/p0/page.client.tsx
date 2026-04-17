@@ -12,8 +12,8 @@ import { lerp } from 'some-utils-ts/math/basic'
 import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import { Tick } from 'some-utils-ts/ticker'
 
-import { initJolt, PhysicBundle, Physics } from '@/physics/jolt'
-import { Jolt } from '@/physics/jolt/core'
+import { initJolt, PhysicBundle, Physics } from '@/physics/jolt/jolt'
+import { Jolt } from '@/physics/jolt/load'
 
 function isDev() {
   return typeof window !== 'undefined' && window.location.hostname === 'localhost'

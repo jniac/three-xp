@@ -11,8 +11,8 @@ import { loopArray } from 'some-utils-ts/iteration/loop'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 import { Tick } from 'some-utils-ts/ticker'
 
-import { initJolt, PhysicBundle, Physics } from '@/physics/jolt'
-import { Jolt } from '@/physics/jolt/core'
+import { initJolt, PhysicBundle, Physics } from '@/physics/jolt/jolt'
+import { Jolt } from '@/physics/jolt/load'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 
 function isDev() {

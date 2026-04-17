@@ -1,15 +1,83 @@
 'use client'
 
-import { ThreeProvider, useGroup, useThree } from 'some-utils-misc/three-provider'
+import { AmbientLight, BoxGeometry, DirectionalLight, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, PCFShadowMap } from 'three'
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
+
+import { Inspector, MetaProperty } from 'some-utils-misc/inspector'
+import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { useEffects } from 'some-utils-react/hooks/effects'
+import { PassType } from 'some-utils-three/contexts/webgl'
 import { createNaiveChunkGeometries, World } from 'some-utils-three/experimental/voxel'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { setup } from 'some-utils-three/utils/tree'
 import { loop3 } from 'some-utils-ts/iteration/loop'
-import { BoxGeometry, Mesh } from 'three'
+import { Message } from 'some-utils-ts/message'
+
+import { JoltPhysicsProvider, Physics, useJoltPhysics } from '@/physics/jolt'
+
+function ThreeSettings() {
+  useThreeWebGL(async function* (three) {
+    const aoPass = new GTAOPass(three.scene, three.camera)
+    aoPass.updateGtaoMaterial({
+      radius: 1,
+      distanceExponent: 1,
+      thickness: 2,
+      scale: 1,
+      samples: 16,
+      distanceFallOff: 1,
+      screenSpaceRadius: false,
+    })
+    aoPass.updatePdMaterial({
+      lumaPhi: 10,
+      depthPhi: 2,
+      normalPhi: 3,
+      radius: 4,
+      radiusExponent: 1,
+      rings: 4,
+      samples: 16,
+    })
+    three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
+    yield () => three.pipeline.removePass(aoPass)
+  }, [])
+
+  return null
+}
+
+function Lights() {
+  useThreeWebGL(function* (three) {
+    three.renderer.shadowMap.enabled = true
+    three.renderer.shadowMap.type = PCFShadowMap
+  }, [])
+
+  useGroup('lights', function* (group, three) {
+    const sun = new DirectionalLight(0xffffff, 1)
+    sun.position.set(1, 4, 2)
+    sun.castShadow = true
+    sun.shadow.camera.top = 10
+    sun.shadow.camera.bottom = -10
+    sun.shadow.camera.left = -10
+    sun.shadow.camera.right = 10
+    sun.shadow.camera.near = 0.1
+    sun.shadow.camera.far = 100
+    sun.shadow.bias = -.0001
+    sun.shadow.normalBias = .0001
+    sun.shadow.mapSize.width = 2048
+    sun.shadow.mapSize.height = 2048
+    sun.shadow.radius = 1
+    sun.shadow.blurSamples = 25
+    group.add(sun)
+
+    const ambientLight = new AmbientLight(0xffffff, 0.5)
+    group.add(ambientLight)
+  }, [])
+
+  return null
+}
 
 function MyScene() {
   const three = useThree()
+  const jolt = useJoltPhysics()
 
-  useGroup('my-scene', function* (group) {
+  useGroup('my-scene', async function* (group) {
     const world = new World()
 
     const plainVoxel = world.createVoxelState(0xffffffff)
@@ -35,46 +103,126 @@ function MyScene() {
     ]
 
     for (const [i, geometry] of createNaiveChunkGeometries(world).entries()) {
-      const material = new AutoLitMaterial({ color: colors[i % colors.length], wireframe: true })
+      const material = new MeshPhysicalMaterial({ color: colors[i % colors.length], wireframe: true })
       const mesh = new Mesh(geometry, material)
-      group.add(mesh)
+      // group.add(mesh)
     }
 
-    let boxCount = 0
     for (const { chunk } of world.enumerateChunks()) {
       for (const box of chunk.allGreedyBoxes()) {
         const { min, max } = box
         const geometry = new BoxGeometry(max.x - min.x, max.y - min.y, max.z - min.z)
           .translate((min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2)
-        const material = new AutoLitMaterial({ color: colors[boxCount++ % colors.length] })
+        const material = new MeshPhysicalMaterial({
+          // color: colors[i % colors.length]
+        })
         const mesh = new Mesh(geometry, material)
+        mesh.receiveShadow = true
+        mesh.castShadow = true
         mesh.position.copy(chunk.mountState!.worldPosition)
+        mesh.userData.physics = { mass: 0 }
         group.add(mesh)
-        boxCount++
+
+        jolt.createBody({
+          type: Physics.MotionType.STATIC,
+          shape: new Physics.Shape.Box([(max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2]),
+          mesh,
+          position: [
+            chunk.mountState!.worldPosition.x + (min.x + max.x) / 2,
+            chunk.mountState!.worldPosition.y + (min.y + max.y) / 2,
+            chunk.mountState!.worldPosition.z + (min.z + max.z) / 2,
+          ],
+          parent: group,
+        })
       }
     }
 
-    console.log(boxCount, world.computePlainVoxelCount())
+    setup(new Mesh(new IcosahedronGeometry(1, 10), new MeshPhysicalMaterial()), {
+      position: [4, 3, 4],
+      parent: group,
+      receiveShadow: true,
+      castShadow: true,
+      userData: {
+        physics: { mass: 1 }
+      },
+    })
+    // setup(new Mesh(new CylinderGeometry(.5, .5, 10), new MeshPhysicalMaterial()), {
+    //   position: [4, 3, 4],
+    //   parent: group,
+    //   receiveShadow: true,
+    //   castShadow: true,
+    // })
+
+    const ball = jolt.createBody({
+      type: Physics.MotionType.DYNAMIC,
+      shape: new Physics.Shape.Sphere(1),
+      position: [2, 10, 2],
+      parent: group,
+    })
+    ball.mesh.material = new MeshPhysicalMaterial()
+
   }, [])
 
   return null
 }
 
+function InspectorWrapper() {
+  const { ref } = useEffects<HTMLDivElement>(function* (div) {
+    const inspector = new Inspector({
+      header: {
+        title: 'Inspector',
+        closeButton: true,
+      },
+      search: true,
+    })
+    div.appendChild(inspector.div)
+    yield inspector.destroy
+    yield Message.dispatchInstance(Inspector, inspector)
+
+    inspector.registerFields([
+      new MetaProperty({
+        key: 'foo',
+        type: `
+          number
+          clamped
+          slider(0, 10, .05)
+          modifierScale(2)
+          round(.001)
+          dragScale(10)
+        `,
+        description: 'This is a slider for foo.',
+        value: 5,
+      }),
+    ], {
+      updatedValues: () => {
+        return { foo: 2 }
+      }
+    })
+  }, [])
+
+  return <div ref={ref} />
+}
+
 export function PageClient() {
   return (
     <ThreeProvider
-      // fxaa
+      fxaa
       vertigoControls={{
         size: 30,
-        rotation: '-35deg, 45deg, 0deg',
+        rotation: '-30deg, 30deg, 0deg',
       }}
     >
-      <div className='p-8 thru'>
-        <h1>
-          Graphic Art 4
-        </h1>
-      </div>
-      <MyScene />
+      <JoltPhysicsProvider>
+        <div className='p-8 thru'>
+          <h1>
+            Graphic Art 4
+          </h1>
+          <InspectorWrapper />
+        </div>
+        <ThreeSettings />
+        <Lights />
+        <MyScene />
+      </JoltPhysicsProvider>
     </ThreeProvider>
   )
 }

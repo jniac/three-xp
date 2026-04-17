@@ -4,7 +4,7 @@ import { Group } from 'three'
 import { uv, vec2, vec3 } from 'three/tsl'
 import { MeshBasicNodeMaterial } from 'three/webgpu'
 
-import { ThreeInstance, ThreeProvider, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeInstance, ThreeProvider } from 'some-utils-misc/three-provider'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/types'
 import { LineHelper } from 'some-utils-three/helpers/line'
 import { autoLit } from 'some-utils-three/tsl/utils'
@@ -78,12 +78,17 @@ class MainGroup extends Group {
 
   onInitialize(three: ThreeBaseContext) {
     initJolt(three).then(jolt => {
-      const b = jolt.createBody({
+      const ball = jolt.createBody({
         parent: this,
         position: [-.3, 0, 0],
+        shape: new Physics.Shape.Sphere(.1),
       })
-      b.mesh.material = new MeshBasicNodeMaterial({
+      ball.mesh.material = new MeshBasicNodeMaterial({
         colorNode: autoLit().mul(vec3(uv().mul(vec2(15, 10)).fract(), 1)),
+      })
+
+      const defaultMaterial = new MeshBasicNodeMaterial({
+        colorNode: autoLit().mul(vec3(uv().mul(vec2(7.5, 5)).fract(), 1)),
       })
 
       const box2 = (x = 0, y = 0, width = 1, height = 1) => {
@@ -92,7 +97,7 @@ class MainGroup extends Group {
           position: [x + width / 2, y + height / 2, 0],
           shape: new Physics.Shape.Box([width / 2, height / 2, .1]),
           type: Physics.MotionType.KINEMATIC,
-        }).mesh.material = b.mesh.material
+        }).mesh.material = defaultMaterial
       }
 
       box2(-2, -2, 8, 1)
@@ -101,17 +106,17 @@ class MainGroup extends Group {
         parent: this,
         position: [.1, -2, 0],
         type: Physics.MotionType.KINEMATIC,
-      }).mesh.material = b.mesh.material
+      }).mesh.material = defaultMaterial
       jolt.createBody({
         parent: this,
         position: [-.9, -2, -.1],
         type: Physics.MotionType.KINEMATIC,
-      }).mesh.material = b.mesh.material
+      }).mesh.material = defaultMaterial
       jolt.createBody({
         parent: this,
         position: [-.5, -2, 1],
         type: Physics.MotionType.KINEMATIC,
-      }).mesh.material = b.mesh.material
+      }).mesh.material = defaultMaterial
 
       jolt.createBody({
         shape: new Physics.Shape.Box([.5, .5, .01]),
@@ -121,13 +126,6 @@ class MainGroup extends Group {
       })
     })
   }
-}
-
-function Settings() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  }, [])
-  return null
 }
 
 export function Main() {
