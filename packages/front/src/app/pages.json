@@ -24,6 +24,10 @@
     "dir": "e/art-3/stencil-test/simple"
   },
   {
+    "page": "e/art-4/page.tsx",
+    "dir": "e/art-4"
+  },
+  {
     "page": "e/circle-packing/p0/page.tsx",
     "dir": "e/circle-packing/p0"
   },

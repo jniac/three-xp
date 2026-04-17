@@ -68,7 +68,7 @@ export class Main extends Group {
         '#ff5555',
       ])
 
-      const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+      const geometry = createNaiveVoxelGeometry(chunk.allVoxelFaces())
       const material = new AutoLitMaterial({ color })
 
       const { x, y, z } = world.metrics.fromIndexes(superChunkIndex, chunkIndex, 0)

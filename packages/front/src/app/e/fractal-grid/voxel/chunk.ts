@@ -251,7 +251,7 @@ export class FractalGridChunk extends Mesh<BufferGeometry, AutoLitMaterial> {
 
     console.time('geometry')
     // const geometry = new BufferGeometry()
-    const geometry = createNaiveVoxelGeometry(chunk.voxelFaces())
+    const geometry = createNaiveVoxelGeometry(chunk.allVoxelFaces())
     console.timeEnd('geometry')
     const s = 1 / CHUNK_BLOCK_SIZE
     geometry.scale(s, s, s)

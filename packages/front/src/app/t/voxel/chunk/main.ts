@@ -59,7 +59,7 @@ export class Main extends Group {
         chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
       }
       const voxels = setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#ffdd55' })), {
         parent: this,
         x: -SIZE,
@@ -77,7 +77,7 @@ export class Main extends Group {
         chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
       }
       const voxels = setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#ff5566' })), {
         parent: this,
         x: 0,
@@ -92,7 +92,7 @@ export class Main extends Group {
         chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
       }
       setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#55ff96' })), {
         parent: this,
         x: SIZE * -2,
@@ -107,7 +107,7 @@ export class Main extends Group {
         chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
       }
       setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#cfedff' })), {
         parent: this,
         position: [16, 0, -12],
@@ -123,7 +123,7 @@ export class Main extends Group {
       }
       console.log(chunk.computeBounds())
       setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#9900ff' })), {
         parent: this,
         x: -SIZE,
@@ -144,7 +144,7 @@ export class Main extends Group {
         }
       }
       const mesh = setup(new Mesh(
-        createNaiveVoxelGeometry(chunk.voxelFaces()),
+        createNaiveVoxelGeometry(chunk.allVoxelFaces()),
         new AutoLitMaterial({ color: '#00ddff' })), {
         parent: this,
         x: -SIZE,
