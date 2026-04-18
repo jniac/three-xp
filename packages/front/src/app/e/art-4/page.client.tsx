@@ -1,12 +1,10 @@
 'use client'
 
-import { AmbientLight, BoxGeometry, DirectionalLight, IcosahedronGeometry, Mesh, MeshPhysicalMaterial, PCFShadowMap } from 'three'
-import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
+import { BoxGeometry, CylinderGeometry, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
 
 import { Inspector, MetaProperty } from 'some-utils-misc/inspector'
-import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup, useThree } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { PassType } from 'some-utils-three/contexts/webgl'
 import { createNaiveChunkGeometries, World } from 'some-utils-three/experimental/voxel'
 import { setup } from 'some-utils-three/utils/tree'
 import { loop3 } from 'some-utils-ts/iteration/loop'
@@ -14,64 +12,7 @@ import { Message } from 'some-utils-ts/message'
 
 import { JoltPhysicsProvider, Physics, useJoltPhysics } from '@/physics/jolt'
 
-function ThreeSettings() {
-  useThreeWebGL(async function* (three) {
-    const aoPass = new GTAOPass(three.scene, three.camera)
-    aoPass.updateGtaoMaterial({
-      radius: 1,
-      distanceExponent: 1,
-      thickness: 2,
-      scale: 1,
-      samples: 16,
-      distanceFallOff: 1,
-      screenSpaceRadius: false,
-    })
-    aoPass.updatePdMaterial({
-      lumaPhi: 10,
-      depthPhi: 2,
-      normalPhi: 3,
-      radius: 4,
-      radiusExponent: 1,
-      rings: 4,
-      samples: 16,
-    })
-    three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
-    yield () => three.pipeline.removePass(aoPass)
-  }, [])
-
-  return null
-}
-
-function Lights() {
-  useThreeWebGL(function* (three) {
-    three.renderer.shadowMap.enabled = true
-    three.renderer.shadowMap.type = PCFShadowMap
-  }, [])
-
-  useGroup('lights', function* (group, three) {
-    const sun = new DirectionalLight(0xffffff, 1)
-    sun.position.set(1, 4, 2)
-    sun.castShadow = true
-    sun.shadow.camera.top = 10
-    sun.shadow.camera.bottom = -10
-    sun.shadow.camera.left = -10
-    sun.shadow.camera.right = 10
-    sun.shadow.camera.near = 0.1
-    sun.shadow.camera.far = 100
-    sun.shadow.bias = -.0001
-    sun.shadow.normalBias = .0001
-    sun.shadow.mapSize.width = 2048
-    sun.shadow.mapSize.height = 2048
-    sun.shadow.radius = 1
-    sun.shadow.blurSamples = 25
-    group.add(sun)
-
-    const ambientLight = new AmbientLight(0xffffff, 0.5)
-    group.add(ambientLight)
-  }, [])
-
-  return null
-}
+import { LightSetup_A, ThreeSettings } from './shared'
 
 function MyScene() {
   const three = useThree()
@@ -138,20 +79,21 @@ function MyScene() {
     }
 
     setup(new Mesh(new IcosahedronGeometry(1, 10), new MeshPhysicalMaterial()), {
-      position: [4, 3, 4],
+      position: [4, 2, 4],
       parent: group,
       receiveShadow: true,
       castShadow: true,
       userData: {
         physics: { mass: 1 }
       },
+
     })
-    // setup(new Mesh(new CylinderGeometry(.5, .5, 10), new MeshPhysicalMaterial()), {
-    //   position: [4, 3, 4],
-    //   parent: group,
-    //   receiveShadow: true,
-    //   castShadow: true,
-    // })
+    setup(new Mesh(new CylinderGeometry(.5, .5, 10), new MeshPhysicalMaterial()), {
+      position: [6, 3, 2],
+      parent: group,
+      receiveShadow: true,
+      castShadow: true,
+    })
 
     const ball = jolt.createBody({
       type: Physics.MotionType.DYNAMIC,
@@ -220,7 +162,7 @@ export function PageClient() {
           <InspectorWrapper />
         </div>
         <ThreeSettings />
-        <Lights />
+        <LightSetup_A />
         <MyScene />
       </JoltPhysicsProvider>
     </ThreeProvider>

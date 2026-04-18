@@ -43,11 +43,12 @@ function ThreeSettings() {
       samples: 16,
     })
     three.pipeline.addPass(aoPass, { type: PassType.PostProcessing })
+    yield () => three.pipeline.removePass(aoPass)
   }, [])
 
   useGroup('debug', async function* (group, three) {
     const controls = await Message.waitForInstance(VertigoControls)
-    const helper = setup(new DebugHelper().onTop(), group)
+    const helper = setup(new DebugHelper().xray(), group)
     yield three.ticker.onTick(() => {
       helper.clear()
       tryCast(controls.downIntersection?.object, Mesh, mesh => {
