@@ -29,6 +29,7 @@ export default function ExperimentsPage() {
 export function generatePagesSummary(dir: string, metadata: { title: string }, pages: string[]) {
   const entries = pages
     .filter(page => page.startsWith(`${dir}/`) && page !== `${dir}/page.tsx`)
+    .filter(page => page.includes('template') === false) // simple rule to skip template pages
     .map(page => {
       const localPage = page
         .replace(new RegExp(`^${dir}/`, 'g'), '')

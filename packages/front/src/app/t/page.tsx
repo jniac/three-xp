@@ -21,8 +21,6 @@ import * as randomUtils from './random-utils/page'
 import * as shaderForgeInstances from './shader-forge/instances/page'
 import * as shaderXplr from './shader-xplr/page'
 import * as slerpVectors from './slerp-vectors/page'
-import * as template2 from './template-2/page'
-import * as template from './template/page'
 import * as textHelper from './text-helper/page'
 import * as threeProviderColor from './three-provider/color/page'
 import * as threeProviderFreeVertigo from './three-provider/free-vertigo/page'
@@ -57,8 +55,6 @@ const pages = {
   'shader-forge/instances': shaderForgeInstances,
   'shader-xplr': shaderXplr,
   'slerp-vectors': slerpVectors,
-  'template-2': template2,
-  'template': template,
   'text-helper': textHelper,
   'three-provider/color': threeProviderColor,
   'three-provider/free-vertigo': threeProviderFreeVertigo,

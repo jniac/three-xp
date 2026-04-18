@@ -252,6 +252,10 @@
     "dir": "t/template-2"
   },
   {
+    "page": "t/template-3/page.tsx",
+    "dir": "t/template-3"
+  },
+  {
     "page": "t/template/page.tsx",
     "dir": "t/template"
   },
