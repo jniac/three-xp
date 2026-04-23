@@ -1,0 +1,12 @@
+
+slug: multi-gradient
+status: wip
+pageIgnore: true
+description: |
+  WORK IN PROGRESS
+  - Currently, a voronoi gradient as been tested, but there are some artifacts in
+    the gradients for each triangle edge (when the opposite point color is fading to zero).
+  - A possible solution is to use 6 colors per triangle! And always interpolate
+    between 4 colors: the 3 triangle vertex colors and the opposite point color.
+    Would it produce better results? That is the question...
+
