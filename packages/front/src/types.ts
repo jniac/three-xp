@@ -10,6 +10,11 @@ type Status = typeof statusOptions[number]
 
 const defaultProps = {
   status: <Status>'wip',
+  /**
+   * `pageIgnore` should be set in a separate `page.yaml` file to be considered 
+   * by the page generation script.
+   */
+  pageIgnore: false,
 }
 
 type XpMetadataType =

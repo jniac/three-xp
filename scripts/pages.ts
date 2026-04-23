@@ -8,6 +8,7 @@ import { lstat, readdir, readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import path from 'path'
 import { generatePagesSummary } from './pages-summary'
+import { tryReadYaml } from './shared'
 
 const pageDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../packages/front/src/app')
 
@@ -53,11 +54,24 @@ async function update() {
       return {
         page: pagePath,
         dir: pagePath.replace(/\/page.tsx$/, ''),
+        yaml: <any>null,
       }
     })
 
+  for (const page of allPages) {
+    const yamlPath = path.join(pageDir, page.dir, 'page.yaml')
+    const yamlData = await tryReadYaml(yamlPath)
+    if (yamlData) {
+      page.yaml = yamlData
+    }
+  }
+
   const pages = allPages
     .filter(page => {
+      // Exclude pages with pageIgnore: true, but include their children
+      if (page.yaml?.pageIgnore)
+        return false
+
       const parentDir = page.dir.split('/').slice(0, -1).join('/')
       if (!parentDir)
         return true // Top-level pages are always included
@@ -65,10 +79,14 @@ async function update() {
       return hasParent === false || parentDir.length === 1 // Include root-level pages
     })
 
+  // Delete the yaml data from the pages before writing to JSON, since it's only used for filtering and not needed in the final output
+  for (const page of pages) {
+    delete page.yaml
+  }
+
   const str = JSON.stringify(pages, null, 2)
   const filePath = path.join(pageDir, 'pages.json')
   await writeFile(filePath, str)
-  console.log(`Updated pages.json (${path.relative(process.cwd(), filePath)})`)
 
   for (const { dir, metadata } of await getDirs()) {
     const pageStr = generatePagesSummary(dir, metadata, pages.map(p => p.page))

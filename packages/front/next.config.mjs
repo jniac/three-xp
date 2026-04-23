@@ -20,29 +20,33 @@ const nextConfig = {
   assetPrefix: isProd ? '/three-xp/' : '',
 
   webpack(config) {
-    config.module.rules.push({
-      resourceQuery: /raw/, // support ?raw
-      type: 'asset/source',
-    })
-
-    config.module.rules.push({
-      test: /\.md$/,
-      use: 'raw-loader',
-    })
-
-    config.module.rules.push({
-      test: /\.svg$/,
-      oneOf: [
-        {
-          resourceQuery: /raw/, // support ?raw (e.g. import icon from './icon.svg?raw')
-          type: 'asset/source',
-        },
-        {
-          issuer: /\.[jt]sx?$/,
-          use: ['@svgr/webpack'],
-        }
-      ],
-    })
+    config.module.rules.push(
+      {
+        resourceQuery: /raw/, // support ?raw
+        type: 'asset/source',
+      },
+      {
+        test: /\.md$/,
+        use: 'raw-loader',
+      },
+      {
+        test: /\.ya?ml$/,
+        use: 'yaml-loader'
+      },
+      {
+        test: /\.svg$/,
+        oneOf: [
+          {
+            resourceQuery: /raw/, // support ?raw (e.g. import icon from './icon.svg?raw')
+            type: 'asset/source',
+          },
+          {
+            issuer: /\.[jt]sx?$/,
+            use: ['@svgr/webpack'],
+          }
+        ],
+      }
+    )
 
     // Deliver svg from public assets folder (double usage of svg, as source file (component) or as asset).
     const svgFolder = path.join(import.meta.dirname, 'public/assets/svg') // Node 20

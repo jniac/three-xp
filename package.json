@@ -11,14 +11,17 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.2",
+    "@types/js-yaml": "^4.0.9",
     "chokidar": "^4.0.3",
     "concurrently": "^9.1.2",
     "esbuild": "^0.24.0",
     "esbuild-register": "^3.6.0",
     "express": "^5.1.0",
     "glob": "^11.0.1",
+    "js-yaml": "^4.1.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "yaml-loader": "^0.9.0"
   },
   "pnpm": {
     "overrides": {
