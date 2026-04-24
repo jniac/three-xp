@@ -212,6 +212,18 @@ export async function initJolt(three: ThreeBaseContext) {
     }
   }
 
+  const destroyJolt = () => {
+    const bodies = new Jolt.BodyIDVector()
+    physicsSystem.GetBodies(bodies)
+    const count = bodies.size()
+    for (let i = 0; i < count; i++) {
+      const bodyID = bodies.at(i)
+      bodyInterface.RemoveBody(bodyID)
+      bodyInterface.DestroyBody(bodyID)
+    }
+    Jolt.destroy(jolt)
+  }
+
   three.ticker.onTick(tick => {
     update(tick.deltaTime)
   })
@@ -221,7 +233,12 @@ export async function initJolt(three: ThreeBaseContext) {
     physicsSystem,
     bodyInterface,
     createBody,
+    destroyJolt,
   }
+}
+
+export {
+  Jolt
 }
 
 export type JoltInterface = Awaited<ReturnType<typeof initJolt>>

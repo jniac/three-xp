@@ -22,6 +22,9 @@ export function JoltPhysicsProvider({ children }: { children?: React.ReactNode }
     const jolt = await initJolt(three)
     Message.on(JOLT_SYMBOL, message => message.setPayload(jolt))
     setReady(true)
+    yield () => {
+      jolt.destroyJolt()
+    }
   }, [])
 
   return ready && <>{children}</>
