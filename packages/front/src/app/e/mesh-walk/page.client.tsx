@@ -17,9 +17,6 @@ import { TorusKnotGroup, TorusKnotInspector } from './views/TorusKnot'
 import { Triangles } from './views/Triangles'
 
 function ThreeSettings() {
-  const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
-
   useGroup('ThreeSettings', function* (group) {
     setup(new DebugHelper(), group)
       .regularGrid({ opacity: [.1, .02] })

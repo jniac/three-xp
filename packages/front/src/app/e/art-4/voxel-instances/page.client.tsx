@@ -4,11 +4,12 @@ import { createNoise3D } from 'simplex-noise'
 import { MeshPhysicalMaterial, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
+import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
+import { getRandom } from 'some-utils-ts/random/algorithm/parkmiller-c-iso'
 
 import { leak } from '@/utils/leak'
 
-import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { VoxelInstances } from '../VoxelInstances'
 import { LightSetup_A, ThreeSettings } from '../shared'
 
@@ -16,9 +17,9 @@ function MyScene() {
   leak()
 
   useGroup('my-scene', function* (group, three) {
-    const noise3D = createNoise3D()
+    const noise3D = createNoise3D(getRandom(123456))
 
-    const helper = setup(new DebugHelper(), {
+    const helper = setup(new DebugHelper().setLayer(1), {
       parent: group,
     })
 
@@ -36,7 +37,6 @@ function MyScene() {
 
     helper.box({ size: voxels.size })
 
-
     const offset = new Vector3()
     const p = new Vector3()
     yield three.ticker.onTick(tick => {
@@ -48,7 +48,7 @@ function MyScene() {
           z + offset.z,
         ).multiplyScalar(0.05)
         const n = noise3D(p.x, p.y, p.z)
-        return n > .5
+        return n > .25 ? 1 : 0
       })
     })
   }, [])
@@ -61,8 +61,8 @@ export function PageClient() {
     <ThreeProvider
       fxaa
       vertigoControls={{
-        size: 22,
-        rotation: '-45deg, 45deg, 0',
+        size: 32,
+        rotation: '-25deg, 45deg, 0',
       }}
     >
       <ThreeSettings />

@@ -1,11 +1,24 @@
 import { useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { PassType } from 'some-utils-three/contexts/webgl'
-import { AmbientLight, CameraHelper, DirectionalLight, DirectionalLightHelper, PCFShadowMap } from 'three'
+import { lerpColors } from 'some-utils-three/utils/color'
+import { CameraHelper, DirectionalLight, DirectionalLightHelper, HemisphereLight, PCFShadowMap, WebGLRenderer, WebGLRenderTarget } from 'three'
 import { GTAOPass } from 'three/examples/jsm/Addons.js'
+
+class MyGTAOPass extends GTAOPass {
+  /**
+   * Render override to ensure that the GTAO pass only renders objects in layer 0.
+   */
+  render(renderer: WebGLRenderer, writeBuffer: WebGLRenderTarget, readBuffer: WebGLRenderTarget, deltaTime: number, maskActive: boolean): void {
+    const previousLayer = this.camera.layers.mask
+    this.camera.layers.set(0)
+    super.render(renderer, writeBuffer, readBuffer, deltaTime, maskActive)
+    this.camera.layers.mask = previousLayer
+  }
+}
 
 export function ThreeSettings() {
   useThreeWebGL(async function* (three) {
-    const aoPass = new GTAOPass(three.scene, three.camera)
+    const aoPass = new MyGTAOPass(three.scene, three.camera)
 
     aoPass.updateGtaoMaterial({
       radius: 1,
@@ -58,6 +71,11 @@ export function LightSetup_A({ debug = false }) {
     sun.shadow.blurSamples = 25
     group.add(sun)
 
+    const sunWithoutShadows = sun.clone()
+    sunWithoutShadows.castShadow = false
+    sunWithoutShadows.intensity *= .1
+    group.add(sunWithoutShadows)
+
     if (debug) {
       group.add(new DirectionalLightHelper(sun))
 
@@ -65,8 +83,11 @@ export function LightSetup_A({ debug = false }) {
       group.add(cameraHelper)
     }
 
-    const ambientLight = new AmbientLight(0xffffff, 0.5)
-    group.add(ambientLight)
+    const sky = new HemisphereLight(
+      lerpColors(0xb1e1ff, '#fff', .8).clone(),
+      lerpColors(0xb97a20, '#ccc', .8).clone(),
+      .5)
+    group.add(sky)
   }, [])
 
   return null
