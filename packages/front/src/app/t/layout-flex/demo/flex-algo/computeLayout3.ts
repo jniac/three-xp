@@ -1,6 +1,6 @@
 import { ScalarType } from 'some-utils-ts/experimental/layout/flex/Scalar'
 import { Space } from 'some-utils-ts/experimental/layout/flex/Space'
-import { Direction } from 'some-utils-ts/experimental/layout/flex/types'
+import { Direction, Positioning } from 'some-utils-ts/experimental/layout/flex/types'
 import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
 
 const PT = 0
@@ -25,6 +25,11 @@ class Node {
    * Whether this node is a horizontal layout node.
    */
   is_h: boolean
+
+  /**
+   * Whether this node is detached (not participating in the flow layout of its parent).
+   */
+  is_detached: boolean
 
   /**
    * Position x
@@ -82,7 +87,8 @@ class Node {
   space: Space
 
   parent: Node | null = null
-  children: Node[]
+  flowChildren: Node[]
+  detachedChildren: Node[]
 
   /**
    * Whether the space is "fractional" in the parent's tangent direction.
@@ -116,16 +122,29 @@ class Node {
     this.space = space
     this.parent = parent
     this.is_h = space.direction === Direction.Horizontal
+    this.is_detached = space.positioning === Positioning.Detached
     const p_is_h = parent?.is_h ?? true
+
     this.fractionalInTangentSpace = p_is_h
       ? isFractional(space.sizeX.type, space.sizeXFitChildren)
       : isFractional(space.sizeY.type, space.sizeYFitChildren)
+
     this.fractionalInNormalSpace = p_is_h
       ? isFractional(space.sizeY.type, space.sizeYFitChildren)
       : isFractional(space.sizeX.type, space.sizeXFitChildren)
-    this.children = space.children
-      .filter(c => c.enabled)
-      .map(c => new Node(c, this))
+
+    this.flowChildren = []
+    this.detachedChildren = []
+    for (const c of space.children) {
+      if (c.enabled) {
+        const node = new Node(c, this)
+        if (c.positioning === Positioning.Flow) {
+          this.flowChildren.push(node)
+        } else {
+          this.detachedChildren.push(node)
+        }
+      }
+    }
   }
 
   setSize(sx: number, sy: number) {
@@ -156,7 +175,7 @@ class Node {
   isLastChild(): boolean {
     if (this.parent === null)
       return true
-    const siblings = this.parent.children
+    const siblings = this.parent.flowChildren
     return siblings[siblings.length - 1] === this
   }
 
@@ -167,7 +186,7 @@ class Node {
    */
   *allDescendants(): Generator<Node> {
     yield this
-    for (const child of this.children) {
+    for (const child of this.flowChildren) {
       yield* child.allDescendants()
     }
   }
@@ -196,7 +215,7 @@ class Node {
 
 function nodeToString(n: Node): string {
   const f = (n: number) => n.toFixed(2).replace(/\.?0+$/, '')
-  const childrenCount = n.children.length > 0 ? `(${n.children.length}) ` : ''
+  const childrenCount = n.flowChildren.length > 0 ? `(${n.flowChildren.length}) ` : ''
   const rect = `r(${f(n.px)}, ${f(n.py)}, ${f(n.sx)}, ${f(n.sy)})`
   const free = `tgt_free(${f(n.tgt_free)})`
   const inner = `inner(${f(n.inner_sx)}, ${f(n.inner_sy)})`
@@ -235,7 +254,7 @@ function isFractional(scalarType: ScalarType, fitChildren: boolean): boolean {
  * in a bottom-up order (children before parents).
  */
 function* iterateTangentFit(n: Node): Generator<Node> {
-  for (const c of n.children) {
+  for (const c of n.flowChildren) {
     yield* iterateTangentFit(c)
   }
   const tangentFit = n.is_h ? n.space.sizeXFitChildren : n.space.sizeYFitChildren
@@ -257,15 +276,18 @@ function computeSpacings(n: Node) {
 }
 
 function* regularChildren(n: Node): Generator<Node> {
-  for (const c of n.children) {
+  for (const c of n.flowChildren) {
     if (c.fractionalInTangentSpace === false) {
       yield c
     }
   }
+  for (const c of n.detachedChildren) {
+    yield c
+  }
 }
 
 function* fractionalChildren(n: Node): Generator<Node> {
-  for (const c of n.children) {
+  for (const c of n.flowChildren) {
     if (c.fractionalInTangentSpace === true) {
       yield c
     }
@@ -295,14 +317,27 @@ function nonFitSizePass(root: Node) {
     if (n.is_h) {
       // 1. Regular children
       for (const c of regularChildren(n)) {
-        if (c.sizeComputed === false) {
-          const c_sx = c.space.sizeX.compute(isx, isy)
-          const c_sy = c.space.sizeY.compute(isy, isx)
-          c.setSize(c_sx, c_sy)
+        if (c.is_detached === false) {
+          if (c.sizeComputed === false) {
+            const c_sx = c.space.sizeX.compute(isx, isy)
+            const c_sy = c.space.sizeY.compute(isy, isx)
+            c.setSize(c_sx, c_sy)
+          }
+          tgt_free -= c.sx // Only "flow" children consume free space
         }
-        tgt_free -= c.sx
+
+        else {
+          if (c.sizeComputed === false) {
+            const sm = c.space.detachedSelfSpacingMode ?? n.space.detachedChildrenSpacingMode
+            const lsx = n.sx * (1 - sm) + isx * sm
+            const lsy = n.sy * (1 - sm) + isy * sm
+            const c_sx = c.space.sizeX.compute(lsx, lsy)
+            const c_sy = c.space.sizeY.compute(lsy, lsx)
+            c.setSize(c_sx, c_sy)
+          }
+        }
       }
-      tgt_free -= n.gap * Math.max(0, n.children.length - 1)
+      tgt_free -= n.gap * Math.max(0, n.flowChildren.length - 1)
 
       // 2. Fractional children
       let total = 0
@@ -324,14 +359,27 @@ function nonFitSizePass(root: Node) {
     else {
       // 1. Regular children
       for (const c of regularChildren(n)) {
-        if (c.sizeComputed === false) {
-          const c_sx = c.space.sizeX.compute(isx, isy)
-          const c_sy = c.space.sizeY.compute(isy, isx)
-          c.setSize(c_sx, c_sy)
+        if (c.is_detached === false) {
+          if (c.sizeComputed === false) {
+            const c_sx = c.space.sizeX.compute(isx, isy)
+            const c_sy = c.space.sizeY.compute(isy, isx)
+            c.setSize(c_sx, c_sy)
+          }
+          tgt_free -= c.sy // Only "flow" children consume free space
         }
-        tgt_free -= c.sy
+
+        else {
+          if (c.sizeComputed === false) {
+            const sm = c.space.detachedSelfSpacingMode ?? n.space.detachedChildrenSpacingMode
+            const lsx = n.sx * (1 - sm) + isx * sm
+            const lsy = n.sy * (1 - sm) + isy * sm
+            const c_sx = c.space.sizeX.compute(lsx, lsy)
+            const c_sy = c.space.sizeY.compute(lsy, lsx)
+            c.setSize(c_sx, c_sy)
+          }
+        }
       }
-      tgt_free -= n.gap * Math.max(0, n.children.length - 1)
+      tgt_free -= n.gap * Math.max(0, n.flowChildren.length - 1)
 
       // 2. Fractional children
       let total = 0
@@ -351,12 +399,12 @@ function nonFitSizePass(root: Node) {
     n.tgt_free = tgt_free
     n.childrenSizesComputed = true
 
-    queue.push(...n.children)
+    queue.push(...n.flowChildren, ...n.detachedChildren)
   }
 }
 
 function fitSizePass(node: Node) {
-  for (const c of node.children) {
+  for (const c of node.flowChildren) {
     if (c.sizeComputed === false) {
       const sx = c.space.sizeX.compute(0, 0)
       const sy = c.space.sizeY.compute(0, 0)
@@ -371,12 +419,12 @@ function fitSizePass(node: Node) {
   if (is_h) {
     let total_sx = 0
     let max_sy = 0
-    for (const c of node.children) {
+    for (const c of node.flowChildren) {
       total_sx += c.sx
       if (c.sy > max_sy)
         max_sy = c.sy
     }
-    total_sx += node.gap * Math.max(0, node.children.length - 1)
+    total_sx += node.gap * Math.max(0, node.flowChildren.length - 1)
 
     const sx = total_sx + node.pl + node.pr
     const sy = max_sy + node.pt + node.pb
@@ -388,12 +436,12 @@ function fitSizePass(node: Node) {
   else {
     let max_sx = 0
     let total_sy = 0
-    for (const c of node.children) {
+    for (const c of node.flowChildren) {
       total_sy += c.sy
       if (c.sx > max_sx)
         max_sx = c.sx
     }
-    total_sy += node.gap * Math.max(0, node.children.length - 1)
+    total_sy += node.gap * Math.max(0, node.flowChildren.length - 1)
 
     const sx = max_sx + node.pl + node.pr
     const sy = total_sy + node.pt + node.pb
@@ -420,19 +468,32 @@ function positionPass(root: Node) {
     let x = n.px + n.pl
     let y = n.py + n.pt
 
-    for (const c of n.children) {
+    for (const c of n.flowChildren) {
       const ax = c.space.alignSelfX ?? n.space.alignChildrenX
       const ay = c.space.alignSelfY ?? n.space.alignChildrenX
+      const ox = c.space.offsetX.compute(c.sx, c.sy)
+      const oy = c.space.offsetY.compute(c.sy, c.sx)
       if (n.is_h) {
-        c.px = x + n.tgt_free * ax
-        c.py = y + (n.inner_sy - c.sy) * ay
+        c.px = x + ox + n.tgt_free * ax
+        c.py = y + oy + (n.inner_sy - c.sy) * ay
         x += c.sx + n.gap
       } else {
-        c.px = x + (n.inner_sx - c.sx) * ax
-        c.py = y + n.tgt_free * ay
+        c.px = x + ox + (n.inner_sx - c.sx) * ax
+        c.py = y + oy + n.tgt_free * ay
         y += c.sy + n.gap
       }
 
+      queue.push(c)
+    }
+
+    for (const c of n.detachedChildren) {
+      const ay = c.space.alignSelfY ?? .5
+      const ax = c.space.alignSelfX ?? .5
+      const sm = c.space.detachedSelfSpacingMode ?? n.space.detachedChildrenSpacingMode
+      const ox = c.space.offsetX.compute(c.sx, c.sy)
+      const oy = c.space.offsetY.compute(c.sy, c.sx)
+      c.px = ox + n.px + n.pl * sm + (n.sx - (n.pl + n.pr) * sm - c.sx) * ax
+      c.py = oy + n.py + n.pt * sm + (n.sy - (n.pl + n.pr) * sm - c.sy) * ay
       queue.push(c)
     }
   }
@@ -443,7 +504,7 @@ function applyLayout(root: Node) {
   while (queue.length > 0) {
     const n = queue.shift()!
     n.space.rect.set(n.px, n.py, n.sx, n.sy)
-    queue.push(...n.children)
+    queue.push(...n.flowChildren, ...n.detachedChildren)
   }
 }
 
@@ -500,5 +561,5 @@ export function computeLayout3(rootSpace: Space, rootRect?: RectangleDeclaration
 
   // console.log(treeString(root))
 
-  // return root
+  return root
 }

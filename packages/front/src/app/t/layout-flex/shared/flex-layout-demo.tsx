@@ -124,7 +124,7 @@ export function CanvasBlock({
   onTick: onTickArg = undefined,
 }: {
   root: Space | Space[] | ((size: [number, number]) => Space | Space[])
-  size?: [number, number]
+  size?: [number, number] | number[]
   title: React.ReactNode
   description?: React.ReactNode
   drawMode?: DrawMode
@@ -147,6 +147,18 @@ export function CanvasBlock({
       return Array.isArray(arg) ? arg : [arg]
     })()
 
+    const getColor = (space: Space) => {
+      if (space.userData.color)
+        return space.userData.color
+      let current: Space | null = space
+      while (current) {
+        if (current.userData.color)
+          return current.userData.color
+        current = current.parent
+      }
+      return colorRule(space)
+    }
+
     const draw = () => {
       handler.ctxClear()
 
@@ -159,7 +171,7 @@ export function CanvasBlock({
               if (child.enabled === false)
                 continue
 
-              const color = child.userData.color ?? colorRule(child)
+              const color = getColor(child)
               handler.ctxSpace(child, { fill: color })
             }
           }
@@ -168,7 +180,7 @@ export function CanvasBlock({
               if (child.enabled === false)
                 continue
 
-              const color = child.userData.color ?? colorRule(child)
+              const color = getColor(child)
               const arrow = drawDirection ? child.direction : undefined
               handler.ctxSpace(child, { stroke: color, arrow, origin: drawOrigin ? 'top-left' : undefined })
             }

@@ -1,16 +1,16 @@
 
 'use client'
 
-
 import { Space } from 'some-utils-ts/experimental/layout/flex'
+import { RandomUtils } from 'some-utils-ts/random/random-utils'
 
+import { createRootD4 } from '../../grids/demo/d4-positioning'
 import { colors } from '../../shared/colors'
 import { CanvasBlock, DrawMode } from '../../shared/flex-layout-demo'
 import { useHash } from '../../shared/useHash'
 import { layoutColorRule } from '../fit-children/demo/shared'
 import { computeLayout3 } from '../flex-algo/computeLayout3'
 
-import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import '../../shared/flex-layout-demo.css'
 
 function D0() {
@@ -166,7 +166,7 @@ function D3() {
         )
       }
       computeLayout={root => computeLayout3(root)}
-      title={<h2>(D2) "fit-children"</h2>}
+      title={<h2>(D3) "fit-children"</h2>}
       description={
         <>
           <h2>Seems good:</h2>
@@ -220,7 +220,138 @@ function createStressTestLayout([w, h]: [number, number]): Space {
   return root
 }
 
-function D4() {
+function DmDetached1() {
+  const size = [800, 600]
+  const root = new Space({
+    size,
+    spacing: 10,
+  })
+    .add(
+      new Space({ spacing: 10 })
+        .populate(3)
+        .add(
+          new Space({
+            name: 'detached-1',
+            positioning: 'detached',
+            size: 200,
+            alignSelf: .5,
+            spacing: 10,
+            userData: { color: colors.yellow },
+          })
+            .populate(3)
+            .add({
+              name: 'detached-1-child-1',
+              positioning: 'detached',
+              size: ['100%', 50],
+            })
+            .add({
+              name: 'detached-1-child-2',
+              positioning: 'detached',
+              size: '50%',
+              detachedSelfSpacingMode: 1,
+            })
+        ),
+    )
+  computeLayout3(root)
+  return (
+    <CanvasBlock
+      title={<h2>(DDetached1) Detached positioning</h2>}
+      description={
+        <ul>
+          <li>• alignSelf</li>
+          <li>• detachedSelfSpacingMode</li>
+        </ul>
+      }
+      size={size}
+      root={root}
+      computeLayout={root => computeLayout3(root)}
+      onTick={(_, tick) => {
+        root.find('detached-1')!.set({
+          alignSelf: tick.sin01Time({ frequency: 1 / 4 }),
+        })
+        root.find('detached-1-child-1')!.set({
+          alignSelf: tick.sin01Time({ frequency: 1 / 4 }),
+        })
+        root.find('detached-1-child-2')!.set({
+          alignSelf: tick.sin01Time({ frequency: 1 / 4 }),
+        })
+      }}
+    />
+  )
+}
+
+function DmDetached2() {
+  const size = [800, 600]
+  const root = new Space({
+    size,
+    spacing: 10,
+  })
+    .add(
+      new Space({ spacing: 10 })
+        .populate(3, { direction: 'vertical', spacing: 10 })
+        .add(
+          new Space({
+            positioning: 'detached',
+            size: [200, 100],
+            userData: { color: colors.yellow },
+          }),
+          new Space({
+            name: 'detached-2',
+            positioning: 'detached',
+            size: [200, 100],
+            offset: '-10%',
+            userData: { color: colors.yellow },
+          }),
+          new Space({
+            name: 'detached-3',
+            positioning: 'detached',
+            size: [200, 100],
+            offset: '10%',
+            userData: { color: colors.yellow },
+          }),
+        ),
+    )
+  root.get(0, 0)!.set({ offsetY: -40 })
+  root.get(0, 2)!.set({ offsetY: 40 })
+  root.get(0, 1)!.add(
+    {
+      size: ['100%', 40],
+      offsetX: '-100%',
+    },
+    {
+      size: ['100%', 40],
+    },
+    {
+
+    },
+    {
+      size: ['100%', 40],
+    },
+    {
+      size: ['100%', 40],
+      offsetX: '100%',
+    },
+  )
+  computeLayout3(root)
+  return (
+    <CanvasBlock
+      title={<h2>(DDetached2) Detached positioning + offset</h2>}
+      description={
+        <ul>
+        </ul>
+      }
+      size={size}
+      root={root}
+      computeLayout={root => computeLayout3(root)}
+      onTick={(_, tick) => {
+        root.find('detached-2')?.set({ offset: `${tick.lerpSin01Time(0, 100, { frequency: 1 / 4 })}%` })
+        root.find('detached-3')?.set({ offset: `${tick.lerpSin01Time(0, -100, { frequency: 1 / 4 })}%` })
+      }}
+    />
+  )
+}
+
+function DStress() {
   return (
     <CanvasBlock
       size={[1200, 1200]}
@@ -228,7 +359,36 @@ function D4() {
       // directionArrow
       root={createStressTestLayout}
       computeLayout={root => computeLayout3(root)}
-      title={<h2>(D4) Stress</h2>}
+      title={<h2>(DStress) Stresst test</h2>}
+    />
+  )
+}
+
+function DConformTo4_old() {
+  const { root, updateOnTick } = createRootD4(800, 600)
+  return (
+    <CanvasBlock
+      size={[800, 600]}
+      drawMode={DrawMode.AllOutline}
+      root={root}
+      // computeLayout={root => computeLayout3(root)}
+      onTick={(_, tick) => updateOnTick(tick)}
+      title={<h2>(DConformTo4) ConformTo</h2>}
+    />
+  )
+}
+
+function DConformTo4_new() {
+  const { root, updateOnTick } = createRootD4(800, 600)
+  return (
+    <CanvasBlock
+      size={[800, 600]}
+      drawMode={DrawMode.AllOutline}
+      // directionArrow
+      root={root}
+      computeLayout={root => computeLayout3(root)}
+      onTick={(_, tick) => updateOnTick(tick)}
+      title={<h2>(DConformTo4) ConformTo</h2>}
     />
   )
 }
@@ -239,7 +399,11 @@ function getCanvasBlocks() {
     D1,
     D2,
     D3,
-    D4,
+    DStress,
+    DmDetached1,
+    DmDetached2,
+    DConformTo4_old,
+    DConformTo4_new,
   ]
 }
 
