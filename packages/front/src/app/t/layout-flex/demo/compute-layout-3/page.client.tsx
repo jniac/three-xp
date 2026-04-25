@@ -9,7 +9,7 @@ import { colors } from '../../shared/colors'
 import { CanvasBlock, DrawMode } from '../../shared/flex-layout-demo'
 import { useHash } from '../../shared/useHash'
 import { layoutColorRule } from '../fit-children/demo/shared'
-import { computeLayout3 } from '../flex-algo/computeLayout3'
+import { computeLayout3 } from '../flex-algo/computeLayout-3'
 
 import '../../shared/flex-layout-demo.css'
 
@@ -364,16 +364,15 @@ function DStress() {
   )
 }
 
-function DConformTo4_old() {
+function DConformTo4_ref() {
   const { root, updateOnTick } = createRootD4(800, 600)
   return (
     <CanvasBlock
+      title={<h2>(DConformTo4) ConformTo Reference</h2>}
       size={[800, 600]}
       drawMode={DrawMode.AllOutline}
       root={root}
-      // computeLayout={root => computeLayout3(root)}
       onTick={(_, tick) => updateOnTick(tick)}
-      title={<h2>(DConformTo4) ConformTo</h2>}
     />
   )
 }
@@ -388,7 +387,47 @@ function DConformTo4_new() {
       root={root}
       computeLayout={root => computeLayout3(root)}
       onTick={(_, tick) => updateOnTick(tick)}
-      title={<h2>(DConformTo4) ConformTo</h2>}
+      title={<h2>(DConformTo4) ConformTo New (v3)</h2>}
+    />
+  )
+}
+
+function DDetachedAndFitChildren() {
+  const size = [800, 600]
+  const root = new Space({
+    size,
+    spacing: 10,
+  })
+    .add(
+      new Space({ spacing: 10 })
+        .populate(3)
+        .add(
+          new Space({
+            name: 'detached-fit-children',
+            positioning: 'detached',
+            size: ['100%', 'fit-children'],
+            alignSelf: .5,
+            spacing: 10,
+            userData: { color: colors.yellow },
+          })
+            .add(
+              new Space({ size: [50, 50] }),
+              new Space({ size: [50, 100] }),
+              new Space({ size: [100, 50] }),
+            )
+        ),
+    )
+  console.log(root.find('detached-fit-children'))
+  return (
+    <CanvasBlock
+      title={<h2>(DDetachedAndFitChildren) Detached + "fit-children"</h2>}
+      description={
+        <ul>
+        </ul>
+      }
+      size={size}
+      root={root}
+      drawDirection
     />
   )
 }
@@ -402,8 +441,9 @@ function getCanvasBlocks() {
     DStress,
     DmDetached1,
     DmDetached2,
-    DConformTo4_old,
-    DConformTo4_new,
+    DConformTo4_ref,
+    // DConformTo4_new,
+    DDetachedAndFitChildren,
   ]
 }
 

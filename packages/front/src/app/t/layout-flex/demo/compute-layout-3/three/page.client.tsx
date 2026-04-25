@@ -11,7 +11,7 @@ import { Rectangle } from 'some-utils-ts/math/geom/rectangle'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
 import { colors } from '../../../shared/colors'
-import { computeLayout3 } from '../../flex-algo/computeLayout3'
+import { computeLayout3 } from '../../flex-algo/computeLayout-3'
 
 function createStressTestLayout({
   size: [w, h] = [8, 8],
