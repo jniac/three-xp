@@ -15,13 +15,13 @@ export function D3() {
       root={[
         new Space({
           offset: [10, 10],
-          size: 'fit-children',
+          size: 'fit-content',
           spacing: 10,
           alignChildrenY: .5,
         })
           .add(
             new Space({
-              size: 'fit-children',
+              size: 'fit-content',
               spacing: 10
             })
               .populate(2, { size: 100 })
@@ -29,7 +29,7 @@ export function D3() {
           .populate(3, { size: [20, 60] })
           .add(
             new Space({
-              size: 'fit-children',
+              size: 'fit-content',
               direction: 'vertical',
               spacing: 10,
             })
@@ -38,14 +38,14 @@ export function D3() {
 
         new Space({
           offset: [620, 10],
-          size: 'fit-children',
+          size: 'fit-content',
           direction: 'vertical',
           spacing: 10,
           alignChildrenX: .5,
         })
           .add(
             new Space({
-              size: 'fit-children',
+              size: 'fit-content',
               direction: 'vertical',
               spacing: 10
             })

@@ -38,14 +38,14 @@ function getCanvasBlocks() {
         root={[
           new Space({
             offset: [20, 20],
-            size: 'fit-children',
+            size: 'fit-content',
             spacing: 10,
           })
             .populate(3, { size: 100 })
           ,
           new Space({
             offset: [420, 20],
-            size: 'fit-children',
+            size: 'fit-content',
             direction: 'vertical',
             spacing: 10,
             alignChildrenY: 1,

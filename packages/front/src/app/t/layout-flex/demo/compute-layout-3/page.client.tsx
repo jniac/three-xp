@@ -88,25 +88,25 @@ function D2() {
           direction: 'vertical',
         }).add(
           new Space({ spacing: 10 }).add(
-            new Space({ spacing: 10, size: 'fit-children' }),
-            new Space({ spacing: 10, size: 'fit-children' }),
-            new Space({ spacing: 10, size: 'fit-children' }),
-            new Space({ spacing: 10, size: 'fit-children' }).add(
+            new Space({ spacing: 10, size: 'fit-content' }),
+            new Space({ spacing: 10, size: 'fit-content' }),
+            new Space({ spacing: 10, size: 'fit-content' }),
+            new Space({ spacing: 10, size: 'fit-content' }).add(
               new Space({ size: [100, 50] }),
               new Space({ size: [50, 100] }),
               new Space({ size: [100, 50] }),
             ),
             new Space({ aspect: 1 }),
             new Space({ sizeY: '20%' }),
-            new Space({ spacing: 10, size: 'fit-children', direction: 'vertical' }).add(
+            new Space({ spacing: 10, size: 'fit-content', direction: 'vertical' }).add(
               new Space({ size: [100, 50] }),
               new Space({ size: [50, 50] }),
               new Space({ size: [100, 50] }),
             ),
           ),
           new Space({ spacing: 10, direction: 'vertical' }).add(
-            new Space({ spacing: 10, size: 'fit-children' }),
-            new Space({ spacing: 10, size: 'fit-children' }).add(
+            new Space({ spacing: 10, size: 'fit-content' }),
+            new Space({ spacing: 10, size: 'fit-content' }).add(
               new Space({ size: 100 }),
               new Space({ size: 100 }),
               new Space({ size: 100 }),
@@ -134,17 +134,17 @@ function D3() {
           spacing: 10,
         }).add(
           new Space({ spacing: 10, enabled: false }).add(
-            new Space({ spacing: 10, size: 'fit-children' }),
-            new Space({ spacing: 10, size: 'fit-children' }).add(
+            new Space({ spacing: 10, size: 'fit-content' }),
+            new Space({ spacing: 10, size: 'fit-content' }).add(
               new Space({ size: 50 }),
               new Space({ size: 50 }),
               new Space({ size: 50 }),
             ),
           ),
           new Space({ spacing: 10 }).add(
-            new Space({ spacing: 10, size: 'fit-children' }).add(
-              new Space({ spacing: 10, size: 'fit-children', alignSelf: 0 }),
-              new Space({ spacing: 10, size: 'fit-children' }).add(
+            new Space({ spacing: 10, size: 'fit-content' }).add(
+              new Space({ spacing: 10, size: 'fit-content', alignSelf: 0 }),
+              new Space({ spacing: 10, size: 'fit-content' }).add(
                 new Space({ size: 50 }),
                 new Space({ size: [50, 100] }),
                 new Space({ size: 50 }),
@@ -156,7 +156,7 @@ function D3() {
                 }
               }),
               new Space({ size: 50 }),
-              new Space({ spacing: 10, size: 'fit-children', direction: 'vertical' }).add(
+              new Space({ spacing: 10, size: 'fit-content', direction: 'vertical' }).add(
                 new Space({ size: 50 }),
                 new Space({ size: [100, 50] }),
                 new Space({ size: 50 }),
@@ -405,7 +405,7 @@ function DDetachedAndFitChildren() {
           new Space({
             name: 'detached-fit-children',
             positioning: 'detached',
-            size: ['100%', 'fit-children'],
+            size: ['100%', 'fit-content'],
             alignSelf: .5,
             spacing: 10,
             userData: { color: colors.yellow },

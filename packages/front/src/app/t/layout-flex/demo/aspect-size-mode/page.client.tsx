@@ -45,7 +45,7 @@ export function PageClient() {
             )
           }
           root.children.at(3)?.set({
-            sizeY: 'fit-children',
+            sizeY: 'fit-content',
             spacing: 10,
           })
             .add(

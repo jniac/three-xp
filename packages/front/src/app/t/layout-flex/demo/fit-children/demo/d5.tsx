@@ -22,7 +22,7 @@ export function D5() {
           .add(
             new Space({ size: [120, 240] }),
             new Space({ spacing: 10, alignChildren: 0 }).add(
-              new Space({ size: ['fit-children', 240], spacing: 10, alignChildren: 0 }).add(
+              new Space({ size: ['fit-content', 240], spacing: 10, alignChildren: 0 }).add(
                 new Space({ size: 40 }),
                 new Space({ size: 40 }),
                 new Space({ size: 80 }),
@@ -30,7 +30,7 @@ export function D5() {
               new Space(),
             ),
             new Space({ size: [120, 240] }),
-            new Space({ size: 'fit-children', spacing: 10, alignChildren: 1 }).add(
+            new Space({ size: 'fit-content', spacing: 10, alignChildren: 1 }).add(
               new Space({ size: [50, 50] }),
               new Space({ size: [100, 100] }),
             )
@@ -68,14 +68,14 @@ export function D5_Vertical() {
           .add(
             new Space({ size: [240, 60] }),
             new Space({ spacing: 10, direction: 'vertical' }).add(
-              new Space({ size: [240, 'fit-children'], direction: 'vertical', spacing: 10, alignChildren: 0 }).add(
+              new Space({ size: [240, 'fit-content'], direction: 'vertical', spacing: 10, alignChildren: 0 }).add(
                 new Space({ size: 40 }),
                 new Space({ size: 40 }),
               ),
               new Space(),
             ),
             new Space({ size: [240, 60] }),
-            new Space({ direction: 'vertical', size: 'fit-children', spacing: 10, alignChildrenY: 1 }).add(
+            new Space({ direction: 'vertical', size: 'fit-content', spacing: 10, alignChildrenY: 1 }).add(
               new Space({ size: [240, 60] }),
               new Space({ size: [100, 100] }),
             )
