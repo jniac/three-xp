@@ -11,12 +11,12 @@ import { leak } from '@/utils/leak'
 
 import { CanvasBlock } from '../../shared/flex-layout-demo'
 import { layoutColorRule, randomColorRule } from '../fit-children/demo/shared'
+import { computeLayout2 } from '../flex-algo/computeLayout-2'
 import { computeLayout3 } from '../flex-algo/computeLayout-3'
 
 import { layouts, layoutsByTags } from './layouts'
 
 import '../../shared/flex-layout-demo.css'
-import { computeLayout2 } from '../flex-algo/computeLayout-2'
 
 type ComputeLayoutFn = (root: Space, rootRect?: RectangleDeclaration) => void
 

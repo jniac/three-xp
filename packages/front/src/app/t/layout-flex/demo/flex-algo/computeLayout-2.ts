@@ -423,3 +423,5 @@ export function computeLayout2(rootSpace: Space) {
   root.applyToSpace()
 }
 
+computeLayout2.name = 'computeLayout2'
+

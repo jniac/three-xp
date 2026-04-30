@@ -563,3 +563,5 @@ export function computeLayout3(rootSpace: Space, rootRect?: RectangleDeclaration
 
   return root
 }
+
+computeLayout3.name = 'computeLayout3'
