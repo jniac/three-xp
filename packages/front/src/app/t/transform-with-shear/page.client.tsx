@@ -2,7 +2,7 @@
 
 import { ColorRepresentation, Group, LineBasicMaterial, LineSegments, Mesh, TorusKnotGeometry } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
@@ -151,9 +151,6 @@ function Demo2() {
 }
 
 function MyScene() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
 
   useGroup('my-scene', function* (group, three) {
   }, [])

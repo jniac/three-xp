@@ -91,8 +91,6 @@ class PatternScene extends Scene {
 
 export function MyScene() {
   useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     const scene = new PatternScene()
     const size = 2048
     const rt = new WebGLRenderTarget(size, size, {

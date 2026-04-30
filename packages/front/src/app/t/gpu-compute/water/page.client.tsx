@@ -123,9 +123,6 @@ function MyScene() {
   const three = useThreeWebGL()!
 
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
-
     const demo = setup(new WaterDemo(), group)
     yield* demo.initialize(three)
   }, [])

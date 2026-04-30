@@ -1,6 +1,6 @@
 'use client'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
@@ -8,9 +8,6 @@ import { TwinObject } from '../shared'
 import { UI } from './ui'
 
 function MyScene() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
   useGroup('my-scene', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 12, subdivisions: [2, 6], opacity: [1, .1] })

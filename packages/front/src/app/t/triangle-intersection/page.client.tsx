@@ -15,7 +15,6 @@ import { HashMap } from '@/app/e/mesh-walk/surface-walker/hash-map'
 
 function ThreeSettings() {
   const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
   three.scene.background = new Color('hsl(200, 20%, 10%)')
   useGroup('my-scene', function* (group) {
     setup(new DebugHelper().regularGrid(), group)

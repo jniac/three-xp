@@ -1,7 +1,7 @@
 'use client'
 
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { setupShaderForge } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
@@ -10,10 +10,7 @@ import { setup } from 'some-utils-three/utils/tree'
 import { Umbellifer } from './umbellifer'
 
 function MyScene() {
-  const three = useThreeWebGL()!
-  useGroup('slerp-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
+  useGroup('slerp-scene', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 4 })
 

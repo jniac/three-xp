@@ -61,8 +61,6 @@ class SceneMesh extends Group {
 }
 
 function ThreeSettings() {
-  const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
   return null
 }
 

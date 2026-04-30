@@ -1,6 +1,6 @@
 'use client'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
@@ -109,9 +109,6 @@ function MyTest2() {
 }
 
 function MySettings() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
   useGroup('my-settings', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 12, subdivisions: [2, 6], opacity: [1, .1] })

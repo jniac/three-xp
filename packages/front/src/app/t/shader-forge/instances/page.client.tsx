@@ -2,7 +2,7 @@
 
 import { BoxGeometry, Color, ColorRepresentation, Group, Mesh, MeshBasicMaterial, WebGLProgramParametersWithUniforms } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge } from 'some-utils-three/shader-forge'
 import { setup } from 'some-utils-three/utils/tree'
@@ -35,10 +35,7 @@ class InstanceDemo extends Group {
 }
 
 function MyScene() {
-  const three = useThreeWebGL()!
   useGroup('slerp-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
 

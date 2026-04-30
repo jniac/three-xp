@@ -106,8 +106,6 @@ function MyScene(props: TransformProps) {
   const three = useThreeWebGL()
 
   useGroup('my-scene', props, function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
   })

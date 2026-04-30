@@ -2,7 +2,7 @@
 import { IcosahedronGeometry, Mesh, Object3D, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/Addons.js'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
@@ -57,9 +57,6 @@ function MyScene() {
 }
 
 function ThreeSettings() {
-  const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
-
   useGroup('ThreeSettings', function* (group) {
     setup(new DebugHelper(), group)
       .regularGrid({ opacity: [.1, .02], plane: 'xz' })

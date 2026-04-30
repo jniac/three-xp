@@ -1,6 +1,6 @@
 'use client'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
@@ -9,10 +9,7 @@ import { BasicDemo } from './demo/basic'
 import { ToggleDemo } from './demo/toggle'
 
 function MyScene() {
-  const three = useThreeWebGL()!
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
   })

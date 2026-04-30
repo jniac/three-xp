@@ -23,7 +23,6 @@ const vertigo4 = { "perspective": 1, "fov": "45deg", "zoom": 0.8623372619632357,
 
 function MyScene() {
   const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
 
   const controls = Message.requireInstanceOrThrow(VertigoControls)
   // controls.vertigo.fromDeclaration(vertigo4)

@@ -19,8 +19,6 @@ function MyScene() {
   const three = useThreeWebGL()!
 
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     const plane = setup(new Mesh(new PlaneGeometry(), new MeshBasicMaterial()), group)
     plane.scale.setScalar(10)
 

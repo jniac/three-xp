@@ -21,7 +21,6 @@ function isDev() {
 
 function ThreeSettings() {
   const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
   three.ticker.set({ inactivityWaitDurationMinimum: isDev() ? 20 : 3 * 60 })
   return null
 }

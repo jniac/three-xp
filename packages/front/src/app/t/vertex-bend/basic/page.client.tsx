@@ -93,8 +93,6 @@ class BendGeometryDemo extends Group {
 function MyScene() {
   const three = useThreeWebGL()!
   useGroup('slerp-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
 

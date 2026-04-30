@@ -5,7 +5,7 @@ import { HTMLAttributes, useState } from 'react'
 import { ArrowRight, ChevronDown, ChevronRight } from 'lucide-react'
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { handlePointer } from 'some-utils-dom/handle/pointer'
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
@@ -19,10 +19,7 @@ import { WheelGraph } from './wheel/graph'
 import { WheelRecorderWidget } from './wheel/recorder'
 
 function MyScene() {
-  const three = useThreeWebGL()!
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
   })

@@ -27,7 +27,6 @@ function handleEvent<Target extends EventTarget, EventType extends Event>(
 
 function ThreeSettings() {
   const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
   three.scene.background = new Color('hsl(200, 20%, 10%)')
   useGroup('three-settings', function* (group) {
     setup(new DebugHelper().regularGrid(), group)

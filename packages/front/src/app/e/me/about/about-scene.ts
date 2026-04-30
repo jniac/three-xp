@@ -53,7 +53,6 @@ export function AboutScene() {
   useGroup('my-scene', async function* (group) {
     leak()
 
-    // three.pipeline.basicPasses.fxaa.enabled = false
     three.ticker.set({ inactivityWaitDurationMinimum: isHosted() ? 60 : 60 * 5 })
 
     const grainPass = new FilmPass(.5, false)

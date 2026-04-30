@@ -2,7 +2,7 @@
 
 import { Matrix4, Mesh, Vector3 } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { fromVector3Declaration, Vector3Declaration } from 'some-utils-three/declaration'
 import { AxesGeometry, AxisGeometry } from 'some-utils-three/geometries/axis'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
@@ -13,10 +13,7 @@ import { loop } from 'some-utils-ts/iteration/loop'
 
 
 function MyScene() {
-  const three = useThreeWebGL()!
   useGroup('slerp-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     const helper = setup(new DebugHelper(), group)
       .regularGrid()
 

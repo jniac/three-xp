@@ -10,7 +10,6 @@ import { StrokeGeometry } from '../me/shapes/playground/geometries/stroke'
 
 function ThreeSettings() {
   const three = useThreeWebGL()
-  three.pipeline.basicPasses.fxaa.enabled = false
   three.scene.background = new Color('#ccc')
   return null
 }

@@ -28,9 +28,6 @@ export function Setup() {
       })
       yield () => mesh2.removeFromParent()
     }
-
-    three.pipeline.basicPasses.smaa.enabled = false
-    three.pipeline.basicPasses.fxaa.enabled = false
   }, [])
   return null
 }

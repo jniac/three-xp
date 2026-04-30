@@ -2,7 +2,7 @@
 
 import { ColorRepresentation, Vector3 } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { Transform } from 'some-utils-three/experimental/transform-with-shear'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
@@ -80,9 +80,6 @@ function MyTest1() {
 }
 
 function MySettings() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
   useGroup('my-settings', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 12, subdivisions: [2, 6], opacity: [1, .1] })

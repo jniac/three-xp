@@ -14,8 +14,6 @@ export function HomeScene() {
   const { screenSize } = useObservableValue(responsive.layoutObs)
 
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     document.querySelector<HTMLElement>('nextjs-portal')?.remove()
 
     setup(new DebugHelper(), group)

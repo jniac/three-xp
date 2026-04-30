@@ -2,7 +2,7 @@
 
 import { ColorRepresentation, Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { fromVector3Declaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge } from 'some-utils-three/shader-forge'
@@ -221,11 +221,7 @@ function PathStroke(props: TransformProps) {
 }
 
 function MyScene(props: TransformProps) {
-  const three = useThreeWebGL()
-
   useGroup('my-scene', props, function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
   })

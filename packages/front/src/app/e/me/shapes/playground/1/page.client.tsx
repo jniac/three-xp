@@ -2,7 +2,7 @@
 
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { TransformProps } from 'some-utils-three/utils/transform'
 import { setup } from 'some-utils-three/utils/tree'
 
@@ -134,11 +134,7 @@ function PathStroke(props: TransformProps) {
 }
 
 function MyScene(props: TransformProps) {
-  const three = useThreeWebGL()
-
   useGroup('my-scene', props, function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new DebugHelper(), group)
       .regularGrid()
   })

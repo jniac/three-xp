@@ -10,8 +10,6 @@ import { Message } from 'some-utils-ts/message'
 function MyScene() {
   const three = useThreeWebGL()!
   useGroup('my-scene', function* (group) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-
     setup(new SimpleGridHelper(), group)
 
     const helper = setup(new DebugHelper(), group)

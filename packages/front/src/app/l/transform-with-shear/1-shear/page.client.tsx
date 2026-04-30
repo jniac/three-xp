@@ -1,7 +1,7 @@
 'use client'
 import { Quaternion, Vector3 } from 'three'
 
-import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
@@ -11,9 +11,6 @@ import { composeMatrixWithShear, RoundTripTest } from '../shear'
 import { UI } from './ui'
 
 function MyScene() {
-  useThreeWebGL(function* (three) {
-    three.pipeline.basicPasses.fxaa.enabled = false
-  })
   useGroup('my-scene', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 12, subdivisions: [2, 6], opacity: [1, .1] })
