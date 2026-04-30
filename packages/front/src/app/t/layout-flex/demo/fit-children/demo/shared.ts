@@ -1,6 +1,6 @@
 import { Direction, ScalarType, Space } from 'some-utils-ts/experimental/layout/flex'
 
-import { colors } from '../../../shared/colors'
+import { colors, colorValues } from '../../../shared/colors'
 
 /**
  * Colors for layout spaces based on their properties
@@ -12,7 +12,7 @@ export function layoutColorRule(space: Space): string {
 
   const dir_type = h ? space.sizeY.type : space.sizeX.type
 
-  const fit = space.direction === Direction.Horizontal ? space.sizeXFitChildren : space.sizeYFitChildren
+  const fit = space.sizeXFitContent || space.sizeYFitContent
   if (fit)
     return colors.paleGreen
 
@@ -21,4 +21,9 @@ export function layoutColorRule(space: Space): string {
     return colors.blue
 
   return colors.magenta
+}
+
+export function randomColorRule(): string {
+  const index = Math.floor(Math.random() * colorValues.length)
+  return colorValues[index]
 }

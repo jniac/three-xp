@@ -12,8 +12,10 @@ import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
 import * as gpuComputePen from './gpu-compute/pen/page'
 import * as gpuComputeWater from './gpu-compute/water/page'
 import * as hashGrid from './hash-grid/page'
+import * as layoutFlexAspectDistribution from './layout-flex/aspect-distribution/page'
 import * as layoutFlexDemoAspectSizeMode from './layout-flex/demo/aspect-size-mode/page'
 import * as layoutFlexDemoComputeLayout3 from './layout-flex/demo/compute-layout-3/page'
+import * as layoutFlexDemoComputeLayout from './layout-flex/demo/compute-layout/page'
 import * as layoutFlexDemoFitChildren from './layout-flex/demo/fit-children/page'
 import * as layoutFlexGrids from './layout-flex/grids/page'
 import * as noiseDemo from './noise-demo/page'
@@ -46,8 +48,11 @@ const pages = {
   'gpu-compute/pen': gpuComputePen,
   'gpu-compute/water': gpuComputeWater,
   'hash-grid': hashGrid,
+  'layout-flex/aspect-distribution': layoutFlexAspectDistribution,
   'layout-flex/demo/aspect-size-mode': layoutFlexDemoAspectSizeMode,
   'layout-flex/demo/compute-layout-3': layoutFlexDemoComputeLayout3,
+  'layout-flex/demo/compute-layout-4': layoutFlexDemoComputeLayout4,
+  'layout-flex/demo/compute-layout': layoutFlexDemoComputeLayout,
   'layout-flex/demo/fit-children': layoutFlexDemoFitChildren,
   'layout-flex/grids': layoutFlexGrids,
   'noise-demo': noiseDemo,

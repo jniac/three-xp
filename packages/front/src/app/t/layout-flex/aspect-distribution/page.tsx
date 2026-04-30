@@ -4,7 +4,7 @@ import { XpMetadata } from '@/types'
 import { PageClient } from './page.client'
 
 export const metadata = new XpMetadata({
-  slug: 'layout-flex/demo/compute-layout-3',
+  slug: 'layout-flex/aspect-distribution',
   status: 'done',
 })
 

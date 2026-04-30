@@ -1,9 +1,9 @@
-import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
-import { Kolor as K } from 'some-utils-ts/string/kolor'
 import { Scalar, ScalarType } from 'some-utils-ts/experimental/layout/flex/Scalar'
 import { Space } from 'some-utils-ts/experimental/layout/flex/Space'
 import { TreeNode } from 'some-utils-ts/experimental/layout/flex/TreeNode'
 import { Direction, Positioning } from 'some-utils-ts/experimental/layout/flex/types'
+import { Rectangle, RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
+import { Kolor as K } from 'some-utils-ts/string/kolor'
 
 // Padding order: top, right, bottom, left (Clockwise from top, same as CSS).
 const P_NY = 0 // top padding
@@ -1088,47 +1088,69 @@ function processCircularDependencies(stack: Node[], log = false) {
 }
 
 /**
- * Notes:
- * - A huge optimization opportunity would be to compute the topological sort of the dependency graph to minimize the number of passes.
+ * Resolves all relative properties in dependency order using a topological sort,
+ * eliminating the need for iterative retries.
+ *
+ * Fractional sizes (solver='waiting') cannot be sorted into the main DAG since
+ * they depend on sibling sizes being settled first. They are handled in a
+ * dedicated flow pass between two property passes:
+ *   1. Property pass  — resolves everything except fractional sizes and their dependents
+ *   2. Flow pass      — resolves fractional sizes top-down (parent before children)
+ *   3. Property pass  — resolves remaining properties (e.g. inner_size of fractional children)
+ *
+ * @param nodes - flat list of nodes in pre-order (parent before children), as returned by root.flat()
  */
-function sizePass(stack: Node[]) {
-  const nextStack = [] as Node[]
-
-  let pass = 0
-  let passMax = stack.length * 4 // Arbitrary heuristic (Up/Down/Up again). The actual number of passes is usually much lower, but this prevents infinite loops in case of unexpected circular dependencies.
-  while (stack.length > 0) {
-    if (pass++ > passMax) {
-      console.log(K.red('Max pass count reached. Possible circular dependency.'))
-      break
+function topologicalSizePass(nodes: Node[]) {
+  // Collect all properties from all nodes
+  const allProps: RelativeProperty[] = []
+  for (const node of nodes) {
+    for (const prop of node.relativeProperties()) {
+      allProps.push(prop)
     }
+  }
 
-    const node = stack.pop()!
+  // DFS post-order: a property is pushed only after all its dependencies,
+  // so iterating the result forward resolves every dependency before its dependent.
+  const visited = new Set<RelativeProperty>()
+  const topoOrder: RelativeProperty[] = []
 
-    const propertiesResolved = node.tryResolveProperties()
+  const visit = (prop: RelativeProperty): void => {
+    if (visited.has(prop)) return
+    visited.add(prop)
+    for (const dep of prop.dependencies) {
+      visit(dep)
+    }
+    topoOrder.push(prop)
+  }
 
-    const flowResolved = node.tryResolveFlow()
+  for (const prop of allProps) {
+    visit(prop)
+  }
 
-    if (propertiesResolved === false || flowResolved === false)
-      nextStack.push(node)
+  // Pass 1: resolve all non-fractional properties in a single forward sweep.
+  // Fractional sizes return false from tryResolve() (solver='waiting') and stay unresolved,
+  // as do any properties that transitively depend on them.
+  for (const prop of topoOrder) {
+    prop.tryResolve()
+  }
 
-    if (stack.length === 0) {
-      if (pass % 2) {
-        // Normal order on odd passes.
-        for (const n of nextStack) {
-          stack.push(n)
-        }
-      } else {
-        // Reversed nextStack to optimize passes:
-        // - Top-down on the first pass, which is more likely to resolve root dependencies first.
-        // - Bottom-up on the next passes, which is more likely to resolve leaf dependencies first.
-        for (let i = nextStack.length - 1; i >= 0; i--) {
-          stack.push(nextStack[i])
-        }
-      }
-      nextStack.length = 0
+  // Flow pass: resolve fractional sizes.
+  // Nodes are in pre-order so parents are processed before children — required because
+  // a parent's tryResolveFlow() assigns sizes to its fractional children, which must
+  // happen before those children can run their own flow resolution.
+  for (const node of nodes) {
+    node.tryResolveFlow()
+  }
+
+  // Pass 2: resolve properties that depended on fractional sizes (e.g. inner_size of
+  // fractional children). The topo order still holds, so a single forward sweep suffices.
+  for (const prop of topoOrder) {
+    if (!prop.resolved) {
+      prop.tryResolve()
     }
   }
 }
+
 
 function positionPass(node: Node) {
   {
@@ -1188,7 +1210,7 @@ function applyLayout(node: Node) {
  * Notes:
  * - The optional `rootRect` parameter can be used to compute partial layouts for subtrees.
  */
-export function computeLayout4(rootSpace: Space, rootRect?: RectangleDeclaration) {
+export function computeLayout4_topo(rootSpace: Space, rootRect?: RectangleDeclaration) {
   Node.nextId = 0
 
   const root = new Node(null, rootSpace).initialize()
@@ -1208,7 +1230,7 @@ export function computeLayout4(rootSpace: Space, rootRect?: RectangleDeclaration
 
   processCircularDependencies(stack)
 
-  sizePass(stack)
+  topologicalSizePass(stack)
 
   positionPass(root)
 
