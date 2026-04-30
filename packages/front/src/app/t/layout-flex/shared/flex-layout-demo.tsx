@@ -241,6 +241,7 @@ export enum DrawMode {
 export function CanvasBlock({
   root: rootArg,
   size = [800, 600],
+  name,
   title,
   description,
   drawMode = DrawMode.AllOutline,
@@ -255,6 +256,7 @@ export function CanvasBlock({
 }: {
   root: Space | Space[] | ((size: [number, number]) => Space | Space[])
   size?: Vector2Declaration | number[]
+  name?: React.ReactNode
   title: React.ReactNode
   description?: React.ReactNode
   drawMode?: DrawMode
@@ -344,14 +346,19 @@ export function CanvasBlock({
       <div>
         <canvas />
       </div>
-      <div className='mt-4 flex flex-col items-center gap-2'>
+      <div className='h-4' />
+      <div className='text-xs opacity-70'>
+        {name}
+      </div>
+      <div className='h-2' />
+      <div className='flex flex-col items-center gap-2'>
         {title}
       </div>
       {description && (
         <div className='text-sm opacity-70 text-center'>
           {typeof description === 'string'
             ? (
-              <ul>
+              <ul className='w-[40em]'>
                 {description.split('\n').filter(line => line.trim() !== '').map((line, i) => (
                   <li key={i}>{line}</li>
                 ))}

@@ -169,6 +169,55 @@ const padding1 = new Layout(
   },
 )
 
+const padding2 = new Layout(
+  'padding2',
+  'padding',
+  'Negative Padding',
+  `
+    - In contrast with CSS, negative padding (-30 on left, [-60, 30] on right) is allowed and behaves as a reverse spacing, making children overlap each other and the parent border.
+  `,
+  [800, 600],
+  { drawDirection: true },
+  () => {
+    const root = new Space({
+      size: [700, 500],
+      offset: [50, 50],
+      direction: 'horizontal',
+      gap: 10,
+    }).populate(3, { size: 200 })
+
+    root.childAt(0)!.set({
+      padding: -30,
+    }).add(
+      new Space({ padding: -5 }).add(
+        new Space({ padding: -5 }).add(
+          new Space({ padding: -5 }).add(
+            new Space({ padding: -5 }).add(
+              {}
+            ),
+          ),
+        ),
+      ),
+    )
+
+    root.childAt(2)!.set({
+      padding: [-60, 30],
+    }).add(
+      new Space({ padding: -5 }).add(
+        new Space({ padding: -5 }).add(
+          new Space({ padding: -5 }).add(
+            new Space({ padding: -5 }).add(
+              {}
+            ),
+          ),
+        ),
+      ),
+    )
+
+    return [root]
+  },
+)
+
 const fitContent1 = new Layout(
   'fitContent1',
   'fit-content',
@@ -264,54 +313,41 @@ const fitContent3 = new Layout(
   `,
   [800, 600],
   { drawDirection: true },
-  () => {
-    const spacing = 4
-    const shortSpacing = 4
-    const root = new Space({
-      size: [700, 500],
-      offset: [50, 50],
-      spacing,
-      direction: 'vertical',
-    })
+  size => {
+    const spacing = 10
+    const [root, quadrants] = Layout.utils.fourQuadrants(size, { spacing })
+    const [q1, q2, q3, q4] = quadrants
+    q1.set({ spacing })
       .add(
-        new Space({ spacing })
-          .add(
-            new Space({ spacing })
-              .add(
-                new Space({ spacing: shortSpacing, direction: 'horizontal', size: ['fit-content', 'auto'] }).add(
-                  new Space({ size: [60, 30] }),
-                  new Space({ size: [30, 60] }),
-                  new Space({ size: [30, 30] }),
-                )
-              ),
-            new Space({ spacing })
-              .add(
-                new Space({ spacing: shortSpacing, direction: 'vertical', size: ['fit-content', 'auto'] }).add(
-                  new Space({ size: [60, 30] }),
-                  new Space({ size: [30, 60] }),
-                  new Space({ size: [30, 30] }),
-                )
-              ),
-          ),
-        new Space({ spacing })
-          .add(
-            new Space({ spacing })
-              .add(
-                new Space({ spacing: shortSpacing, direction: 'horizontal', size: ['auto', 'fit-content'] }).add(
-                  new Space({ size: [60, 30] }),
-                  new Space({ size: [30, 60] }),
-                  new Space({ size: [30, 30] }),
-                )
-              ),
-            new Space({ spacing })
-              .add(
-                new Space({ spacing: shortSpacing, direction: 'vertical', size: ['auto', 'fit-content'] }).add(
-                  new Space({ size: [60, 30] }),
-                  new Space({ size: [30, 60] }),
-                  new Space({ size: [30, 30] }),
-                )
-              ),
-          ),
+        new Space({ spacing: 10, direction: 'horizontal', size: ['fit-content', 'auto'] }).add(
+          new Space({ size: [60, 30] }),
+          new Space({ size: [30, 60] }),
+          new Space({ size: [30, 30] }),
+        )
+      )
+    q2.set({ spacing })
+      .add(
+        new Space({ spacing: 10, direction: 'vertical', size: ['fit-content', 'auto'] }).add(
+          new Space({ size: [60, 30] }),
+          new Space({ size: [30, 60] }),
+          new Space({ size: [30, 30] }),
+        )
+      )
+    q3.set({ spacing })
+      .add(
+        new Space({ spacing: 10, direction: 'horizontal', size: ['auto', 'fit-content'] }).add(
+          new Space({ size: [60, 30] }),
+          new Space({ size: [30, 60] }),
+          new Space({ size: [30, 30] }),
+        )
+      )
+    q4.set({ spacing })
+      .add(
+        new Space({ spacing: 10, direction: 'vertical', size: ['auto', 'fit-content'] }).add(
+          new Space({ size: [60, 30] }),
+          new Space({ size: [30, 60] }),
+          new Space({ size: [30, 30] }),
+        )
       )
     return [root]
   },
@@ -676,15 +712,79 @@ const aspect7 = new Layout(
   },
 )
 
+const absolute1 = new Layout(
+  'absolute1',
+  'absolute',
+  'Absolute Spaces',
+  `
+    - Spaces can be absolutely positioned: they don't take part in the layout and are just placed on top of it according to their offset and size options.
+    - By default absolute spaces totally fit their parent size, acting like kindof layers (equivalent to "position: absolute; inset: 0;" in CSS)
+  `,
+  [800, 600],
+  { drawDirection: true },
+  () => {
+    const spacing = 10
+    const root = new Space({
+      size: [700, 500],
+      offset: [50, 50],
+      positioning: 'absolute',
+      spacing,
+    })
+      .add(
+        new Space({ size: 300 }).add(
+          new Space({ positioning: 'absolute', align: 0, offset: 50 }),
+          new Space({ positioning: 'absolute', align: 0, size: 80, offset: 10 }),
+          new Space({ positioning: 'absolute', align: 1, size: 80, offset: -10 }),
+        ),
+      )
+    return [root]
+  },
+)
+
+const absolute2 = new Layout(
+  'absolute2',
+  'absolute align',
+  'Absolute & Align',
+  `
+  `,
+  [800, 600],
+  { drawDirection: true },
+  () => {
+    const spacing = 10
+    const root = new Space({
+      size: [700, 500],
+      offset: [50, 50],
+      positioning: 'absolute',
+      spacing,
+    })
+      .add(
+        new Space({ size: 300, padding: 10 }).add(
+          new Space({ positioning: 'absolute', align: 0, size: 80 }),
+          new Space({ positioning: 'absolute', align: 1, size: 80 }),
+        ),
+        new Space({ size: 300, padding: 10 }).add(
+          new Space({ positioning: 'absolute', align: 0, size: 80 }),
+          new Space({ positioning: 'absolute', align: 1, size: 80 }),
+        ),
+      )
+    return [root]
+  },
+)
+
 export const layouts: Layout[] = [
   basic1,
   fractional1,
   align1,
+
   padding1,
+  padding2,
+
   fitContent1,
   fitContent2,
   fitContent3,
+
   overflow1,
+
   aspect1,
   aspect2,
   aspect3,
@@ -692,6 +792,10 @@ export const layouts: Layout[] = [
   aspect5,
   aspect6,
   aspect7,
+
+  absolute1,
+  absolute2,
+
   stressTest1,
 ]
 

@@ -3,6 +3,7 @@ import { DeleteIcon, XIcon } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { Div } from 'some-utils-react/components/div'
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { computeLayout4 } from 'some-utils-ts/experimental/layout/flex/computeLayout-4'
 import { RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
@@ -58,6 +59,7 @@ function Content({
           return (
             <CanvasBlock
               key={layout.name}
+              name={layout.key}
               title={layout.name}
               description={layout.description}
               size={layout.size}
@@ -86,7 +88,7 @@ function Content({
       </h1>
 
       {blocks.map((Block, i) => (
-        <div key={i} className='my-8' onClick={() => {
+        <Div key={i} className='my-8' onTap={() => {
           const params = new URLSearchParams(window.location.search)
           if (hashIndex === -1) {
             params.set('layout', filteredLayouts[i].key)
@@ -96,7 +98,7 @@ function Content({
           router.push(`${window.location.pathname}?${params.toString()}`)
         }}>
           <Block />
-        </div>
+        </Div>
       ))}
     </div>
   )
