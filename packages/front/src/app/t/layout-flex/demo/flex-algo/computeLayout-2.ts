@@ -43,25 +43,25 @@ class LayoutNodeSpace {
     this.children = space.children.map(child => new LayoutNodeSpace(child, this))
   }
 
-  *depthFirst_sizeXFitChildren(): Generator<LayoutNodeSpace> {
+  *depthFirst_sizeXFitContent(): Generator<LayoutNodeSpace> {
     for (const child of this.children) {
-      yield* child.depthFirst_sizeXFitChildren()
+      yield* child.depthFirst_sizeXFitContent()
     }
-    if (this.space.sizeXFitChildren)
+    if (this.space.sizeXFitContent)
       yield this
   }
 
-  *depthFirst_sizeYFitChildren(): Generator<LayoutNodeSpace> {
+  *depthFirst_sizeYFitContent(): Generator<LayoutNodeSpace> {
     for (const child of this.children) {
-      yield* child.depthFirst_sizeYFitChildren()
+      yield* child.depthFirst_sizeYFitContent()
     }
-    if (this.space.sizeYFitChildren)
+    if (this.space.sizeYFitContent)
       yield this
   }
 
   *allChildren_fractionSizeX(yieldsFraction: boolean): Generator<LayoutNodeSpace> {
     for (const sc of this.children) {
-      const is_fr = (sc.space.sizeX.type & AUTO_OR_FRACTION) !== 0 && sc.space.sizeXFitChildren === false
+      const is_fr = (sc.space.sizeX.type & AUTO_OR_FRACTION) !== 0 && sc.space.sizeXFitContent === false
       if (is_fr === yieldsFraction) {
         yield sc
       }
@@ -70,7 +70,7 @@ class LayoutNodeSpace {
 
   *allChildren_fractionSizeY(yieldsFraction: boolean): Generator<LayoutNodeSpace> {
     for (const sc of this.children) {
-      const is_fr = (sc.space.sizeY.type & AUTO_OR_FRACTION) !== 0 && sc.space.sizeYFitChildren === false
+      const is_fr = (sc.space.sizeY.type & AUTO_OR_FRACTION) !== 0 && sc.space.sizeYFitContent === false
       if (is_fr === yieldsFraction) {
         yield sc
       }
@@ -341,8 +341,8 @@ function positioningAllChildren(root: LayoutNodeSpace) {
       const sc_sx = sc.req_sx(sx, sy)
       const sc_sy = sc.req_sy(sx, sy)
       queue.push(sc)
-      const c_ax = sc.space.alignSelfX
-      const c_ay = sc.space.alignSelfY
+      const c_ax = sc.space.alignX
+      const c_ay = sc.space.alignY
       if (is_h) {
         offsetX += sc_sx + s.gap!
         const sy_avail = sy - s.pt! - s.pb! - sc_sy // Available space in Y for alignment must be computed per-child
@@ -362,7 +362,7 @@ export function computeLayout2(rootSpace: Space) {
   LayoutNodeSpace.next_id = 0
   const root = new LayoutNodeSpace(rootSpace)
 
-  for (const s of root.depthFirst_sizeXFitChildren()) {
+  for (const s of root.depthFirst_sizeXFitContent()) {
     s.req_gap(true, 0, 0) // direction doesn't matter here
     s.req_pl(0, 0)
     s.req_pr(0, 0)
@@ -383,7 +383,7 @@ export function computeLayout2(rootSpace: Space) {
     s.set_avail(0, 0)
   }
 
-  for (const s of root.depthFirst_sizeYFitChildren()) {
+  for (const s of root.depthFirst_sizeYFitContent()) {
     s.req_gap(true, 0, 0) // direction doesn't matter here
     s.req_pt(0, 0)
     s.req_pb(0, 0)

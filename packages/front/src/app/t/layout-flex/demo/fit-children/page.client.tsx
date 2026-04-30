@@ -14,6 +14,7 @@ import { D6 } from './demo/d6'
 
 import '../../shared/flex-layout-demo.css'
 import { useHash } from '../../shared/useHash'
+import { computeLayout2 } from '../flex-algo/computeLayout-2'
 
 function DemoD4() {
   const d4 = createRootD4(800, 600)
@@ -21,7 +22,7 @@ function DemoD4() {
     <CanvasBlock
       size={[800, 600]}
       root={d4.root}
-      computeLayout={root => root.computeLayout2()}
+      computeLayout={root => computeLayout2(root)}
       title={<h2>D4 Positioning Demo</h2>}
       onTick={(_, tick) => {
         d4.updateOnTick(tick)
@@ -53,7 +54,7 @@ function getCanvasBlocks() {
             .populate(3, { size: [100, 20] })
           ,
         ]}
-        computeLayout={root => root.computeLayout2()}
+        computeLayout={root => computeLayout2(root)}
         title={<h2>Simple</h2>}
       />
     ),
@@ -95,7 +96,7 @@ function getCanvasBlocks() {
             )
           ,
         ]}
-        computeLayout={root => root.computeLayout2()}
+        computeLayout={root => computeLayout2(root)}
         onTick={(roots, tick) => {
           const anim_fr = `${lerp(1, 3, tick.sin01Time({ frequency: 1 / 3 })).toFixed(4)}fr`
           for (const root of roots) {

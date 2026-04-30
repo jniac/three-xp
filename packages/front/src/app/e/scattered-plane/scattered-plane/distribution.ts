@@ -72,7 +72,7 @@ export class Distribution {
 
     const rootRect = root.rect
 
-    const spaces = [...root.allLeaves({ includeSelf: false })]
+    const spaces = [...root.allLeaves()]
     const halfManhattanSize = (sx + sy) / 2
     const nodes = spaces.map(space => {
       const rect = space.rect.clone()

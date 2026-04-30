@@ -2,6 +2,7 @@ import { Space } from 'some-utils-ts/experimental/layout/flex'
 
 import { colors } from '../../../shared/colors'
 import { CanvasBlock } from '../../../shared/flex-layout-demo'
+import { computeLayout2 } from '../../flex-algo/computeLayout-2'
 import { layoutColorRule } from './shared'
 
 export function D6() {
@@ -28,7 +29,7 @@ export function D6() {
       ]}
       colorRule={layoutColorRule}
       drawDirection
-      computeLayout={root => root.computeLayout2()}
+      computeLayout={root => computeLayout2(root)}
       tickDisabled
       onTick={(roots, tick) => {
         for (const root of roots) {

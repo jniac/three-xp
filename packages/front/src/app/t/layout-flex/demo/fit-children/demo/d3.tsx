@@ -3,6 +3,7 @@ import { easing } from 'some-utils-ts/math/easing'
 
 import { colors } from '../../../shared/colors'
 import { CanvasBlock } from '../../../shared/flex-layout-demo'
+import { computeLayout2 } from '../../flex-algo/computeLayout-2'
 
 export function D3() {
   return (
@@ -53,11 +54,11 @@ export function D3() {
           )
           .populate(3, { size: [60, 20] }),
       ]}
-      computeLayout={root => root.computeLayout2()}
+      computeLayout={root => computeLayout2(root)}
       colorRule={space => {
         if (space.isRoot())
           return colors.yellow
-        if (space.sizeXFitChildren || space.sizeYFitChildren)
+        if (space.sizeXFitContent || space.sizeYFitContent)
           return colors.magenta
         return colors.blue
       }}

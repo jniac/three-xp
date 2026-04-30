@@ -43,10 +43,10 @@ class AboutLayout {
     ),
   )
 
-  header = this.root.find('header')!
-  bottom = this.root.find('bottom')!
-  left = this.root.find('left')!
-  right = this.root.find('right')!
+  header = this.root.findSpace('header')!
+  bottom = this.root.findSpace('bottom')!
+  left = this.root.findSpace('left')!
+  right = this.root.findSpace('right')!
 
   get isReady() { return this.changeObs.value > 0 }
 }

@@ -49,8 +49,6 @@ const pages = {
   'hash-grid': hashGrid,
   'layout-flex/aspect-distribution': layoutFlexAspectDistribution,
   'layout-flex/demo/aspect-size-mode': layoutFlexDemoAspectSizeMode,
-  'layout-flex/demo/compute-layout-3': layoutFlexDemoComputeLayout3,
-  'layout-flex/demo/compute-layout-4': layoutFlexDemoComputeLayout4,
   'layout-flex/demo/compute-layout': layoutFlexDemoComputeLayout,
   'layout-flex/demo/fit-children': layoutFlexDemoFitChildren,
   'layout-flex/grids': layoutFlexGrids,

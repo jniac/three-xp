@@ -4,6 +4,7 @@
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 
 import { CanvasBlock } from '../../shared/flex-layout-demo'
+import { computeLayout2 } from '../flex-algo/computeLayout-2'
 
 import '../../shared/flex-layout-demo.css'
 
@@ -55,7 +56,7 @@ export function PageClient() {
 
           return root
         }}
-        computeLayout={r => r.computeLayout2()}
+        computeLayout={r => computeLayout2(r)}
         title={<h2><pre>childrenAspectSizeMode: undefined</pre> (default)</h2>}
       />
 
@@ -84,7 +85,7 @@ export function PageClient() {
           })
             .populate(3, { aspect: 1 })
         }
-        computeLayout={r => r.computeLayout2()}
+        computeLayout={r => computeLayout2(r)}
         title={<h2><pre>childrenAspectSizeMode: "fill-tangent-space"</pre></h2>}
       />
 

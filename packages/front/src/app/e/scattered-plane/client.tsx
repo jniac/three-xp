@@ -15,6 +15,8 @@ import { config } from '@/config'
 import { ThreeProvider, useGroup, useThree } from '@/tools/three-provider'
 import { Leak } from '@/utils/leak'
 
+import { BasicPipeline } from 'some-utils-three/contexts/webgl'
+import { tryCast } from 'some-utils-ts/types/cast'
 import { ScatteredPlane } from './scattered-plane'
 import { SkyMesh } from './SkyMesh'
 
@@ -29,7 +31,9 @@ export const mainColors = {
 function ScatteredDemo() {
   const editor = useEditor()
 
-  editor.three.pipeline.basicPasses.outline.enabled = false
+  tryCast(editor.three.pipeline, BasicPipeline, pipeline => {
+    pipeline.basicPasses.outline.enabled = false
+  })
 
   useGroup('ScatteredDemo', async function* (group, three) {
 
