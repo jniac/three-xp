@@ -20,11 +20,12 @@ import '../../shared/flex-layout-demo.css'
 
 type ComputeLayoutFn = (root: Space, rootRect?: RectangleDeclaration) => void
 
-const computeLayoutOptions = [
+const computeLayoutObjects = {
   computeLayout2,
   computeLayout3,
   computeLayout4,
-]
+}
+const computeLayoutOptions = Object.entries(computeLayoutObjects).map(([name, fn]) => ({ name, fn }))
 
 function Content({
   computeLayout = computeLayout4,
@@ -194,7 +195,7 @@ function PureClient() {
         </button>
       </div>
       {computeLayout
-        ? <Content computeLayout={computeLayout} />
+        ? <Content computeLayout={computeLayout.fn} />
         : (
           <div className='p-16 h-screen'>
             <h1 className='text-3xl text-center font-bold mb-8'>
