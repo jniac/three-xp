@@ -212,16 +212,8 @@
     "dir": "t/layout-flex/aspect-distribution"
   },
   {
-    "page": "t/layout-flex/demo/aspect-size-mode/page.tsx",
-    "dir": "t/layout-flex/demo/aspect-size-mode"
-  },
-  {
     "page": "t/layout-flex/demo/compute-layout/page.tsx",
     "dir": "t/layout-flex/demo/compute-layout"
-  },
-  {
-    "page": "t/layout-flex/demo/fit-children/page.tsx",
-    "dir": "t/layout-flex/demo/fit-children"
   },
   {
     "page": "t/layout-flex/grids/page.tsx",

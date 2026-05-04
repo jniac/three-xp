@@ -5,6 +5,7 @@
     "dev": "next dev -p 2373",
     "build:some-utils": "cd ../some-utils-ts && pnpm build && cd ../some-utils-three && pnpm build",
     "build": "pnpm build:some-utils && NEXT_DISABLE_ESLINT=true next build && touch ../../docs/.nojekyll",
+    "build:test": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest"

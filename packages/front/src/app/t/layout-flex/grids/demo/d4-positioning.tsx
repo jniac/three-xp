@@ -61,7 +61,7 @@ export function createRootD4(width: number, height: number) {
       //   .setSize('1rel')
       //   .add(
       //     new Space({
-      //       positioning: Positioning.Detached,
+      //       positioning: Positioning.Absolute,
       //       offset: ['0rel', '1rel'],
       //       size: '.7sm',
       //     })
@@ -70,47 +70,47 @@ export function createRootD4(width: number, height: number) {
 
   root.get(0, 3)!.populate(3)
 
-  const createDetached = () => {
+  const createAbsolute = () => {
     root.get(1)!.add(
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         direction: Direction.Vertical,
-        detachedSelfSpacingMode: 1,
+        selfAbsoluteSpacingMode: 1,
         size: 90,
         spacing: 10,
       })
         .populate(4),
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         alignSelf: 0,
-        detachedSelfSpacingMode: 1,
+        selfAbsoluteSpacingMode: 1,
         offset: [0, 0],
         size: 70,
         spacing: 10,
       })
         .populate(3),
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         alignSelf: [0, 1],
-        detachedSelfSpacingMode: 1,
+        selfAbsoluteSpacingMode: 1,
         size: 30,
         spacing: 10,
       })
         .populate(1),
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         alignSelf: 1,
-        detachedSelfSpacingMode: 1,
+        selfAbsoluteSpacingMode: 1,
         size: 50,
         spacing: 10,
       })
         .populate(2),
     )
   }
-  createDetached()
+  createAbsolute()
 
   const lol = new Space({
-    positioning: Positioning.Detached,
+    positioning: Positioning.Absolute,
     size: 30,
   })
     .populate(3)
@@ -118,7 +118,7 @@ export function createRootD4(width: number, height: number) {
 
   // Set color for detached spaces
   for (const child of root.allDescendants({ includeSelf: true })) {
-    if (child.positioning === Positioning.Detached) {
+    if (child.positioning === Positioning.Absolute) {
       child.set({ userData: { color: colors.yellow } })
     }
   }

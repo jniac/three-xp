@@ -18,7 +18,7 @@ export function BasicMarginDemo() {
       direction: Direction.Horizontal,
       size: [context.width, context.height],
       spacing: 10,
-      alignChildren: 1,
+      flowAlign: 1,
     })
       .add(
         new Space({ userData: { color: colors.yellow } })

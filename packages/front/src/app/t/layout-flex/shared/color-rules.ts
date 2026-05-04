@@ -1,6 +1,6 @@
 import { Direction, ScalarType, Space } from 'some-utils-ts/experimental/layout/flex'
 
-import { colors, colorValues } from '../../../shared/colors'
+import { colors, colorValues } from './colors'
 
 /**
  * Colors for layout spaces based on their properties

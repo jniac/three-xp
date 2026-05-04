@@ -40,7 +40,7 @@ export class CanvasContext {
     const computeZIndex = (space: Space) => {
       let score = 0
       for (const parent of space.allAncestors({ includeSelf: true })) {
-        score += parent.positioning === Positioning.Detached ? 100 : 1
+        score += parent.positioning === Positioning.Absolute ? 100 : 1
       }
       return score
     }

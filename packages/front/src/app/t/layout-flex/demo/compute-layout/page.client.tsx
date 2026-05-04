@@ -10,8 +10,8 @@ import { RectangleDeclaration } from 'some-utils-ts/math/geom/rectangle'
 
 import { leak } from '@/utils/leak'
 
+import { layoutColorRule, randomColorRule } from '../../shared/color-rules'
 import { CanvasBlock } from '../../shared/flex-layout-demo'
-import { layoutColorRule, randomColorRule } from '../fit-children/demo/shared'
 import { computeLayout2 } from '../flex-algo/computeLayout-2'
 import { computeLayout3 } from '../flex-algo/computeLayout-3'
 

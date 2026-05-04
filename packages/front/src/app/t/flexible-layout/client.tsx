@@ -11,8 +11,8 @@ export function Client() {
     root.parse(div.dataset.layout!)
     root.sizeX.set(div.clientWidth, ScalarType.Absolute)
     root.sizeY.set(div.clientHeight, ScalarType.Absolute)
-    root.alignChildrenX = 0
-    root.alignChildrenY = 0
+    root.flowAlignX = 0
+    root.flowAlignY = 0
 
     const queue = [{ element: div as HTMLElement, space: root }]
     while (queue.length > 0) {

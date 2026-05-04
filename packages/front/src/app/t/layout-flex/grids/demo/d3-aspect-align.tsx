@@ -49,12 +49,11 @@ export function AspectAlignDemo() {
       direction,
       size: [context.width, context.height],
       spacing: 10,
-      alignChildren: 1,
-      childrenAspectSizeMode: 'fill-tangent-space',
+      flowAlign: 1,
     })
       .add(
         new Space({
-          alignChildren: .5,
+          flowAlign: .5,
           aspect,
           spacing: 10,
           userData: { color: colors.yellow },
@@ -89,7 +88,7 @@ export function AspectAlignDemo() {
     })
 
     yield onTick('layout', tick => {
-      root.set({ alignChildren: tick.cos01Time({ frequency: 1 / 10 }) })
+      root.set({ flowAlign: tick.cos01Time({ frequency: 1 / 10 }) })
       root.get(2)!.set({ alignSelf: tick.cos01Time({ frequency: 3 / 10 }) })
       context.paint(root)
     })
@@ -118,7 +117,7 @@ export function AspectAlignDemo() {
           </button>
         </div>
         <p style={{ color: colors.magenta }}>
-          <code>alignSelf</code> allows the children to override the parent&apos;s <code>alignChildren</code>.
+          <code>alignSelf</code> allows the children to override the parent&apos;s <code>flowAlign</code>.
         </p>
       </div>
     </div>

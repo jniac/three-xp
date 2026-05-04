@@ -1,5 +1,6 @@
 import { Space } from 'some-utils-ts/experimental/layout/flex'
 import { computeLayout4 } from 'some-utils-ts/experimental/layout/flex/computeLayout-4'
+import { colors } from '../../shared/colors'
 
 class Layout {
   tags: string[]
@@ -105,7 +106,7 @@ const align1 = new Layout(
   'Align 1',
   `
     - align
-    - alignChildren
+    - flowAlign
   `,
   [800, 600],
   { drawDirection: true },
@@ -121,20 +122,20 @@ const align1 = new Layout(
         .add(
           new Space({ spacing, size: '3fr' })
             .add(
-              new Space({ spacing, direction: 'vertical', sizeY: '50%', align: 0, alignChildren: 0 })
+              new Space({ spacing, direction: 'vertical', sizeY: '50%', align: 0, flowAlign: 0 })
                 .populate(2, { sizeY: '20%' }),
               new Space({ spacing, direction: 'vertical', sizeY: '50%' })
                 .populate(2, { sizeY: '20%' }),
-              new Space({ spacing, direction: 'vertical', sizeY: '50%', align: 1, alignChildren: 1 })
+              new Space({ spacing, direction: 'vertical', sizeY: '50%', align: 1, flowAlign: 1 })
                 .populate(2, { sizeY: '20%' }),
             ),
           new Space({ spacing, size: '2fr', direction: 'vertical' })
             .add(
-              new Space({ spacing, sizeX: '50%', align: 0, alignChildren: 0 })
+              new Space({ spacing, sizeX: '50%', align: 0, flowAlign: 0 })
                 .populate(2, { sizeX: '20%' }),
               new Space({ spacing, sizeX: '50%' })
                 .populate(2, { sizeX: '20%' }),
-              new Space({ spacing, sizeX: '50%', align: 1, alignChildren: 1 })
+              new Space({ spacing, sizeX: '50%', align: 1, flowAlign: 1 })
                 .populate(2, { sizeX: '20%' }),
             ),
         )
@@ -240,7 +241,7 @@ const fitContent1 = new Layout(
         .add(
           new Space({
             size: 'fit-content',
-            // alignChildren: 1,
+            // flowAlign: 1,
             spacing,
           })
             .add(
@@ -256,7 +257,7 @@ const fitContent1 = new Layout(
         direction: 'horizontal',
       })
         .add(
-          new Space({ size: 'fit-content', alignChildren: 1, spacing: 10 }).add(
+          new Space({ size: 'fit-content', flowAlign: 1, spacing: 10 }).add(
             new Space({ size: [100, 50] }),
             new Space({ size: [50, 100] }),
             new Space({ size: [100, 50] }),
@@ -353,6 +354,42 @@ const fitContent3 = new Layout(
   },
 )
 
+const fitContent4 = new Layout(
+  'fitContent4',
+  'fit-content aspect',
+  'Fit-Content + Aspect',
+  `
+    - Q1: aspect on children
+  `,
+  [800, 600],
+  {},
+  size => {
+    const spacing = 10
+    const [root, quadrants] = Layout.utils.fourQuadrants(size, { spacing })
+    const [q1, q2, q3, q4] = quadrants
+    q1.set({ spacing })
+      .add(
+        new Space({ spacing: 10, size: 'fit-content' }).add(
+          new Space({ size: [60, 30] }),
+          new Space({ size: [30, 60] }),
+          new Space({ spacing: 10, size: 'fit-content' }).add(
+            new Space({ aspect: 1, sizeX: 60, userData: { drawSizeBars: 0b10 } }),
+            new Space({ aspect: 1, sizeY: 60, userData: { drawSizeBars: 0b01 } }),
+          ),
+        ),
+      )
+    q2.set({ spacing })
+      .add(
+        new Space({ spacing: 10, size: ['fit-content', 'auto'], aspect: 1 }).add(
+          new Space({ aspect: 1, sizeX: 60, userData: { drawSizeBars: 0b10 } }),
+          new Space({ aspect: 1, sizeY: 60, userData: { drawSizeBars: 0b01 } }),
+        )
+      )
+    q3.parent?.removeFromParent() // remove lower half
+    return [root]
+  },
+)
+
 const overflow1 = new Layout(
   'overflow1',
   'overflow',
@@ -371,7 +408,7 @@ const overflow1 = new Layout(
       padding: [80],
     })
       .add(
-        new Space({ spacing, alignChildren: 0 })
+        new Space({ spacing, flowAlign: 0 })
           .populate(1, { size: 80 })
           .add(
             new Space({ size: '1fr' }),
@@ -379,7 +416,7 @@ const overflow1 = new Layout(
           )
           .populate(1, { size: 80 })
         ,
-        new Space({ spacing, alignChildren: .5 })
+        new Space({ spacing, flowAlign: .5 })
           .populate(1, { size: 80 })
           .add(
             new Space({ size: '1fr' }),
@@ -387,7 +424,7 @@ const overflow1 = new Layout(
           )
           .populate(1, { size: 80 })
         ,
-        new Space({ spacing, alignChildren: 1 })
+        new Space({ spacing, flowAlign: 1 })
           .populate(1, { size: 80 })
           .add(
             new Space({ size: '1fr' }),
@@ -456,10 +493,10 @@ const aspect1 = new Layout(
     const [root, quadrants] = Layout.utils.fourQuadrants(size)
     const [q1, q2, q3, q4] = quadrants
     const pr = 3
-    q1.set({ alignChildren: 0 }).add({ aspect: pr })
-    q2.set({ alignChildren: 1 }).add({ aspect: 1 / pr })
-    q3.set({ alignChildren: 1, direction: 'vertical' }).add({ aspect: pr })
-    q4.set({ alignChildren: 0, direction: 'vertical' }).add({ aspect: 1 / pr })
+    q1.set({ flowAlign: 0 }).add({ aspect: pr })
+    q2.set({ flowAlign: 1 }).add({ aspect: 1 / pr })
+    q3.set({ flowAlign: 1, direction: 'vertical' }).add({ aspect: pr })
+    q4.set({ flowAlign: 0, direction: 'vertical' }).add({ aspect: 1 / pr })
     return [root]
   },
 )
@@ -482,7 +519,7 @@ const aspect2 = new Layout(
       padding: ['10%', 10],
     })
       .add(
-        new Space({ spacing, userData: { drawQuadrant: .5 } })
+        new Space({ spacing, userData: { drawQuadrants: .5 } })
           .add(
             new Space({ aspect: 2 }),
             new Space({ aspect: 1 / 2 }),
@@ -491,7 +528,7 @@ const aspect2 = new Layout(
             new Space({ aspect: 1 / 2 }),
           )
         ,
-        new Space({ spacing, direction: 'vertical', userData: { drawQuadrant: .5 } })
+        new Space({ spacing, direction: 'vertical', userData: { drawQuadrants: .5 } })
           .add(
             new Space({ aspect: 2 }),
             new Space({ aspect: 1 / 2 }),
@@ -522,12 +559,12 @@ const aspect3 = new Layout(
       q.set({ spacing })
     }
     const [q1, q2, q3, q4] = quadrants
-    q1.set({ alignChildren: 0 }).add(
+    q1.set({ flowAlign: 0 }).add(
       new Space({ aspect: 4 }),
       new Space({ aspect: 1 }),
       new Space({ aspect: 1 / 4 }),
     )
-    q2.set({ alignChildren: 1, direction: 'vertical' }).add(
+    q2.set({ flowAlign: 1, direction: 'vertical' }).add(
       new Space({ aspect: 4 }),
       new Space({ aspect: 1 }),
       new Space({ aspect: 1 / 4 }),
@@ -700,7 +737,7 @@ const aspect7 = new Layout(
     q4.add(
       new Space({}),
       new Space({ aspect: 1 / 4 }),
-      new Space({ aspect: 1, sizeY: 'fit-content', spacing: 10, alignChildren: 0 }).add(
+      new Space({ aspect: 1, sizeY: 'fit-content', spacing: 10, flowAlign: 0 }).add(
         new Space({ size: 50 }),
         new Space({ size: 50 }),
         new Space({ size: 50 }),
@@ -744,8 +781,11 @@ const absolute1 = new Layout(
 const absolute2 = new Layout(
   'absolute2',
   'absolute align',
-  'Absolute & Align',
+  'Absolute, Align & Absolute Spacing Mode',
   `
+    - <span style="color:${colors.magenta};">(left)</span> absolute spacing mode = 0 (default)
+    - <span style="color:${colors.orange};">(right, orange)</span> absolute spacing mode = 1 (via "childrenAbsoluteSpacingMode")
+    - <span style="color:${colors.pink};">(right, pink)</span> absolute spacing mode = 0, self override (via "selfAbsoluteSpacingMode")
   `,
   [800, 600],
   { drawDirection: true },
@@ -758,13 +798,60 @@ const absolute2 = new Layout(
       spacing,
     })
       .add(
-        new Space({ size: 300, padding: 10 }).add(
-          new Space({ positioning: 'absolute', align: 0, size: 80 }),
-          new Space({ positioning: 'absolute', align: 1, size: 80 }),
+        new Space({ size: 300, padding: 10, userData: { drawQuadrants: .15 } }).add(
+          new Space({ positioning: 'absolute' }),
+          new Space({ positioning: 'absolute', size: '50%', align: 0 }),
+          new Space({ positioning: 'absolute', align: 0, size: 100 }),
+          new Space({ positioning: 'absolute', align: 1, size: 100 }),
         ),
-        new Space({ size: 300, padding: 10 }).add(
-          new Space({ positioning: 'absolute', align: 0, size: 80 }),
-          new Space({ positioning: 'absolute', align: 1, size: 80 }),
+        new Space({
+          size: 300,
+          padding: 25,
+          childrenAbsoluteSpacingMode: 1,
+          userData: { drawQuadrants: .15, color: colors.orange },
+        }).add(
+          new Space({ positioning: 'absolute' }),
+          new Space({ positioning: 'absolute', selfAbsoluteSpacingMode: 0, size: '50%', align: 0, userData: { color: colors.pink } }),
+          new Space({ positioning: 'absolute', align: 0, size: 100 }),
+          new Space({ positioning: 'absolute', align: 1, size: 100 }),
+        ),
+      )
+    root.setAll(s => s.isLeaf(), { userData: { drawCorners: true } })
+    return [root]
+  },
+)
+
+const absolute3 = new Layout(
+  'absolute3',
+  'absolute align fit-content',
+  'Absolute, Align & Fit-Content',
+  `
+  `,
+  [800, 600],
+  { drawDirection: true },
+  () => {
+    const spacing = 30
+    const root = new Space({
+      size: [700, 500],
+      offset: [50, 50],
+      positioning: 'absolute',
+      spacing,
+    })
+      .add(
+        new Space({ positioning: 'absolute', size: 'fit-content', spacing: 10, align: 0 }).add(
+          new Space({ size: [100, 50] }),
+          new Space({ size: [50, 100] }),
+          new Space({ size: [100, 50] }),
+        ),
+        new Space({ positioning: 'absolute', size: 'fit-content', spacing: 10, selfAbsoluteSpacingMode: 1 }).add(
+          new Space({ size: [100, 50] }),
+          new Space({ size: [50, 100] }),
+          new Space({ size: [100, 50] }),
+        ),
+        new Space({ positioning: 'absolute', size: 'fit-content', spacing: 10, align: 1, selfAbsoluteSpacingMode: 1 }).add(
+          new Space({ size: [100, 50] }),
+          new Space({ size: [50, 100] }),
+          new Space({ size: [100, 50] }),
         ),
       )
     return [root]
@@ -782,6 +869,8 @@ export const layouts: Layout[] = [
   fitContent1,
   fitContent2,
   fitContent3,
+  fitContent4,
+
 
   overflow1,
 
@@ -795,6 +884,7 @@ export const layouts: Layout[] = [
 
   absolute1,
   absolute2,
+  absolute3,
 
   stressTest1,
 ]

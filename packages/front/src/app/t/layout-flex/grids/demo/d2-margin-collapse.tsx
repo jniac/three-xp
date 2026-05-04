@@ -30,7 +30,7 @@ export function MarginCollapseDemo() {
       direction: Direction.Horizontal,
       size: [context.width, context.height],
       spacing: 10,
-      alignChildren: 1,
+      flowAlign: 1,
     })
       .add(
         new Space({ spacing: 10, userData: { color: '#fff2' } })
@@ -46,7 +46,7 @@ export function MarginCollapseDemo() {
 
     root.get(0, 2)?.add(
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         alignSelf: 0,
         size: [38, 38],
         offset: [-39, -39],
@@ -56,7 +56,7 @@ export function MarginCollapseDemo() {
 
     root.get(0, 4)?.add(
       new Space({
-        positioning: Positioning.Detached,
+        positioning: Positioning.Absolute,
         alignSelf: 0,
         size: [118, 118],
         offset: [-119, -119],

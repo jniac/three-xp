@@ -43,7 +43,8 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
       diagonals: (options?.diagonals && space.isLeaf()) || space.userData.drawDiagonals,
       sizeBars: space.userData.drawSizeBars,
       lateralHandles: space.userData.drawLateralHandles,
-      quadrant: space.userData.drawQuadrant,
+      quadrants: space.userData.drawQuadrants,
+      corners: space.userData.drawCorners,
     })
     ctx.font = '16px sans-serif'
     ctx.textBaseline = 'top'
@@ -58,10 +59,11 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
   const ctxRect = ({ x = 0, y = 0, width: w = 1, height: h = 1 }, {
     center = false,
     arrow = undefined as Direction | undefined,
+    corners = false,
     diagonals = false,
     lateralHandles = false as boolean | number,
     sizeBars = false as boolean | number,
-    quadrant = false as boolean | number,
+    quadrants = false as boolean | number,
     origin = undefined as 'top-left' | 'center' | undefined,
     stroke = undefined as string | undefined,
     lineWidth = undefined as number | undefined,
@@ -114,8 +116,8 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
         ctx.stroke()
         ctx.globalAlpha = 1
       }
-      if (quadrant) {
-        ctx.globalAlpha = quadrant === true ? 0.25 : quadrant
+      if (quadrants) {
+        ctx.globalAlpha = quadrants === true ? 0.25 : quadrants
         ctx.beginPath()
         ctx.moveTo(x + w / 2, y)
         ctx.lineTo(x + w / 2, y + h)
@@ -124,6 +126,23 @@ function initFlexLayoutDemoCanvas(parent: HTMLElement, {
         ctx.closePath()
         ctx.stroke()
         ctx.globalAlpha = 1
+      }
+      if (corners) {
+        const sz = 7
+        ctx.beginPath()
+        ctx.moveTo(x, y + sz)
+        ctx.lineTo(x + sz, y + sz)
+        ctx.lineTo(x + sz, y)
+        ctx.moveTo(x + w - sz, y)
+        ctx.lineTo(x + w - sz, y + sz)
+        ctx.lineTo(x + w, y + sz)
+        ctx.moveTo(x + w, y + h - sz)
+        ctx.lineTo(x + w - sz, y + h - sz)
+        ctx.lineTo(x + w - sz, y + h)
+        ctx.moveTo(x + sz, y + h)
+        ctx.lineTo(x + sz, y + h - sz)
+        ctx.lineTo(x, y + h - sz)
+        ctx.stroke()
       }
       if (sizeBars) {
         const mask = typeof sizeBars === 'boolean' ? 0b11 : sizeBars
@@ -360,7 +379,7 @@ export function CanvasBlock({
             ? (
               <ul className='w-[40em]'>
                 {description.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                  <li key={i}>{line}</li>
+                  <li key={i} dangerouslySetInnerHTML={{ __html: line }} />
                 ))}
               </ul>
             )

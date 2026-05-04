@@ -6,6 +6,7 @@ export const baseColors = {
   paleGreen: '#00ffcc',
   vibrantBlue: '#1c55ff',
   pink: '#ffccff',
+  orange: '#fb8116',
 }
 
 export const extraColors = {

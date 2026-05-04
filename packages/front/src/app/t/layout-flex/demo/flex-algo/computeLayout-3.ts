@@ -122,7 +122,7 @@ class Node {
     this.space = space
     this.parent = parent
     this.is_h = space.direction === Direction.Horizontal
-    this.is_detached = space.positioning === Positioning.Detached
+    this.is_detached = space.positioning === Positioning.Absolute
     const p_is_h = parent?.is_h ?? true
 
     this.fractionalInTangentSpace = p_is_h
@@ -328,7 +328,7 @@ function nonFitSizePass(root: Node) {
 
         else {
           if (c.sizeComputed === false) {
-            const sm = c.space.detachedSpacingMode ?? n.space.detachedChildrenSpacingMode
+            const sm = c.space.selfAbsoluteSpacingMode ?? n.space.childrenAbsoluteSpacingMode
             const lsx = n.sx * (1 - sm) + isx * sm
             const lsy = n.sy * (1 - sm) + isy * sm
             const c_sx = c.space.sizeX.compute(lsx, lsy)
@@ -370,7 +370,7 @@ function nonFitSizePass(root: Node) {
 
         else {
           if (c.sizeComputed === false) {
-            const sm = c.space.detachedSpacingMode ?? n.space.detachedChildrenSpacingMode
+            const sm = c.space.selfAbsoluteSpacingMode ?? n.space.childrenAbsoluteSpacingMode
             const lsx = n.sx * (1 - sm) + isx * sm
             const lsy = n.sy * (1 - sm) + isy * sm
             const c_sx = c.space.sizeX.compute(lsx, lsy)
@@ -469,8 +469,8 @@ function positionPass(root: Node) {
     let y = n.py + n.pt
 
     for (const c of n.flowChildren) {
-      const ax = c.space.alignX ?? n.space.alignChildrenX
-      const ay = c.space.alignY ?? n.space.alignChildrenX
+      const ax = c.space.alignX ?? n.space.flowAlignX
+      const ay = c.space.alignY ?? n.space.flowAlignX
       const ox = c.space.offsetX.compute(c.sx, c.sy)
       const oy = c.space.offsetY.compute(c.sy, c.sx)
       if (n.is_h) {
@@ -489,7 +489,7 @@ function positionPass(root: Node) {
     for (const c of n.detachedChildren) {
       const ay = c.space.alignY ?? .5
       const ax = c.space.alignX ?? .5
-      const sm = c.space.detachedSpacingMode ?? n.space.detachedChildrenSpacingMode
+      const sm = c.space.selfAbsoluteSpacingMode ?? n.space.childrenAbsoluteSpacingMode
       const ox = c.space.offsetX.compute(c.sx, c.sy)
       const oy = c.space.offsetY.compute(c.sy, c.sx)
       c.px = ox + n.px + n.pl * sm + (n.sx - (n.pl + n.pr) * sm - c.sx) * ax
