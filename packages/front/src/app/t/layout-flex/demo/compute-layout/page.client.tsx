@@ -29,9 +29,9 @@ const computeLayoutObjects = {
 const computeLayoutOptions = Object.entries(computeLayoutObjects).map(([name, fn]) => ({ name, fn }))
 
 function Content({
-  computeLayout = computeLayout4,
+  computeLayout = computeLayoutOptions[3],
 }: {
-  computeLayout?: ComputeLayoutFn,
+  computeLayout?: { name: string, fn: ComputeLayoutFn },
 }) {
   leak({ Space })
 
@@ -54,7 +54,7 @@ function Content({
         try {
           const roots = layout.getRoots(layout.size)
           for (const root of roots) {
-            computeLayout(root)
+            computeLayout.fn(root)
           }
           return (
             <CanvasBlock
@@ -63,7 +63,7 @@ function Content({
               title={layout.name}
               description={layout.description}
               size={layout.size}
-              computeLayout={computeLayout}
+              computeLayout={computeLayout.fn}
               colorRule={layout.props.randomColors ? randomColorRule : layoutColorRule}
               root={roots}
               {...layout.props}
@@ -197,7 +197,7 @@ function PureClient() {
         </button>
       </div>
       {computeLayout
-        ? <Content computeLayout={computeLayout.fn} />
+        ? <Content computeLayout={computeLayout} />
         : (
           <div className='p-16 h-screen'>
             <h1 className='text-3xl text-center font-bold mb-8'>
