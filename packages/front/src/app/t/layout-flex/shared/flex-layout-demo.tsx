@@ -333,7 +333,7 @@ export function CanvasBlock({
                 continue
 
               const color = getColor(child)
-              const arrow = drawDirection ? child.direction : undefined
+              const arrow = child.hasChild() && drawDirection ? child.direction : undefined
               handler.ctxSpace(child, {
                 stroke: color,
                 arrow,

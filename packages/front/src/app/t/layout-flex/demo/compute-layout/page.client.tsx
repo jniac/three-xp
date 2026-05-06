@@ -43,10 +43,6 @@ function Content({
   const filteredLayouts = layouts.filter(layout => !tagName || layout.tags.includes(tagName))
   const hashIndex = filteredLayouts.findIndex(layout => layout.key === layoutKey)
 
-  layouts.forEach(layout => {
-    console.log(`Layout "${layout.name}" tags: ${layout.tags.join(', ')}`)
-  })
-
   const blocks = filteredLayouts
     .filter((_, i) => hashIndex === -1 || hashIndex === i)
     .map(layout => {
@@ -59,7 +55,7 @@ function Content({
           return (
             <CanvasBlock
               key={layout.name}
-              name={layout.key}
+              name={layout.key + (layout.tags.includes('problematic') ? ' (⚠️ problematic)' : '')}
               title={layout.name}
               description={layout.description}
               size={layout.size}

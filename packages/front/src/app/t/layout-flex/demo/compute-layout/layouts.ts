@@ -29,14 +29,10 @@ class Layout {
         direction: 'vertical',
       })
         .add(
-          new Space({ userData: { skipDraw: true } }).add(
-            new Space({ name: 'quadrant', spacing }),
-            new Space({ name: 'quadrant', spacing }),
-          ),
-          new Space({ userData: { skipDraw: true } }).add(
-            new Space({ name: 'quadrant', spacing }),
-            new Space({ name: 'quadrant', spacing }),
-          ),
+          new Space({ name: 'quadrant', positioning: 'absolute', size: '50%', selfAbsoluteSpacingMode: 1, align: [0, 0], spacing }),
+          new Space({ name: 'quadrant', positioning: 'absolute', size: '50%', selfAbsoluteSpacingMode: 1, align: [1, 0], spacing }),
+          new Space({ name: 'quadrant', positioning: 'absolute', size: '50%', selfAbsoluteSpacingMode: 1, align: [0, 1], spacing }),
+          new Space({ name: 'quadrant', positioning: 'absolute', size: '50%', selfAbsoluteSpacingMode: 1, align: [1, 1], spacing }),
         )
       const quadrants = root.findAll(s => s.name === 'quadrant').toArray()
       return [root, quadrants] as const
@@ -388,6 +384,66 @@ const fitContent4 = new Layout(
     q3.parent?.removeFromParent() // remove lower half
     return [root]
   },
+)
+
+const fitContent5 = new Layout(
+  'fitContent5',
+  'fit-content problematic',
+  `Fit-Content and Auto/Relative on normal-axis children's size`,
+  `
+    - Q1: No definite size on normal axis children.
+    - Q2: At least <span style="color: ${colors.orange}">one child</span> has a definite size on the normal axis.
+    - Q3: One direction only
+    - Q4: Nested fit-content ✅
+    - ⚠️: Will be problematic with "aspect" children (not resolved now)
+  `,
+  [800, 600],
+  { drawDirection: true },
+  size => {
+    const spacing = 10
+    const [root, quadrants] = Layout.utils.fourQuadrants(size, { spacing })
+    const [q1, q2, q3, q4] = quadrants
+    q1.add(
+      new Space({ spacing, size: 'fit-content' }).add(
+        new Space({ size: [30, 'auto'] }),
+        new Space({ size: [30, 'auto'] }),
+        new Space({ size: [30, '50%'] }),
+        new Space({ size: [30, '200%'] }),
+      ),
+    )
+    q2.add(
+      new Space({ spacing, size: 'fit-content' }).add(
+        new Space({ size: [30, 90], userData: { drawCorners: 0b1111, color: colors.orange } }),
+        new Space({ size: [30, 'auto'] }),
+        new Space({ size: [30, '50%'] }),
+        new Space({ size: [30, '200%'] }),
+      ),
+    )
+    q3.add(
+      new Space({ spacing, size: ['auto', 'fit-content'] }).add(
+        new Space({ size: [30, 90], userData: { drawCorners: 0b1111, color: colors.orange } }),
+        new Space({ size: [30, 'auto'] }),
+        new Space({ size: [30, '50%'] }),
+        new Space({ size: [30, '200%'] }),
+      ),
+    )
+    q4.add(
+      new Space({ spacing, size: 'fit-content', direction: 'vertical' }).add(
+        new Space({ spacing, size: 'fit-content' }).add(
+          new Space({ sizeX: 30 }),
+          new Space({ spacing, size: 'fit-content' }).add(
+            new Space({ size: [30, 90], userData: { drawCorners: 0b1111, color: colors.orange } }),
+            new Space({ size: [30, 'auto'] }),
+            new Space({ size: [30, '50%'] }),
+            new Space({ size: [30, '200%'] }),
+          ),
+          new Space({ sizeX: 30 }),
+        ),
+        new Space({ sizeY: 30 }),
+      ),
+    )
+    return [root]
+  }
 )
 
 const overflow1 = new Layout(
@@ -870,7 +926,7 @@ export const layouts: Layout[] = [
   fitContent2,
   fitContent3,
   fitContent4,
-
+  fitContent5,
 
   overflow1,
 
