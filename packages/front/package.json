@@ -34,7 +34,7 @@
     "some-utils-react": "workspace:*",
     "some-utils-three": "workspace:*",
     "some-utils-ts": "workspace:*",
-    "three": "~0.176.0",
+    "three": "~0.184.0",
     "vitest": "^3.1.4"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "@types/react-dom": "^19.1.5",
     "@types/react-katex": "^3.0.4",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@types/three": "^0.176.0",
+    "@types/three": "^0.184.1",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.8",
     "postcss": "^8.4.47",

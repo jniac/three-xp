@@ -92,6 +92,10 @@
     "dir": "e/scattered-plane"
   },
   {
+    "page": "e/scroll/page.tsx",
+    "dir": "e/scroll"
+  },
+  {
     "page": "e/two-env-demo/page.tsx",
     "dir": "e/two-env-demo"
   },

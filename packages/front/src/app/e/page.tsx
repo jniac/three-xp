@@ -25,6 +25,7 @@ import * as ovvoLayers from './ovvo/layers/page'
 import * as pathWithLoop from './path-with-loop/page'
 import * as proceduralTree from './procedural-tree/page'
 import * as scatteredPlane from './scattered-plane/page'
+import * as scroll from './scroll/page'
 import * as twoEnvDemo from './two-env-demo/page'
 import * as zigZag from './zig-zag/page'
 
@@ -51,6 +52,7 @@ const pages = {
   'path-with-loop': pathWithLoop,
   'procedural-tree': proceduralTree,
   'scattered-plane': scatteredPlane,
+  'scroll': scroll,
   'two-env-demo': twoEnvDemo,
   'zig-zag': zigZag,
 }

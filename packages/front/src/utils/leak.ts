@@ -9,6 +9,7 @@ import { waveform } from 'some-utils-ts/math/waveform'
 import { Message } from 'some-utils-ts/message'
 import * as observables from 'some-utils-ts/observables'
 import { PRNG } from 'some-utils-ts/random/prng'
+import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import { dedent } from 'some-utils-ts/string/dedent'
 import { Ticker } from 'some-utils-ts/ticker'
 
@@ -26,6 +27,7 @@ export function leak(leakedProps?: Record<string, any>) {
       Ticker,
       controls,
       Rectangle,
+      RandomUtils,
     })
   }
 }
