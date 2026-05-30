@@ -20,6 +20,7 @@ const nextConfig = {
   assetPrefix: isProd ? '/three-xp/' : '',
 
   webpack(config) {
+    config.module.exprContextCritical = false // Suppress critical dependency warnings for dynamic imports (eg.: Rapier with three.js)
     config.module.rules.push(
       {
         resourceQuery: /raw/, // support ?raw

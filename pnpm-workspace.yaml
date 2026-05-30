@@ -1,2 +1,17 @@
 packages:
-- 'packages/*'
+  - 'packages/*'
+
+overrides:
+  three: '0.184.0'
+  '@types/three': '0.184.1'
+  react: '19.1.0'
+  react-dom: '19.1.0'
+
+patchedDependencies:
+  jolt-physics: patches/jolt-physics.patch
+
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

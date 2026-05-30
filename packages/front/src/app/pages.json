@@ -132,6 +132,10 @@
     "dir": "l"
   },
   {
+    "page": "l/quaternion/page.tsx",
+    "dir": "l/quaternion"
+  },
+  {
     "page": "l/transform-with-shear/0-intro/page.tsx",
     "dir": "l/transform-with-shear/0-intro"
   },
