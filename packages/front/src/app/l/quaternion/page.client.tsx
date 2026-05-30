@@ -3,15 +3,12 @@ import { Euler, Mesh, Quaternion, Vector3 } from 'three'
 
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ChangeInfo, InspectorView, UserEvent } from 'some-utils-misc/inspector'
-import { ThreeProvider, useGroup, useThree } from 'some-utils-misc/three-provider'
+import { ThreeProvider, useThree } from 'some-utils-misc/three-provider'
 import { Defer } from 'some-utils-react/components/defer'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { RoundedAxesGeometry } from 'some-utils-three/geometries/RoundedAxesGeometry'
-import { DebugHelper } from 'some-utils-three/helpers/debug'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { setup } from 'some-utils-three/utils/tree'
 import { find } from 'some-utils-three/utils/tree/find'
 import { deepCopy } from 'some-utils-ts/object/deep'
+import { Content3D } from './Content3D'
 
 function normalizeQuaternion(value: Quaternion, key: string) {
   let { x, y, z, w } = value
@@ -26,7 +23,7 @@ function normalizeQuaternion(value: Quaternion, key: string) {
         y = z = w = Math.sqrt((1 - x * x) / 3)
       }
       else {
-        const s = r1 > 0 ? r1 / r2 : 0
+        const s = r1 / r2
         y *= s
         z *= s
         w *= s
@@ -44,7 +41,7 @@ function normalizeQuaternion(value: Quaternion, key: string) {
         x = z = w = Math.sqrt((1 - y * y) / 3)
       }
       else {
-        const s = r1 > 0 ? r1 / r2 : 0
+        const s = r1 / r2
         x *= s
         z *= s
         w *= s
@@ -62,7 +59,7 @@ function normalizeQuaternion(value: Quaternion, key: string) {
         x = y = w = Math.sqrt((1 - z * z) / 3)
       }
       else {
-        const s = r1 > 0 ? r1 / r2 : 0
+        const s = r1 / r2
         x *= s
         y *= s
         w *= s
@@ -80,7 +77,7 @@ function normalizeQuaternion(value: Quaternion, key: string) {
         x = y = z = Math.sqrt((1 - w * w) / 3)
       }
       else {
-        const s = r1 > 0 ? r1 / r2 : 0
+        const s = r1 / r2
         x *= s
         y *= s
         z *= s
@@ -94,19 +91,6 @@ function normalizeQuaternion(value: Quaternion, key: string) {
     }
   }
   value.set(x, y, z, w)
-}
-
-function Content3D() {
-  useGroup('content3d', function* (group) {
-    setup(new DebugHelper().regularGrid(), group)
-
-    const mesh = setup(new Mesh(
-      new RoundedAxesGeometry(),
-      new AutoLitMaterial({ vertexColors: true }),
-    ), group)
-
-  }, [])
-  return null
 }
 
 const rotationMeta = `
@@ -123,7 +107,6 @@ function InspectorComponent() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const inspector1 = new InspectorView()
     const mesh = find(three.scene, Mesh)!
-    console.log('Mesh found', mesh)
     inspector1.registerFields([
       {
         key: 'position',
@@ -179,21 +162,41 @@ function InspectorComponent() {
   return (
     <div
       ref={ref}
-      className='flex-1 w-[300px]'
+      className='flex-1'
     />
   )
 }
 
 function UI() {
+  const Panel = ({ className, style, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div
+      className={`w-fit flex p-2 rounded-lg border border-white/20 ${className ?? ''}`}
+      style={{
+        backdropFilter: 'blur(32px) brightness(1.5)',
+        ...style,
+      }}
+      {...props}
+    />
+  )
   return (
-    <div className='layer thru p-8 flex flex-col gap-4'>
+    <div className='layer thru p-8 flex flex-col gap-1'>
       <h1 className='text-2xl font-bold'>
         Quaternion Inspector
       </h1>
       <FpsMeter />
       <Defer>
-        <InspectorComponent />
+        <Panel>
+          <InspectorComponent />
+        </Panel>
       </Defer>
+      <Panel className='w-[298px] flex flex-col gap-2 text-white/80'>
+        <h2>
+          Reminder:
+        </h2>
+        <p className='text-xs'>
+          q1^-1 * q2 is not equal to q2 * q1^-1. The order of multiplication matters in quaternions, and it can be used to achieve different rotations.
+        </p>
+      </Panel>
     </div>
   )
 }
@@ -204,6 +207,7 @@ export default function Page() {
       vertigoControls={{
         rotation: '-20deg, -20deg, 0',
         eventTarget: 'canvas',
+        size: 10,
       }}
     >
       <UI />
