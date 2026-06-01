@@ -20,7 +20,10 @@ export function Content3D() {
     setup(new Mesh(
       new RoundedAxesGeometry(),
       new AutoLitMaterial({ vertexColors: true }),
-    ), group)
+    ), {
+      name: 'QuaternionMesh',
+      parent: group,
+    })
 
     const q1 = new Quaternion().setFromEuler(fromEulerDeclaration('0deg, 90deg, -50deg'))
     const q2 = new Quaternion().setFromEuler(fromEulerDeclaration('30deg, 0deg, -50deg'))

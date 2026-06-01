@@ -1,5 +1,5 @@
 'use client'
-import { Euler, Mesh, Quaternion, Vector3 } from 'three'
+import { Euler, Quaternion, Vector3 } from 'three'
 
 import { FpsMeter } from 'some-utils-misc/fps-meter'
 import { ChangeInfo, InspectorView, UserEvent } from 'some-utils-misc/inspector'
@@ -106,7 +106,7 @@ function InspectorComponent() {
   const three = useThree()
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const inspector1 = new InspectorView()
-    const mesh = find(three.scene, Mesh)!
+    const mesh = find(three.scene, 'QuaternionMesh')!
     inspector1.registerFields([
       {
         key: 'position',
