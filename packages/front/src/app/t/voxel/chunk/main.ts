@@ -49,6 +49,9 @@ export class Main extends Group {
     const v1 = new Vector3()
     const v2 = new Vector3()
 
+    const emptyVoxel = new Uint8Array(4) // Assuming 4 bytes per voxel state, initialized to all zeros
+    const solidVoxel = new Uint8Array(4).fill(0xff)
+
     {
       const chunk = new Chunk(SIZE)
       for (const { x, y, z } of loop3(SIZE, SIZE, SIZE)) {
@@ -56,7 +59,7 @@ export class Main extends Group {
         const [nx, nz] = nearestPointOnCircle(SIZE / 2, SIZE / 2, SIZE / 3, x, z)
         v2.set(nx, SIZE / 6, nz)
         const full = v1.distanceTo(v2) < SIZE / 6
-        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+        chunk.setVoxelState(x, y, z, full ? solidVoxel : emptyVoxel)
       }
       const voxels = setup(new Mesh(
         createNaiveVoxelGeometry(chunk.allVoxelFaces()),
@@ -74,7 +77,7 @@ export class Main extends Group {
         const [nx, nz] = nearestPointOnCircle(SIZE / 2, SIZE / 2, SIZE / 2, x, z)
         v2.set(nx, SIZE / 4, nz)
         const full = v1.distanceTo(v2) < SIZE / 4
-        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+        chunk.setVoxelState(x, y, z, full ? solidVoxel : emptyVoxel)
       }
       const voxels = setup(new Mesh(
         createNaiveVoxelGeometry(chunk.allVoxelFaces()),
@@ -89,7 +92,7 @@ export class Main extends Group {
       const chunk = new Chunk(SIZE)
       for (const { x, y, z } of loop3(SIZE, SIZE, SIZE)) {
         const full = v1.set(x, y, z).length() < SIZE - 1
-        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+        chunk.setVoxelState(x, y, z, full ? solidVoxel : emptyVoxel)
       }
       setup(new Mesh(
         createNaiveVoxelGeometry(chunk.allVoxelFaces()),
@@ -104,7 +107,7 @@ export class Main extends Group {
       const chunk = new Chunk(new Vector3(12, 24, 4), 1)
       for (const { x, y, z } of loop3(chunk.size)) {
         const full = Math.random() < .5
-        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+        chunk.setVoxelState(x, y, z, full ? solidVoxel : emptyVoxel)
       }
       setup(new Mesh(
         createNaiveVoxelGeometry(chunk.allVoxelFaces()),
@@ -119,7 +122,7 @@ export class Main extends Group {
       const chunk = new Chunk(SIZE)
       for (const { x, y, z } of loop3(SIZE, SIZE, SIZE)) {
         const full = (x === 0 || y === 0 || z === 0 || x === SIZE - 1 || y === SIZE - 1 || z === SIZE - 1) && PRNG.chance(.66)
-        chunk.getVoxelState(x, y, z).setUint8(0, full ? 1 : 0)
+        chunk.setVoxelState(x, y, z, full ? solidVoxel : emptyVoxel)
       }
       console.log(chunk.computeBounds())
       setup(new Mesh(
@@ -140,7 +143,7 @@ export class Main extends Group {
         p.set(x - halfSize, y - halfSize, z - halfSize)
         const d = p.lengthSq() - halfSize * halfSize * .25
         if (PRNG.chance(1 - d * .05)) {
-          chunk.getVoxelState(x, y, z).setUint8(0, 1)
+          chunk.setVoxelState(x, y, z, solidVoxel)
         }
       }
       const mesh = setup(new Mesh(

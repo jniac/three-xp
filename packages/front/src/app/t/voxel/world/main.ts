@@ -38,8 +38,7 @@ export class Main extends Group {
     const world = new World()
     leak({ world })
 
-    const plainVoxel = new DataView(new ArrayBuffer(world.voxelStateByteSize))
-    plainVoxel.setUint8(0, 1)
+    const plainVoxel = world.createVoxelState('solid')
 
     const p = new Vector3()
     for (let { x, y, z } of loop3(24, 24, 24)) {
