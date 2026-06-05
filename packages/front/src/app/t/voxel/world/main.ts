@@ -57,7 +57,7 @@ export class Main extends Group {
   })()
 
   createAllChunkMeshes(world: World) {
-    for (const { superChunkIndex, chunkIndex, chunk } of world.enumerateChunks()) {
+    for (const { regionIndex, chunkIndex, chunk } of world.enumerateChunks()) {
       const color = PRNG.pick([
         '#ffdd55',
         '#55ddff',
@@ -71,10 +71,10 @@ export class Main extends Group {
       const geometry = createNaiveVoxelGeometry(chunk.allVoxelFaces())
       const material = new AutoLitMaterial({ color })
 
-      const { x, y, z } = world.metrics.fromIndexes(superChunkIndex, chunkIndex, 0)
+      const { x, y, z } = world.metrics.fromIndexes(regionIndex, chunkIndex, 0)
       setup(new Mesh(geometry, material), {
         parent: this,
-        name: `chunk-mesh-${superChunkIndex}-${chunkIndex}`,
+        name: `chunk-mesh-${regionIndex}-${chunkIndex}`,
         x,
         y,
         z,
