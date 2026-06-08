@@ -17,6 +17,7 @@ import * as dotsAndFalloffs from './dots-and-falloffs/page'
 import * as fourCircles from './four-circles/page'
 import * as fractalGrid from './fractal-grid/page'
 import * as fromEarthTo from './from-earth-to/page'
+import * as glass from './glass/page'
 import * as ladyEthereal from './lady-ethereal/page'
 import * as me from './me/page'
 import * as meshWalk from './mesh-walk/page'
@@ -44,6 +45,7 @@ const pages = {
   'four-circles': fourCircles,
   'fractal-grid': fractalGrid,
   'from-earth-to': fromEarthTo,
+  'glass': glass,
   'lady-ethereal': ladyEthereal,
   'me': me,
   'mesh-walk': meshWalk,

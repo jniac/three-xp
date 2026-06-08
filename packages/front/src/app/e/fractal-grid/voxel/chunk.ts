@@ -72,7 +72,7 @@ function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
   for (let z = pz; z < zMax; z++) {
     for (let y = py; y < yMax; y++) {
       for (let x = px; x < xMax; x++) {
-        chunk.getVoxelState(x, y, z + CHUNK_ROW * CHUNK_BLOCK_SIZE).setInt8(0, value)
+        chunk.setVoxelState(x, y, z + CHUNK_ROW * CHUNK_BLOCK_SIZE, new Uint8Array([value]))
       }
     }
   }
@@ -82,19 +82,19 @@ function cube(chunk: Chunk, p: Vector3, size: number, value = 1) {
  * Returns `true` if the voxel at `(x, y, z)` is a summit.
  */
 function isSummit(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
-  const plain = chunk.getVoxelState(x, y, z).getInt8(0) > 0
+  const plain = chunk.getVoxelState(x, y, z)[0] > 0
   if (!plain)
     return false
 
-  const plainX = (chunk.tryGetVoxelState(x - stride, y, z)?.getInt8(0) ?? 0) > 0
+  const plainX = (chunk.tryGetVoxelState(x - stride, y, z)?.[0] ?? 0) > 0
   if (plainX)
     return false
 
-  const plainY = (chunk.tryGetVoxelState(x, y + stride, z)?.getInt8(0) ?? 0) > 0
+  const plainY = (chunk.tryGetVoxelState(x, y + stride, z)?.[0] ?? 0) > 0
   if (plainY)
     return false
 
-  const plainZ = (chunk.tryGetVoxelState(x, y, z + stride)?.getInt8(0) ?? 0) > 0
+  const plainZ = (chunk.tryGetVoxelState(x, y, z + stride)?.[0] ?? 0) > 0
   if (plainZ)
     return false
 
@@ -105,19 +105,19 @@ function isSummit(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
  * Returns `true` if the voxel at `(x, y, z)` is a cavity.
  */
 function isCavity(chunk: Chunk, x: number, y: number, z: number, stride = 1) {
-  const plain = chunk.getVoxelState(x, y, z).getInt8(0) > 0
+  const plain = chunk.getVoxelState(x, y, z)[0] > 0
   if (plain)
     return false
 
-  const plainX = (chunk.tryGetVoxelState(x + stride, y, z)?.getInt8(0) ?? 0) > 0
+  const plainX = (chunk.tryGetVoxelState(x + stride, y, z)?.[0] ?? 0) > 0
   if (!plainX)
     return false
 
-  const plainY = (chunk.tryGetVoxelState(x, y - stride, z)?.getInt8(0) ?? 0) > 0
+  const plainY = (chunk.tryGetVoxelState(x, y - stride, z)?.[0] ?? 0) > 0
   if (!plainY)
     return false
 
-  const plainZ = (chunk.tryGetVoxelState(x, y, z - stride)?.getInt8(0) ?? 0) > 0
+  const plainZ = (chunk.tryGetVoxelState(x, y, z - stride)?.[0] ?? 0) > 0
   if (!plainZ)
     return false
 

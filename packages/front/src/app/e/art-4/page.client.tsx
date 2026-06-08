@@ -4,7 +4,7 @@ import { createNoise3D } from 'simplex-noise'
 import { BoxGeometry, CylinderGeometry, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
 
 import { FpsMeter } from 'some-utils-misc/fps-meter'
-import { Inspector, MetaProperty } from 'some-utils-misc/inspector'
+import { InspectorView, MetaProperty } from 'some-utils-misc/inspector'
 import { ThreeProvider, useGroup, useThree } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { createNaiveChunkGeometries, World } from 'some-utils-three/experimental/voxel'
@@ -133,7 +133,7 @@ function MyScene() {
 
 function InspectorWrapper() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
-    const inspector = new Inspector({
+    const inspector = new InspectorView({
       header: {
         title: 'Inspector',
         closeButton: true,
@@ -142,7 +142,7 @@ function InspectorWrapper() {
     })
     div.appendChild(inspector.div)
     yield inspector.destroy
-    yield Message.dispatchInstance(Inspector, inspector)
+    yield Message.dispatchInstance(InspectorView, inspector)
 
     inspector.registerFields([
       new MetaProperty({

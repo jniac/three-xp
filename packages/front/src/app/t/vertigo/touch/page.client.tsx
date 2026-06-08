@@ -4,6 +4,8 @@ import { BufferGeometry, ConeGeometry, CylinderGeometry, InstancedMesh } from 't
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
+import { Vertigo } from 'some-utils-three/camera/vertigo'
+import { VertigoHelper } from 'some-utils-three/camera/vertigo/helper'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setVertexColors } from 'some-utils-three/utils/geometry/vertex-colors'
@@ -70,10 +72,26 @@ function MyScene() {
 
     setup(new DebugHelper(), { parent: group })
       .regularGrid({ plane: 'xz' })
+      .rect({ min: 0, max: [2, 2, 0] })
 
     const widget = setup(new VertigoWidget(), { parent: group })
 
+    const vertigo = new Vertigo({
+      focus: [2, 2, 0],
+      perspective: 1,
+      subjectivity: 1,
+    })
+    const vertigoHelper = setup(new VertigoHelper(vertigo, { frustum: 'focus-as-far' }), group)
+
     yield three.ticker.onTick(tick => {
+      vertigoHelper.vertigo.set({
+        rotation: `
+          ${tick.lerpCos01Time(-20, 20, { frequency: 1 / 5 })}deg, 
+          ${tick.lerpSin01Time(-20, 20, { frequency: 1 / 5 })}deg, 
+          0`,
+        subjectivity: tick.lerpSin01Time(0, 1, { frequency: 1 / 10 }),
+      })
+      vertigoHelper.vertigo.update(three.aspect)
       widget.widgetUpdate(
         three.pointer.screenPosition,
         three.pointer.buttonDown(),

@@ -56,6 +56,10 @@
     "dir": "e/from-earth-to"
   },
   {
+    "page": "e/glass/page.tsx",
+    "dir": "e/glass"
+  },
+  {
     "page": "e/lady-ethereal/page.tsx",
     "dir": "e/lady-ethereal"
   },
@@ -94,6 +98,10 @@
   {
     "page": "e/scroll/page.tsx",
     "dir": "e/scroll"
+  },
+  {
+    "page": "e/template/page.tsx",
+    "dir": "e/template"
   },
   {
     "page": "e/two-env-demo/page.tsx",
@@ -282,6 +290,10 @@
   {
     "page": "t/ticker/basic/page.tsx",
     "dir": "t/ticker/basic"
+  },
+  {
+    "page": "t/tool/transform/page.tsx",
+    "dir": "t/tool/transform"
   },
   {
     "page": "t/track/page.tsx",

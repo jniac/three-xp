@@ -43,11 +43,13 @@ export function* createGrid(three: Three) {
 
   const positionArray = new Float32Array(count * 3)
   const positionBuffer = storage(new StorageInstancedBufferAttribute(positionArray, 3), 'vec3', count)
+  // @ts-ignore
   const colorBuffer = storage(new StorageInstancedBufferAttribute(new Float32Array(count * 3), 3), 'color', count)
 
   // @ts-ignore
   const computeInit = Fn(() => {
     const position = positionBuffer.element(instanceIndex) as any
+    // @ts-ignore
     const color = colorBuffer.element(instanceIndex)
     const randX = hash(instanceIndex)
     const randY = hash(instanceIndex.add(2))
