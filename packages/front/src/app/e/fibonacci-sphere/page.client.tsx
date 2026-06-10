@@ -1,10 +1,11 @@
 'use client'
 
-import { handlePointer } from 'some-utils-dom/handle/pointer'
+import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
 import { setup } from 'some-utils-three/utils/tree'
 import { find } from 'some-utils-three/utils/tree/find'
+import { wait } from 'some-utils-ts/misc/async'
 import { DirectionalLight, Group, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
 import { EnvRoom } from './EnvRoom'
 import { FibonacciSphereDemo } from './FibonacciSphereDemo'
@@ -53,18 +54,28 @@ export function MyScene() {
 
 function UI() {
   const three = useThree()
-  useEffects(function* () {
-    yield handlePointer(document.body, {
-      onTap: info => {
-        if (info.tapCount === 1) {
-          find(three.scene, FibonacciSphereInstance)
-            ?.toggleTimeScale()
-        } else if (info.tapCount === 2) {
-          find(three.scene, FibonacciSphereInstance)
-            ?.step(info.originalDownEvent.shiftKey ? -1 : 1)
+  useEffects(async function* () {
+    await wait('nextFrame')
+    const fib = find(three.scene, FibonacciSphereInstance)!
+    yield handleKeyboard([
+      [{ code: 'Space', modifiers: '*' }, info => {
+        if (info.event.shiftKey) {
+          fib.time.timeScale *= -1
+        } else {
+          fib.time.togglePause()
         }
-      },
-    })
+      }],
+      [{ code: /Arrow/, modifiers: '*' }, info => {
+        if (fib.time.paused) {
+          fib.time.time += .005
+            * (/ArrowUp|ArrowRight/.test(info.event.code) ? 1 : -1)
+            * (info.event.shiftKey ? 10 : 1)
+            * (info.event.altKey ? .1 : 1)
+        } else {
+          fib.time.timeScale *= 2 ** (/ArrowUp|ArrowRight/.test(info.event.code) ? 1 : -1)
+        }
+      }],
+    ])
   }, [])
   return null
 }
@@ -75,7 +86,7 @@ export default function PageClient() {
       fxaa
       vertigoControls={{
         size: 3,
-        // perspective: 0,
+        perspective: 1,
       }}
     >
       <MyScene />

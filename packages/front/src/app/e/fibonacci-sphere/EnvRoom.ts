@@ -1,9 +1,38 @@
-import { CubeCamera, CubeTexture, FloatType, Group, Mesh, Scene, TorusKnotGeometry, WebGLCubeRenderTarget, WebGLRenderer } from 'three'
+import { CubeCamera, CubeTexture, FloatType, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, Scene, TorusKnotGeometry, WebGLCubeRenderTarget, WebGLRenderer } from 'three'
 
 import { SmoothBoxGeometry } from 'some-utils-three/geometries/SmoothBoxGeometry'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { ShaderForge } from 'some-utils-three/shader-forge'
 import { flipTriangles } from 'some-utils-three/utils/geometry/triangles'
 import { setup } from 'some-utils-three/utils/tree'
+
+class SoftMaterial extends MeshBasicMaterial {
+  static defaultParameters = {
+    color: '#fff',
+    intensity: 5,
+  }
+
+  uniforms = {
+    uIntensity: { value: SoftMaterial.defaultParameters.intensity },
+  }
+  constructor(parameters?: Partial<typeof SoftMaterial.defaultParameters>) {
+    const { intensity, ...rest } = { ...SoftMaterial.defaultParameters, ...parameters }
+    super({
+      transparent: true,
+      depthWrite: false,
+      ...rest,
+    })
+    this.uniforms.uIntensity.value = intensity
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .uniforms(this.uniforms)
+      .createVarying('sf_vViewPosition', 'sf_vViewNormal')
+      .fragment.after('color_fragment', /* glsl */`
+        float t = pow(dot(normalize(sf_vViewPosition), sf_vViewNormal), 10.0);
+        diffuseColor.rgb *= t * uIntensity;
+        diffuseColor.a = t;
+      `)
+  }
+}
 
 export class EnvRoom extends Group {
   parts = (() => {
@@ -23,6 +52,32 @@ export class EnvRoom extends Group {
     ), {
       parent: this,
       rotation: '0deg, 90deg, 0deg',
+    })
+
+    const sphereGeometry = new IcosahedronGeometry(1, 10)
+
+    setup(new Mesh(
+      sphereGeometry,
+      new SoftMaterial({
+        color: '#ffc',
+        intensity: 3,
+      }),
+    ), {
+      scale: 4,
+      parent: this,
+      y: 5,
+    })
+
+    setup(new Mesh(
+      sphereGeometry,
+      new SoftMaterial({
+        color: '#cff',
+        intensity: 3,
+      }),
+    ), {
+      parent: this,
+      scale: 4,
+      position: [1, -5, 1],
     })
 
     return { walls }

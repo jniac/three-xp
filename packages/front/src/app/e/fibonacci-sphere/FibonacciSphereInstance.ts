@@ -16,6 +16,49 @@ function sphereArea(radius: number) {
   return 4 * Math.PI * radius ** 2
 }
 
+class TimeHandler {
+  time = 0
+  paused = false
+  timeScale = 1
+
+  #private = {
+    frame: 0,
+    deltaTime: 0,
+    timeOld: -1,
+  }
+
+  get deltaTime() {
+    return this.#private.deltaTime
+  }
+
+  get frame() {
+    return this.#private.frame
+  }
+
+  pause() {
+    this.paused = true
+    return this
+  }
+
+  play() {
+    this.paused = false
+    return this
+  }
+
+  togglePause(): this {
+    this.paused = !this.paused
+    return this
+  }
+
+  newFrame(deltaTime: number): this {
+    this.#private.frame++
+    this.time += this.paused ? 0 : deltaTime * this.timeScale
+    this.#private.deltaTime = this.time - this.#private.timeOld
+    this.#private.timeOld = this.time
+    return this
+  }
+}
+
 export class FibonacciSphereInstance extends Group {
   static defaultProps = {
     count: 1000,
@@ -28,7 +71,6 @@ export class FibonacciSphereInstance extends Group {
       '#fff',
       '#3df49c',
       'rgb(88, 0, 160)',
-      '#fff',
     ].map(c => makeColor(c).clone()),
   }
   static #private = {
@@ -55,7 +97,13 @@ export class FibonacciSphereInstance extends Group {
       // Plain 02
       setup(new DynamicInstancedMesh(
         funnyShape,
-        new AutoLitMaterial({}),
+        new MeshPhysicalMaterial({
+          reflectivity: .2,
+          clearcoat: 1,
+          clearcoatRoughness: .1,
+          roughness: 0,
+          sheen: 0,
+        }),
         { initialCapacity: 1000, enableColors: true },
       ), this),
 
@@ -67,7 +115,7 @@ export class FibonacciSphereInstance extends Group {
           roughness: .2,
           thickness: .2,
           ior: 1.5,
-          dispersion: 10,
+          dispersion: 4,
         }),
         { initialCapacity: 1000, enableColors: true },
       ), this),
@@ -77,7 +125,7 @@ export class FibonacciSphereInstance extends Group {
         funnyShape,
         new MeshPhysicalMaterial({
           transmission: 1,
-          roughness: .2,
+          roughness: .5,
           thickness: .2,
           ior: 1.5,
           dispersion: 10,
@@ -92,9 +140,9 @@ export class FibonacciSphereInstance extends Group {
           metalness: 1,
           roughness: .2,
           clearcoat: 1,
-          clearcoatRoughness: 0,
-          iridescence: .5,
-          iridescenceIOR: 1.3,
+          clearcoatRoughness: 1,
+          iridescence: 2,
+          iridescenceIOR: 1.5,
         }),
         { initialCapacity: 1000, enableColors: true },
       ), this),
@@ -131,12 +179,7 @@ export class FibonacciSphereInstance extends Group {
   props: typeof FibonacciSphereInstance.defaultProps
   array: Float32Array
 
-  time = 0
-  timeOld = -1
-  paused = false
-  timeScaleOptions = [0, .01, .1, 1]
-  timeScale = 1
-
+  time = new TimeHandler()
 
   constructor(props?: Partial<typeof FibonacciSphereInstance.defaultProps>) {
     super()
@@ -171,7 +214,7 @@ export class FibonacciSphereInstance extends Group {
 
     getFibonacciSphereSamplesArray(currentCount, { out: array })
 
-    const size = lerp(1, 3, t ** 2) * (1 / currentCount) ** .5
+    const size = lerp(1.6, 3.2, t ** 2) * (1 / currentCount) ** .5
 
     const { m, q, v0, v1, forward } = FibonacciSphereInstance.#private
     v1.setScalar(size)
@@ -187,29 +230,10 @@ export class FibonacciSphereInstance extends Group {
     }
   }
 
-  toggleTimeScale() {
-    const currentIndex = this.timeScaleOptions.indexOf(this.timeScale)
-    const nextIndex = (currentIndex + 1) % this.timeScaleOptions.length
-    this.timeScale = this.timeScaleOptions[nextIndex]
-  }
-
-  step(direction = 1) {
-    console.log('stepping')
-    this.timeScale = 0
-    this.time += 0.01 * direction
-  }
-
   onTick(tick: Tick) {
-    if (this.paused)
-      return
+    this.time.newFrame(tick.deltaTime)
 
-    this.time += tick.deltaTime * this.timeScale
-    if (this.time === this.timeOld)
-      return
-
-    this.timeOld = this.time
-
-    const t = Math.cos(this.time * .8) * .5 + .5
+    const t = Math.cos(this.time.time * .8) * .5 + .5
     this.update(t)
   }
 }
