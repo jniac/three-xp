@@ -44,6 +44,10 @@
     "dir": "e/dots-and-falloffs"
   },
   {
+    "page": "e/fibonacci-sphere/page.tsx",
+    "dir": "e/fibonacci-sphere"
+  },
+  {
     "page": "e/four-circles/page.tsx",
     "dir": "e/four-circles"
   },

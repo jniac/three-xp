@@ -8,7 +8,7 @@ import { ThreeWebGLContext } from 'some-utils-three/contexts/webgl'
 import { GpuComputeWaterDemo } from 'some-utils-three/experimental/gpu-compute/demo/water'
 import { anyLoader } from 'some-utils-three/loaders/any-loader'
 import { ShaderForge, vec3 } from 'some-utils-three/shader-forge'
-import { flipNormals } from 'some-utils-three/utils/geometry/normals'
+import { flipTriangles } from 'some-utils-three/utils/geometry/triangles'
 import { setup } from 'some-utils-three/utils/tree'
 import { glsl_blending } from 'some-utils-ts/glsl/blending'
 import { glsl_easings } from 'some-utils-ts/glsl/easings'
@@ -100,7 +100,7 @@ export class HomeText extends Group {
       .translate(-width / 2, -height / 2, 0)
       .scale(scalar, -scalar, 1)
 
-    flipNormals(geometry)
+    flipTriangles(geometry)
 
     const IMAGE_SIZE = 2048 * 2
     this.imageFill = getFillTexture(svg, IMAGE_SIZE)
