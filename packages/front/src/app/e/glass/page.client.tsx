@@ -8,6 +8,8 @@ import { anyLoader } from 'some-utils-three/loaders/any-loader'
 import { MyGTAOPass } from 'some-utils-three/postprocessing/MyGTAOPass'
 import { setup } from 'some-utils-three/utils/tree'
 
+import { config } from '@/config'
+
 import { Cyclo } from './Cyclo'
 import { Editor } from './editor-ui'
 
@@ -58,13 +60,13 @@ export function MyScene() {
       parent: group,
     })
 
-    const texture = await anyLoader.loadTexture('/assets/env/kloofendal_43d_clear_puresky_4k.hdr')
+    const texture = await anyLoader.loadTexture(`${config.assets()}env/kloofendal_43d_clear_puresky_4k.hdr`)
     texture.mapping = EquirectangularReflectionMapping
     three.scene.environment = texture
     three.scene.environmentIntensity = .3
     three.scene.background = texture
 
-    const gltf = await gltfLoader.loadAsync('/assets/meshes/verre.gltf')
+    const gltf = await gltfLoader.loadAsync(`${config.assets()}meshes/verre.gltf`)
     setup(gltf.scene, {
       parent: group,
       z: .1,
@@ -79,11 +81,11 @@ export function MyScene() {
         child.geometry = geometry
         child.material = new MeshPhysicalMaterial({
           transmission: 1,
-          roughness: .1,
+          roughness: .25,
           metalness: .1,
           ior: 2,
           dispersion: 5,
-          iridescence: .1,
+          iridescence: .4,
           iridescenceIOR: 1.3,
           thickness: 4.2,
         })
