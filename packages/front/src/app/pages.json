@@ -212,6 +212,10 @@
     "dir": "t/fuzzy-range"
   },
   {
+    "page": "t/gaussian-mipmaps/page.tsx",
+    "dir": "t/gaussian-mipmaps"
+  },
+  {
     "page": "t/gpu-compute/game-of-life/page.tsx",
     "dir": "t/gpu-compute/game-of-life"
   },

@@ -8,6 +8,7 @@ import * as easingGraph from './easing-graph/page'
 import * as extrusion from './extrusion/page'
 import * as flexibleLayout from './flexible-layout/page'
 import * as fuzzyRange from './fuzzy-range/page'
+import * as gaussianMipmaps from './gaussian-mipmaps/page'
 import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
 import * as gpuComputePen from './gpu-compute/pen/page'
 import * as gpuComputeWater from './gpu-compute/water/page'
@@ -42,6 +43,7 @@ const pages = {
   'extrusion': extrusion,
   'flexible-layout': flexibleLayout,
   'fuzzy-range': fuzzyRange,
+  'gaussian-mipmaps': gaussianMipmaps,
   'gpu-compute/game-of-life': gpuComputeGameOfLife,
   'gpu-compute/pen': gpuComputePen,
   'gpu-compute/water': gpuComputeWater,
