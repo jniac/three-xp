@@ -21,6 +21,9 @@ export class FibonacciSphereDemo extends Points {
   }
 
   onTick(tick: Tick) {
+    if (this.visible === false)
+      return
+
     const time = this.time + tick.deltaTime
     const t = Math.cos(time * .3) * .5 + .5
     const n = exponentialLerp(1000, 1, t)

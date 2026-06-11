@@ -37,6 +37,7 @@ export function MyScene() {
 
     const env = setup(new EnvRoom(), group)
     env.applyToSceneOnce(three.scene, three.renderer)
+    env.scale.setScalar(4)
     env.children.forEach((c, i) => c.visible = i === 0)
 
     // Environment map test

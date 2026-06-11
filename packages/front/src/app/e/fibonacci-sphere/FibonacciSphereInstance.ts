@@ -1,4 +1,4 @@
-import { Group, IcosahedronGeometry, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, TorusGeometry, Vector3 } from 'three'
+import { Group, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, TorusGeometry, Vector3 } from 'three'
 
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { getFibonacciSphereSamplesArray } from 'some-utils-three/misc/fibonacci-sphere-samples'
@@ -157,22 +157,12 @@ export class FibonacciSphereInstance extends Group {
       rotation: '0deg, 90deg, 0deg',
     })
 
-    const bottomSphere = setup(new Mesh(
-      new IcosahedronGeometry(.5, 10),
-      new AutoLitMaterial({}),
-    ), {
-      parent: this,
-      visible: false, // nah
-      z: -1,
-    })
-
     RandomUtils.setRandom('parkmiller', 5678)
     RandomUtils.shuffleArray(meshes, { inPlace: true })
 
     return {
       meshes,
       ring,
-      bottomSphere,
     }
   })()
 
@@ -203,7 +193,7 @@ export class FibonacciSphereInstance extends Group {
   update(t = 1) {
     t = easeInOut(t, 1.2)
 
-    const { meshes, bottomSphere } = this.parts
+    const { meshes } = this.parts
     const { count, colors } = this.props
     const { array } = this
 
@@ -219,8 +209,6 @@ export class FibonacciSphereInstance extends Group {
     const { m, q, v0, v1, forward } = FibonacciSphereInstance.#private
     v1.setScalar(size)
 
-    bottomSphere.scale.setScalar(size)
-
     const max = Math.floor(currentCount)
     for (let i = 0; i < max; i++) {
       v0.fromArray(array, i * 3)
@@ -233,7 +221,9 @@ export class FibonacciSphereInstance extends Group {
   onTick(tick: Tick) {
     this.time.newFrame(tick.deltaTime)
 
-    const t = Math.cos(this.time.time * .8) * .5 + .5
-    this.update(t)
+    if (this.visible) {
+      const t = Math.cos(this.time.time * .8) * .5 + .5
+      this.update(t)
+    }
   }
 }
