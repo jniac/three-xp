@@ -1,4 +1,5 @@
 'use client'
+import { DirectionalLight, Group, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
@@ -6,10 +7,11 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { setup } from 'some-utils-three/utils/tree'
 import { find } from 'some-utils-three/utils/tree/find'
 import { wait } from 'some-utils-ts/misc/async'
-import { DirectionalLight, Group, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
-import { EnvRoom } from './EnvRoom'
+
+
 import { FibonacciSphereDemo } from './FibonacciSphereDemo'
 import { FibonacciSphereInstance } from './FibonacciSphereInstance'
+import { MyEnv } from './MyEnv'
 
 class LightSetup extends Group {
   constructor() {
@@ -35,7 +37,7 @@ export function MyScene() {
       rotation: '-90deg, 0deg, -90deg',
     })
 
-    const env = setup(new EnvRoom(), group)
+    const env = setup(new MyEnv(), group)
     env.applyToSceneOnce(three.scene, three.renderer)
     env.scale.setScalar(4)
     env.children.forEach((c, i) => c.visible = i === 0)
@@ -67,13 +69,13 @@ function UI() {
         }
       }],
       [{ code: /Arrow/, modifiers: '*' }, info => {
-        if (fib.time.paused) {
+        if (/ArrowUp|ArrowDown/.test(info.event.code)) {
+          fib.time.timeScale *= 2 ** (/ArrowUp/.test(info.event.code) ? 1 : -1)
+        } else {
           fib.time.time += .005
-            * (/ArrowUp|ArrowRight/.test(info.event.code) ? 1 : -1)
+            * (/ArrowRight/.test(info.event.code) ? 1 : -1)
             * (info.event.shiftKey ? 10 : 1)
             * (info.event.altKey ? .1 : 1)
-        } else {
-          fib.time.timeScale *= 2 ** (/ArrowUp|ArrowRight/.test(info.event.code) ? 1 : -1)
         }
       }],
     ])

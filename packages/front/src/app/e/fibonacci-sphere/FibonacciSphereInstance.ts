@@ -1,4 +1,4 @@
-import { Group, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, TorusGeometry, Vector3 } from 'three'
+import { Group, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshPhysicalMaterialParameters, Quaternion, TorusGeometry, Vector3 } from 'three'
 
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { getFibonacciSphereSamplesArray } from 'some-utils-three/misc/fibonacci-sphere-samples'
@@ -9,6 +9,7 @@ import { exponentialLerp, lerp } from 'some-utils-ts/math/basic'
 import { easeInOut } from 'some-utils-ts/math/easing'
 import { Tick } from 'some-utils-ts/ticker'
 
+import { ShaderForge } from 'some-utils-three/shader-forge'
 import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import { geometries } from './FibonacciSphereInstance.geometries'
 
@@ -59,9 +60,22 @@ class TimeHandler {
   }
 }
 
+class PlainMaterial extends MeshPhysicalMaterial {
+  constructor(parameters?: MeshPhysicalMaterialParameters) {
+    super(parameters)
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .fragment.after('color_fragment', /* glsl */`
+        diffuseColor.rgb = vColor.rgb * 0.2;
+      `)
+      .fragment.after('emissivemap_fragment', /* glsl */`
+        totalEmissiveRadiance = vColor.rgb * 0.4;
+      `)
+  }
+}
+
 export class FibonacciSphereInstance extends Group {
   static defaultProps = {
-    count: 1000,
+    count: 1347,
     colors: [
       '#fff',
       '#fff',
@@ -97,12 +111,15 @@ export class FibonacciSphereInstance extends Group {
       // Plain 02
       setup(new DynamicInstancedMesh(
         funnyShape,
-        new MeshPhysicalMaterial({
-          reflectivity: .2,
+        new PlainMaterial({
+          reflectivity: 1,
           clearcoat: 1,
           clearcoatRoughness: .1,
-          roughness: 0,
-          sheen: 0,
+          roughness: .3,
+          sheen: 1,
+          sheenColor: '#fff',
+          emissive: '#fff',
+          emissiveIntensity: .1,
         }),
         { initialCapacity: 1000, enableColors: true },
       ), this),
@@ -222,8 +239,8 @@ export class FibonacciSphereInstance extends Group {
     this.time.newFrame(tick.deltaTime)
 
     if (this.visible) {
-      const t = Math.cos(this.time.time * .8) * .5 + .5
-      this.update(t)
+      const t = Math.sin(this.time.time * .8) * .5 + .5
+      this.update(1)
     }
   }
 }

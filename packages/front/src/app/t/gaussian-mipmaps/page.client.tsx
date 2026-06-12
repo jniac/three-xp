@@ -1,5 +1,5 @@
 'use client'
-import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three'
+import { Mesh, MeshBasicMaterial, PlaneGeometry, Texture } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { createAsyncContext } from 'some-utils-react/contexts/async-context'
@@ -23,16 +23,24 @@ function MyScene() {
       .onTop()
       .regularGrid()
 
-    setup(new Mesh(
-      new PlaneGeometry(2, 2),
-      new MeshBasicMaterial({
-        side: 2,
-        map: assets.texture,
-      }),
-    ), {
-      parent: group,
-      position: [-1, -1, 0],
-    })
+    const helper = setup(new DebugHelper(), group)
+
+    const plane = (map: Texture, x: number, y: number, text?: string) => {
+      x += -2
+      setup(new Mesh(
+        new PlaneGeometry(2, 2),
+        new MeshBasicMaterial({
+          side: 2,
+          map,
+        }),
+      ), {
+        parent: group,
+        position: [x, y, 0],
+      })
+      helper.text([x, y - .9, 0], text ?? '', { backgroundColor: '#00f', textColor: '#fff', size: .333 })
+    }
+
+    plane(assets.texture, -1, -1, 'original')
 
     const generator = new GaussianMipmapGenerator()
 
@@ -44,16 +52,9 @@ function MyScene() {
       1024,     // height
       2,
     )
-    setup(new Mesh(
-      new PlaneGeometry(2, 2),
-      new MeshBasicMaterial({
-        side: 2,
-        map: mips[2].texture,
-      }),
-    ), {
-      parent: group,
-      position: [1, -1, 0],
-    })
+    for (let i = 0; i < mips.length; i++) {
+      plane(mips[i].texture, i * 2 + 1, -1, `mips[${i}]`)
+    }
 
     console.time('generateMipmapsToTexture')
     const combinedTexture = generator.generateMipmapsToTexture(
@@ -65,26 +66,8 @@ function MyScene() {
     )
     console.timeEnd('generateMipmapsToTexture')
 
-    setup(new Mesh(
-      new PlaneGeometry(2, 2),
-      new MeshBasicMaterial({
-        side: 2,
-        map: assets.texture,
-      }),
-    ), {
-      parent: group,
-      position: [-1, 1, 0],
-    })
-    setup(new Mesh(
-      new PlaneGeometry(2, 2),
-      new MeshBasicMaterial({
-        side: 2,
-        map: combinedTexture,
-      }),
-    ), {
-      parent: group,
-      position: [1, 1, 0],
-    })
+    plane(assets.texture, -1, 1, 'original')
+    plane(combinedTexture, 1, 1, 'combined')
   }, [])
 
   return null
@@ -94,7 +77,7 @@ export default function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 4.6,
+        size: 8.6,
         after: 100,
       }}
     >

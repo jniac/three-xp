@@ -1,13 +1,13 @@
 'use client'
+import { Mesh } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
-import { Mesh } from 'three'
-import { EnvRoom } from '../EnvRoom'
 import { geometries } from '../FibonacciSphereInstance.geometries'
+import { MyEnv } from '../MyEnv'
 
 export function MyScene() {
   const three = useThreeWebGL()
@@ -26,7 +26,7 @@ export function MyScene() {
       helper.text([x, -1, 0], name, { size: .2, color: 'white' })
     }
 
-    const env = setup(new EnvRoom(), group)
+    const env = setup(new MyEnv(), group)
     env.applyToSceneOnce(three.scene, three.renderer)
     env.children.forEach((c, i) => c.visible = i === 0)
     env.scale.setScalar(4);

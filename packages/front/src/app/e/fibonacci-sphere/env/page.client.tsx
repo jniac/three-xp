@@ -5,12 +5,12 @@ import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-pr
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { EnvRoom } from '../EnvRoom'
+import { MyEnv } from '../MyEnv'
 
 export function MyScene() {
   const three = useThreeWebGL()
   useGroup('my-scene', function* (group) {
-    const env = setup(new EnvRoom(), group)
+    const env = setup(new MyEnv(), group)
 
     env.applyToSceneOnce(three.scene, three.renderer)
     // env.children.forEach((c, i) => c.visible = i === 0)

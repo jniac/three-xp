@@ -61,7 +61,8 @@ function Internal_Client() {
   const [[chunkName, rect], setChunk] = useState<[keyof typeof ShaderChunk | null, Rectangle]>([initial.chunkName, new Rectangle()])
   const [showFinalProgram, setShowFinalProgram] = useState(false)
 
-  window.location.hash = [libName, shaderProgram, chunkName].filter(v => !!v).join(',')
+  window.location.hash = [libName, shaderProgram, chunkName]
+    .filter(v => !!v).join(',')
 
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const includes = [...div.querySelectorAll('span')]
@@ -105,12 +106,16 @@ function Internal_Client() {
       }
     }
 
+    let outside = false
     yield handlePointer(div, {
-      onTap: info => {
+      onDown: info => {
         const overlay = div.querySelector(`.${style.OverlayContentWrapper}`)!
-        const outside = overlay && overlay.contains(info.orignalDownEvent.target as Node) === false
-        if (outside)
+        outside = overlay && overlay.contains(info.event.target as Node) === false
+      },
+      onTap: () => {
+        if (outside) {
           setChunk([null, new Rectangle()])
+        }
       }
     })
   }, [libName, shaderProgram])
