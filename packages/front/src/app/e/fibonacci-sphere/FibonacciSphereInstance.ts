@@ -62,14 +62,26 @@ class TimeHandler {
 
 class PlainMaterial extends MeshPhysicalMaterial {
   constructor(parameters?: MeshPhysicalMaterialParameters) {
-    super(parameters)
+    super({
+      clearcoat: 1,
+      clearcoatRoughness: .1,
+      // roughness: .3,
+      // emissive: '#fff',
+      // emissiveIntensity: .1,
+      ...parameters,
+    })
     this.onBeforeCompile = shader => ShaderForge.with(shader)
       .fragment.after('color_fragment', /* glsl */`
-        diffuseColor.rgb = vColor.rgb * 0.2;
+        diffuseColor.rgb = vColor.rgb * 0.8;
       `)
       .fragment.after('emissivemap_fragment', /* glsl */`
         totalEmissiveRadiance = vColor.rgb * 0.4;
       `)
+  }
+
+  static #now = Date.now()
+  customProgramCacheKey(): string {
+    return `plain-material-${PlainMaterial.#now}`
   }
 }
 
@@ -111,16 +123,7 @@ export class FibonacciSphereInstance extends Group {
       // Plain 02
       setup(new DynamicInstancedMesh(
         funnyShape,
-        new PlainMaterial({
-          reflectivity: 1,
-          clearcoat: 1,
-          clearcoatRoughness: .1,
-          roughness: .3,
-          sheen: 1,
-          sheenColor: '#fff',
-          emissive: '#fff',
-          emissiveIntensity: .1,
-        }),
+        new PlainMaterial(),
         { initialCapacity: 1000, enableColors: true },
       ), this),
 
@@ -236,11 +239,11 @@ export class FibonacciSphereInstance extends Group {
   }
 
   onTick(tick: Tick) {
-    this.time.newFrame(tick.deltaTime)
+    // this.time.newFrame(tick.deltaTime)
 
-    if (this.visible) {
-      const t = Math.sin(this.time.time * .8) * .5 + .5
-      this.update(1)
-    }
+    // if (this.visible) {
+    //   const t = Math.sin(this.time.time * .8) * .5 + .5
+    //   this.update(t)
+    // }
   }
 }

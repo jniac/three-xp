@@ -10,7 +10,7 @@ import { setup } from 'some-utils-three/utils/tree'
 
 const [AssetsProvider, useAssets] = createAsyncContext(async () => {
   return {
-    texture: await anyLoader.loadTexture('/assets/images/test-2.jpg'),
+    texture: await anyLoader.loadTexture('/assets/images/test-1.png'),
   }
 })
 

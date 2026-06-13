@@ -8,7 +8,6 @@ import { setup } from 'some-utils-three/utils/tree'
 import { find } from 'some-utils-three/utils/tree/find'
 import { wait } from 'some-utils-ts/misc/async'
 
-
 import { FibonacciSphereDemo } from './FibonacciSphereDemo'
 import { FibonacciSphereInstance } from './FibonacciSphereInstance'
 import { MyEnv } from './MyEnv'
@@ -32,7 +31,7 @@ export function MyScene() {
       visible: false,
     })
 
-    setup(new FibonacciSphereInstance(), {
+    const fib = setup(new FibonacciSphereInstance(), {
       parent: group,
       rotation: '-90deg, 0deg, -90deg',
     })
@@ -49,6 +48,12 @@ export function MyScene() {
     })), {
       parent: group,
       visible: false,
+    })
+
+    yield three.ticker.onTick(tick => {
+      fib.time.newFrame(tick.deltaTime)
+      const t = Math.sin(fib.time.time * .8) * .5 + .5
+      fib.update(t)
     })
   }, [])
 
