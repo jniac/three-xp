@@ -1,5 +1,5 @@
 'use client'
-import { DirectionalLight, Group, IcosahedronGeometry, Mesh, MeshPhysicalMaterial } from 'three'
+import { DirectionalLight, Group, IcosahedronGeometry, Mesh, MeshPhongMaterial } from 'three'
 
 import { handleKeyboard } from 'some-utils-dom/handle/keyboard'
 import { ThreeProvider, useGroup, useThree, useThreeWebGL } from 'some-utils-misc/three-provider'
@@ -42,9 +42,7 @@ export function MyScene() {
     env.children.forEach((c, i) => c.visible = i === 0)
 
     // Environment map test
-    setup(new Mesh(new IcosahedronGeometry(.4, 10), new MeshPhysicalMaterial({
-      metalness: 1,
-      roughness: 0,
+    setup(new Mesh(new IcosahedronGeometry(.4, 10), new MeshPhongMaterial({
     })), {
       parent: group,
       visible: false,

@@ -1,4 +1,4 @@
-import { CubeCamera, CubeTexture, FloatType, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, Scene, WebGLCubeRenderTarget, WebGLRenderer } from 'three'
+import { CubeCamera, CubeTexture, Group, IcosahedronGeometry, Mesh, MeshBasicMaterial, Scene, WebGLCubeRenderTarget, WebGLRenderer } from 'three'
 
 import { SmoothBoxGeometry } from 'some-utils-three/geometries/SmoothBoxGeometry'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -86,7 +86,7 @@ export class EnvRoom extends Group {
     this.scale.setScalar(scale)
     this.#renderTarget = new WebGLCubeRenderTarget(textureSize, {
       generateMipmaps: true,
-      type: FloatType,
+      // type: HalfFloatType, // Not supported on windows???
     })
     this.#cubeCamera = new CubeCamera(0.1, 100, this.#renderTarget)
   }
