@@ -64,6 +64,10 @@
     "dir": "e/glass"
   },
   {
+    "page": "e/ivy-leaves/page.tsx",
+    "dir": "e/ivy-leaves"
+  },
+  {
     "page": "e/lady-ethereal/page.tsx",
     "dir": "e/lady-ethereal"
   },
