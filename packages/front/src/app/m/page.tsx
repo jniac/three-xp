@@ -5,11 +5,13 @@ import { SummaryPage } from '@/components/summary'
 
 import * as contextTest from './context-test/page'
 import * as debug from './debug/page'
+import * as envRoom from './env-room/page'
 import * as modelPreview from './model-preview/page'
 
 const pages = {
   'context-test': contextTest,
   'debug': debug,
+  'env-room': envRoom,
   'model-preview': modelPreview,
 }
 

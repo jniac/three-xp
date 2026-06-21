@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Vector2 } from 'three'
 
 export class LeafGeometry extends BufferGeometry {
   constructor(getPoint: (out: Vector2) => void, {
-    uSubdivisions = 10,
+    uSubdivisions = 30,
     vSubdivisions = 3,
     flipTriangles = false,
   } = {}) {

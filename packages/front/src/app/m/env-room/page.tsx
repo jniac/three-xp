@@ -1,9 +1,9 @@
 import { XpMetadata } from '@/types'
 
-import Page from './page.client.webgpu'
+import Page from './page.client'
 
 export const metadata = new XpMetadata({
-  slug: 'ivy-leaves',
+  slug: 'env-room',
   status: 'wip',
 })
 
