@@ -23,7 +23,7 @@ const vertigo1 = '{"perspective":1,"fov":"45deg","zoom":0.888552878044383,"focus
 function MyScene() {
   const three = useThreeWebGL()
 
-  const controls = Message.requireInstanceOrThrow(VertigoControls)
+  const controls = Message.requireInstance(VertigoControls)
   // controls.vertigo.fromJsonDeclaration(vertigo1)
 
   useGroup('my-scene', function* (group) {

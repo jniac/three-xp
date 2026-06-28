@@ -50,7 +50,7 @@ function Art() {
 
     const viewRect = Rectangle.from({ size: 8 })
 
-    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    const controls = Message.requireInstance(VertigoControls)
 
     yield handlePointer(three.domElement, {
       onTap: () => {

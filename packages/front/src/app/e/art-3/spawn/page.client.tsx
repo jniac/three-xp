@@ -38,7 +38,7 @@ function Art() {
 
     const spawner = setup(new Spawner(), group)
     spawner.state.instances.material = new SpawnerArtyMaterial()
-    yield Message.dispatchInstance(Spawner, spawner)
+    yield Message.exposeInstance(Spawner, spawner)
 
     const modeObs = new Observable(ArtMode.Normal)
 

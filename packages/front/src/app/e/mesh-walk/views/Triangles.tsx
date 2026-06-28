@@ -128,7 +128,7 @@ export function Triangles(props: TransformDeclaration) {
       helper.resetTransformMatrix()
     })
 
-    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    const controls = Message.requireInstance(VertigoControls)
     let dragging = false
     yield handlePointer(three.domContainer, {
       onDown: info => {

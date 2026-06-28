@@ -142,7 +142,7 @@ function InspectorWrapper() {
     })
     div.appendChild(inspector.div)
     yield inspector.destroy
-    yield Message.dispatchInstance(InspectorView, inspector)
+    yield Message.exposeInstance(InspectorView, inspector)
 
     inspector.registerFields([
       new MetaProperty({

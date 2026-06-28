@@ -1,10 +1,10 @@
 'use client'
+import { IcosahedronGeometry, Mesh, MeshPhysicalMaterial, TorusGeometry } from 'three'
 
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { setup } from 'some-utils-three/utils/tree'
 
 import { EnvRoom } from '@/misc/env-room'
-import { IcosahedronGeometry, Mesh, MeshPhysicalMaterial, TorusGeometry } from 'three'
 
 function MySceneComponent() {
   useGroup('my-scene', function* (group, three) {
@@ -28,7 +28,7 @@ function MySceneComponent() {
       new IcosahedronGeometry(1, 12),
       new MeshPhysicalMaterial({
         metalness: 1,
-        roughness: .125,
+        roughness: .5,
         color: 'hsl(67, 100%, 85%)',
       })
     ), group)

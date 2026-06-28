@@ -52,7 +52,7 @@ function MyScene() {
       const totalWidth = distributed.reduce((sum, { width }) => sum + width, 0)
 
       let ox = rect.x + (rect.width - totalWidth) / 2
-      let oy = rect.y
+      const oy = rect.y
       for (let i = 0; i < distributed.length; i++) {
         const { width, height } = distributed[i]
         const color = colors[i % colors.length]

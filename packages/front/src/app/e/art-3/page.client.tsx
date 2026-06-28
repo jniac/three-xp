@@ -17,7 +17,7 @@ function Art() {
   useGroup('art', function* (group) {
     setup(new DebugHelper(), group)
 
-    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    const controls = Message.requireInstance(VertigoControls)
     Object.assign(window, { controls })
 
     setup(new widgets.Knob(), {

@@ -14,7 +14,7 @@ import { Object3D } from 'three'
 import { createObject3DInspector } from './editor-infer'
 
 
-export class SelectionHandler<T extends Object = any> {
+export class SelectionHandler<T extends object = any> {
   #private = {
     destroyed: false,
     selection: new ObservableSet<T>(),

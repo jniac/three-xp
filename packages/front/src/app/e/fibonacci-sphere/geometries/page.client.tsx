@@ -27,7 +27,7 @@ export function MyScene() {
     }
 
     const env = setup(new MyEnv(), group)
-    env.applyToSceneOnce(three.scene, three.renderer)
+    env.applyToScene(three.scene, three.renderer)
     env.children.forEach((c, i) => c.visible = i === 0)
     env.scale.setScalar(4);
     (env.children[0] as any).material.color.set('#ccc')

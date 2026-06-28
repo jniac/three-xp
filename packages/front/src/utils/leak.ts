@@ -14,7 +14,7 @@ import { dedent } from 'some-utils-ts/string/dedent'
 import { Ticker } from 'some-utils-ts/ticker'
 
 export function leak(leakedProps?: Record<string, any>) {
-  const controls = Message.requireInstance(VertigoControls)
+  const controls = Message.requestInstance(VertigoControls)
   if (typeof window !== 'undefined') {
     Object.assign(window, {
       ...THREE,
@@ -25,6 +25,7 @@ export function leak(leakedProps?: Record<string, any>) {
       waveform,
       dedent,
       Ticker,
+      Message,
       controls,
       Rectangle,
       RandomUtils,

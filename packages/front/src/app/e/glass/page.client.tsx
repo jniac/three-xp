@@ -74,7 +74,7 @@ export function MyScene() {
     gltf.scene.traverse(child => {
       if (child instanceof Mesh) {
         // child.material = new AutoLitMaterial()
-        let geometry = child.geometry
+        const geometry = child.geometry
         // geometry = geometry.computeVertexNormals()
         // geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-4)
         // geometry = BufferGeometryUtils.toCreasedNormals(geometry, 45 * Math.PI / 180)
