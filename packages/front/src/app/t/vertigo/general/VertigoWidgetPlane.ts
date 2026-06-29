@@ -157,8 +157,8 @@ export class VertigoWidgetPlane extends Mesh<BufferGeometry, VertigoMaterial> {
       rect.x = bufferSize.x - rect.z
       rect.y = bufferSize.y - rect.w
 
-      vertigo.rotation.copy(vertigoControls.vertigo.rotation)
-      vertigo.perspective = vertigoControls.vertigo.perspective
+      vertigo.rotation.copy(vertigoControls.dampedVertigo.rotation)
+      vertigo.perspective = vertigoControls.dampedVertigo.perspective
       vertigo.apply(camera, 1)
 
       widget.widgetUpdate(pointer, pointerDown, camera, tick.deltaTime)

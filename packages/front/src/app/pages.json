@@ -188,6 +188,10 @@
     "dir": "m/debug"
   },
   {
+    "page": "m/env-room/page.tsx",
+    "dir": "m/env-room"
+  },
+  {
     "page": "m/model-preview/page.tsx",
     "dir": "m/model-preview"
   },

@@ -70,7 +70,7 @@ function MyScene() {
   useGroup('my-scene', function* (group) {
     setup(new AxesHelper(), group)
 
-    let testVertigoHelper = false
+    const testVertigoHelper = false
     if (testVertigoHelper) {
       const vertigo = new Vertigo({
         size: 10,
@@ -102,7 +102,7 @@ function MyScene() {
 
     setup(new SceneMesh(), group)
 
-    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    const controls = Message.requireInstance(VertigoControls)
     Object.assign(window, { controls })
     controls.actions.setFocusAndScreenOffset([-1, -1, 0])
     // const vertigoHelper = setup(new VertigoHelper(controls.dampedVertigo, { color: 'magenta' }), group)
@@ -138,7 +138,7 @@ function MyScene2() {
 function VertigoSlider() {
   const { ref } = useEffects<HTMLDivElement>(function* (div) {
     const slider = div.querySelector('input')!
-    const controls = Message.requireInstanceOrThrow(VertigoControls)
+    const controls = Message.requireInstance(VertigoControls)
     slider.addEventListener('input', () => {
       controls.vertigo.perspective = parseFloat(slider.value)
     })
