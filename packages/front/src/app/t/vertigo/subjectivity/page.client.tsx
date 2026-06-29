@@ -1,6 +1,6 @@
 'use client'
 
-import { BufferGeometry, Camera, ConeGeometry, CylinderGeometry, Group, InstancedMesh, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Scene, Texture, Vector2, Vector4, WebGLRenderer, WebGLRenderTarget } from 'three'
+import { BufferGeometry, Camera, ConeGeometry, CylinderGeometry, Group, InstancedMesh, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Scene, Texture, Vector2, Vector3, Vector4, WebGLRenderer, WebGLRenderTarget } from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
 import { InspectorView } from 'some-utils-misc/inspector'
@@ -192,7 +192,7 @@ function MyScene() {
     Message.expose('MY_STATE', myState)
 
     const myVertigo = new Vertigo({
-      focus: [2, 2, 0],
+      focus: [2, 2, -2],
       perspective: 1,
       subjectivity: 1,
     })
@@ -228,6 +228,7 @@ function MyScene() {
       planeCenterHelper
         .clear()
         .box({ min: 0, max: myVertigo.state.focusPlaneCenter, autoCorrect: true }, { color: '#3ff' })
+        .box({ min: 0, max: new Vector3().setFromMatrixPosition(myVertigo.state.worldMatrix), autoCorrect: true }, { color: '#f9f' })
 
       if (myState.useVertigo && myStateUseVertigoOld === false) {
         vertigoControlsOld.set(controls.vertigo)
@@ -278,7 +279,7 @@ function MainInspector() {
 function VertigoInspector() {
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
     const myVertigo = await Message.waitFor<Vertigo>('MY_VERTIGO')
-    const inspector = new InspectorView({ header: { title: 'Vertigo Inspector' } })
+    const inspector = new InspectorView({ header: { title: 'Vertigo Inspector' }, search: true })
       .generateFields(myVertigo, Vertigo.propsMeta)
     yield inspector.onAnyChange((key, value) => {
       myVertigo.set({ [key]: value })
