@@ -1,6 +1,6 @@
 'use client'
 
-import { BufferGeometry, ConeGeometry, CylinderGeometry, InstancedMesh } from 'three'
+import { BufferGeometry, Camera, ConeGeometry, CylinderGeometry, Group, InstancedMesh, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, PlaneGeometry, Scene, Texture, Vector2, Vector4, WebGLRenderer, WebGLRenderTarget } from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
 import { InspectorView } from 'some-utils-misc/inspector'
@@ -11,6 +11,7 @@ import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { VertigoHelper } from 'some-utils-three/camera/vertigo/helper'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { ShaderForge } from 'some-utils-three/shader-forge'
 import { setVertexColors } from 'some-utils-three/utils/geometry/vertex-colors'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
@@ -19,7 +20,106 @@ import { Message } from 'some-utils-ts/message'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
 
 import { leak } from '@/utils/leak'
+import { glsl_sdf2d } from 'some-utils-ts/glsl/sdf-2d'
 
+class VertigoPreviewPlaneMaterial extends MeshBasicMaterial {
+  uniforms = {
+    uMargin: { value: 16 },
+    uBorderRadius: { value: new Vector4().setScalar(8) },
+    uResolution: { value: new Vector2() },
+    uFullResolution: { value: new Vector2() },
+    uMap: { value: null as Texture | null },
+  }
+
+  camera = new PerspectiveCamera()
+
+  renderState: { rt: WebGLRenderTarget, renderer: WebGLRenderer, scene: Scene } | null = null
+
+  constructor() {
+    super({
+      transparent: true,
+      depthTest: false,
+    })
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .defines('USE_UV')
+      .uniforms(this.uniforms)
+      .vertex.replace('project_vertex', /* glsl */`
+        vec2 p = position.xy;
+        p.x = 1.0 - p.x * 0.5;
+        p.y = 1.0 - p.y * 0.5;
+        vec2 m = (uMargin / uResolution) * 2.0;
+        p.x += -m.x;
+        p.y += -m.y;
+        gl_Position = vec4(p, 0, 1.0);
+      `)
+      .fragment.top(glsl_sdf2d)
+      .fragment.replace('map_fragment', /* glsl */`
+        vec2 p = vUv;
+        float d = sdRoundedBox((p - vec2(0.5)) / 4.0, vec2(0.5) / 4.0, uBorderRadius / uResolution.y);
+        float alpha = 1.0 - smoothstep(-1.0 / uResolution.y, 0.0, d);
+        diffuseColor.a *= alpha;
+        if (diffuseColor.a < 0.01) discard;
+        vec2 uv = 1.0 - vUv;
+        diffuseColor = texture2D(uMap, uv);
+        // diffuseColor = vec4(1.0, 0.0, 1.0, alpha);
+      `)
+  }
+
+  onBeforeRender(renderer: WebGLRenderer, scene: Scene, camera: Camera, geometry: BufferGeometry, object: Object3D, group: Group): void {
+    const size = renderer.getSize(this.uniforms.uResolution.value)
+    const fullSize = this.uniforms.uFullResolution.value.copy(size).multiplyScalar(renderer.getPixelRatio())
+    if (this.renderState === null) {
+      const width = Math.floor(fullSize.x * .2)
+      const height = Math.floor(fullSize.y * .2)
+      const rt = new WebGLRenderTarget(width, height)
+      this.uniforms.uMap.value = rt.texture
+      this.renderState = { rt, renderer, scene }
+    }
+  }
+
+  static hiddenObjectMap = new Set<Object3D>()
+  updateMap(vertigo: Vertigo) {
+    if (this.renderState === null)
+      return this
+
+    const { renderer, scene, rt } = this.renderState
+
+    scene.traverse(obj => {
+      if ((obj instanceof VertigoHelper || obj.name === 'plane-center-helper') && obj.visible) {
+        VertigoPreviewPlaneMaterial.hiddenObjectMap.add(obj)
+        obj.visible = false
+      }
+    })
+
+    renderer.setRenderTarget(rt)
+    this.visible = false
+    vertigo.apply(this.camera, this.uniforms.uResolution.value.x / this.uniforms.uResolution.value.y)
+    renderer.render(scene, this.camera)
+    this.visible = true
+    renderer.setRenderTarget(null)
+
+    for (const obj of VertigoPreviewPlaneMaterial.hiddenObjectMap) {
+      obj.visible = true
+    }
+    VertigoPreviewPlaneMaterial.hiddenObjectMap.clear()
+  }
+}
+
+class VertigoPreviewPlane extends Mesh<BufferGeometry, VertigoPreviewPlaneMaterial> {
+  vertigo: Vertigo
+
+  renderOrder = Infinity
+  frustumCulled = false
+
+  constructor(vertigo: Vertigo) {
+    super(new PlaneGeometry(1, 1).translate(0.5, 0.5, 0), new VertigoPreviewPlaneMaterial())
+    this.vertigo = vertigo
+  }
+
+  onTick() {
+    this.material.updateMap(this.vertigo)
+  }
+}
 
 class PineGeometry extends BufferGeometry {
   constructor() {
@@ -86,7 +186,7 @@ function MyScene() {
     setup(new DebugHelper(), group)
       .regularGrid({ plane: 'xz' })
 
-    const planeCenterHelper = setup(new DebugHelper().onTop(), group)
+    const planeCenterHelper = setup(new DebugHelper({ name: 'plane-center-helper' }).onTop(), group)
 
     const myState = new MyState()
     Message.expose('MY_STATE', myState)
@@ -97,6 +197,8 @@ function MyScene() {
       subjectivity: 1,
     })
     Message.expose('MY_VERTIGO', myVertigo)
+
+    setup(new VertigoPreviewPlane(myVertigo), group)
 
     const vertigoHelper = setup(new VertigoHelper(myVertigo, { frustum: 'focus-as-far' }), group)
 
@@ -125,7 +227,7 @@ function MyScene() {
 
       planeCenterHelper
         .clear()
-        .box({ min: 0, max: myVertigo.state.focusPlaneCenter }, { color: '#6fc' })
+        .box({ min: 0, max: myVertigo.state.focusPlaneCenter, autoCorrect: true }, { color: '#3ff' })
 
       if (myState.useVertigo && myStateUseVertigoOld === false) {
         vertigoControlsOld.set(controls.vertigo)
@@ -145,23 +247,18 @@ function MyScene() {
 function MainInspector() {
   const { ref } = useEffects<HTMLDivElement>(async function* (div) {
     const myState = await Message.waitFor<MyState>('MY_STATE')
-    const inspector = new InspectorView({ header: { title: 'Main Inspector' } })
-    inspector.registerFields([
-      ...InspectorView.inferFields(myState),
-      {
-        key: 'toggle-subjectivity',
-        type: 'button',
-        value: () => {
-          const myVertigo = Message.require<Vertigo>('MY_VERTIGO')
-          myVertigo.swapSubjectivity(myVertigo.subjectivity === 0 ? 1 : 0)
-        },
-      }
-    ], {
-      updatedValues() {
-        return myState
-      },
-    })
-    inspector.onAnyChange((key, value) => {
+    const inspector = new InspectorView({ header: { title: 'Demo Inspector' } })
+      .generateFields(myState, null, [
+        {
+          key: 'toggle-subjectivity',
+          type: 'button',
+          value: () => {
+            const myVertigo = Message.require<Vertigo>('MY_VERTIGO')
+            myVertigo.swapSubjectivity(myVertigo.subjectivity === 0 ? 1 : 0)
+          },
+        }
+      ])
+    yield inspector.onAnyChange((key, value) => {
       if (key === 'jumpLessSubjectivity') {
         const myVertigo = Message.require<Vertigo>('MY_VERTIGO')
         myVertigo.swapSubjectivity(value)
@@ -169,7 +266,7 @@ function MainInspector() {
       InspectorView.tryApplyChange(key, value, myState)
     })
     div.replaceChildren(inspector.div)
-  }, [])
+  }, 'always')
   return (
     <div
       ref={ref}
@@ -187,7 +284,7 @@ function VertigoInspector() {
       myVertigo.set({ [key]: value })
     })
     div.replaceChildren(inspector.div)
-  }, [])
+  }, 'always')
   return (
     <div
       ref={ref}
@@ -207,6 +304,17 @@ function UI() {
       </h1>
       <MainInspector />
       <VertigoInspector />
+      <div
+        style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          width: '25%',
+          height: '25%',
+          border: '1px solid #333',
+          borderRadius: 8,
+        }}
+      />
     </div>
   )
 }
