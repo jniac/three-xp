@@ -240,6 +240,10 @@
     "dir": "t/hash-grid"
   },
   {
+    "page": "t/inspector/page.tsx",
+    "dir": "t/inspector"
+  },
+  {
     "page": "t/layout-flex/aspect-distribution/page.tsx",
     "dir": "t/layout-flex/aspect-distribution"
   },

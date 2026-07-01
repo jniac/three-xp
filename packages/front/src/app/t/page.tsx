@@ -13,6 +13,7 @@ import * as gpuComputeGameOfLife from './gpu-compute/game-of-life/page'
 import * as gpuComputePen from './gpu-compute/pen/page'
 import * as gpuComputeWater from './gpu-compute/water/page'
 import * as hashGrid from './hash-grid/page'
+import * as inspector from './inspector/page'
 import * as layoutFlexAspectDistribution from './layout-flex/aspect-distribution/page'
 import * as layoutFlexDemoComputeLayout from './layout-flex/demo/compute-layout/page'
 import * as layoutFlexGrids from './layout-flex/grids/page'
@@ -48,6 +49,7 @@ const pages = {
   'gpu-compute/pen': gpuComputePen,
   'gpu-compute/water': gpuComputeWater,
   'hash-grid': hashGrid,
+  'inspector': inspector,
   'layout-flex/aspect-distribution': layoutFlexAspectDistribution,
   'layout-flex/demo/compute-layout': layoutFlexDemoComputeLayout,
   'layout-flex/grids': layoutFlexGrids,

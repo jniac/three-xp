@@ -179,6 +179,64 @@ class MyState {
   jumpLessSubjectivity = 1
 }
 
+class Toggle {
+  state = {
+    time: 0,
+    value: false,
+    valueOld: false,
+    entering: false,
+    enterTime: 0,
+    exiting: false,
+    exitTime: 0,
+  }
+
+  get value() {
+    return this.state.value
+  }
+
+  get entering() {
+    return this.state.entering
+  }
+
+  get exiting() {
+    return this.state.exiting
+  }
+
+  get timeSinceEnter() {
+    return this.value ? this.state.time - this.state.enterTime : 0
+  }
+
+  get timeSinceExit() {
+    return this.value ? 0 : this.state.time - this.state.exitTime
+  }
+
+  constructor(value = false) {
+    this.update(value)
+  }
+
+  update(
+    value: boolean,
+    time = performance.now() / 1000,
+  ) {
+    const valueOld = this.state.value
+    if (!valueOld && value) {
+      this.state.entering = true
+      this.state.enterTime = time
+    } else {
+      this.state.entering = false
+    }
+    if (valueOld && !value) {
+      this.state.exiting = true
+      this.state.exitTime = time
+    } else {
+      this.state.exiting = false
+    }
+    this.state.valueOld = valueOld
+    this.state.value = value
+    this.state.time = time
+  }
+}
+
 function MyScene() {
   useGroup('my-scene', function* (group, three) {
     setup(new Forest(100), group)
@@ -186,7 +244,7 @@ function MyScene() {
     setup(new DebugHelper(), group)
       .regularGrid({ plane: 'xz' })
 
-    const planeCenterHelper = setup(new DebugHelper({ name: 'plane-center-helper' }).onTop(), group)
+    const debugHelper = setup(new DebugHelper({ name: 'plane-center-helper' }).onTop(), group)
 
     const myState = new MyState()
     Message.expose('MY_STATE', myState)
@@ -204,12 +262,13 @@ function MyScene() {
 
     const controls = Message.requireInstance(VertigoControls)
 
-    let myStateUseVertigoOld = myState.useVertigo
     const vertigoControlsOld = new Vertigo(myVertigo)
 
     const state = {
       time: 0,
     }
+
+    const useVertigoToggle = new Toggle(false)
 
     yield three.ticker.onTick(tick => {
       myState.jumpLessSubjectivity = myVertigo.subjectivity
@@ -225,21 +284,25 @@ function MyScene() {
       }
       vertigoHelper.vertigo.update(three.aspect)
 
-      planeCenterHelper
+      debugHelper
         .clear()
         .box({ min: 0, max: myVertigo.state.focusPlaneCenter, autoCorrect: true }, { color: '#3ff' })
         .box({ min: 0, max: new Vector3().setFromMatrixPosition(myVertigo.state.worldMatrix), autoCorrect: true }, { color: '#f9f' })
 
-      if (myState.useVertigo && myStateUseVertigoOld === false) {
+      useVertigoToggle.update(myState.useVertigo)
+      if (useVertigoToggle.entering) {
         vertigoControlsOld.set(controls.vertigo)
       }
-      if (myState.useVertigo === false && myStateUseVertigoOld) {
-        controls.set(vertigoControlsOld)
+      if (useVertigoToggle.exiting) {
+        controls.vertigo.set(vertigoControlsOld)
       }
-      if (myState.useVertigo) {
-        controls.set(vertigoHelper.vertigo)
+      if (useVertigoToggle.value) {
+        controls.vertigo.set(vertigoHelper.vertigo)
       }
-      myStateUseVertigoOld = myState.useVertigo
+      vertigoHelper.visible =
+        debugHelper.visible = useVertigoToggle.value
+          ? useVertigoToggle.timeSinceEnter < .2
+          : useVertigoToggle.timeSinceExit > 0
     })
   }, [])
   return null
