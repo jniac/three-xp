@@ -49,8 +49,8 @@ export function MyScene() {
     })
 
     yield three.ticker.onTick(tick => {
-      fib.time.newFrame(tick.deltaTime)
-      const t = Math.sin(fib.time.time * .8) * .5 + .5
+      fib.timeHandler.newFrame(tick.deltaTime)
+      const t = Math.sin(fib.timeHandler.time * .8) * .5 + .5
       fib.update(t)
     })
   }, [])
@@ -66,16 +66,16 @@ function UI() {
     yield handleKeyboard([
       [{ code: 'Space', modifiers: '*' }, info => {
         if (info.event.shiftKey) {
-          fib.time.timeScale *= -1
+          fib.timeHandler.timeScale *= -1
         } else {
-          fib.time.togglePause()
+          fib.timeHandler.togglePause()
         }
       }],
       [{ code: /Arrow/, modifiers: '*' }, info => {
         if (/ArrowUp|ArrowDown/.test(info.event.code)) {
-          fib.time.timeScale *= 2 ** (/ArrowUp/.test(info.event.code) ? 1 : -1)
+          fib.timeHandler.timeScale *= 2 ** (/ArrowUp/.test(info.event.code) ? 1 : -1)
         } else {
-          fib.time.time += .005
+          fib.timeHandler.time += .005
             * (/ArrowRight/.test(info.event.code) ? 1 : -1)
             * (info.event.shiftKey ? 10 : 1)
             * (info.event.altKey ? .1 : 1)

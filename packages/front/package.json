@@ -35,6 +35,7 @@
     "some-utils-three": "workspace:*",
     "some-utils-ts": "workspace:*",
     "three": "~0.184.0",
+    "troika-three-text": "^0.52.4",
     "vitest": "^3.1.4"
   },
   "devDependencies": {

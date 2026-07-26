@@ -16,7 +16,7 @@ import { Overlay } from './overlay'
 
 export function Header() {
   return (
-    <div className='flex row items-center thru'>
+    <div className='Header flex row items-center thru'>
       <Logo />
       <Spacer expand />
       <Menu />

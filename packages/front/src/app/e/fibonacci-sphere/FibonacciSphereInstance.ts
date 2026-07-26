@@ -189,7 +189,7 @@ export class FibonacciSphereInstance extends Group {
   props: typeof FibonacciSphereInstance.defaultProps
   array: Float32Array
 
-  time = new TimeHandler()
+  timeHandler = new TimeHandler()
 
   constructor(props?: Partial<typeof FibonacciSphereInstance.defaultProps>) {
     super()
