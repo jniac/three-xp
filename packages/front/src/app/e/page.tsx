@@ -26,10 +26,13 @@ import * as meshWalk from './mesh-walk/page'
 import * as nineCircles from './nine-circles/page'
 import * as ovvoLayers from './ovvo/layers/page'
 import * as pathWithLoop from './path-with-loop/page'
+import * as pixelatedShadow from './pixelated-shadow/page'
 import * as proceduralTree from './procedural-tree/page'
 import * as scatteredPlane from './scattered-plane/page'
 import * as scroll from './scroll/page'
 import * as twoEnvDemo from './two-env-demo/page'
+import * as waterXp1 from './water/xp1/page'
+import * as waterXp2 from './water/xp2/page'
 import * as zigZag from './zig-zag/page'
 
 const pages = {
@@ -56,10 +59,13 @@ const pages = {
   'nine-circles': nineCircles,
   'ovvo/layers': ovvoLayers,
   'path-with-loop': pathWithLoop,
+  'pixelated-shadow': pixelatedShadow,
   'procedural-tree': proceduralTree,
   'scattered-plane': scatteredPlane,
   'scroll': scroll,
   'two-env-demo': twoEnvDemo,
+  'water/xp1': waterXp1,
+  'water/xp2': waterXp2,
   'zig-zag': zigZag,
 }
 

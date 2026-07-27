@@ -96,6 +96,10 @@
     "dir": "e/path-with-loop"
   },
   {
+    "page": "e/pixelated-shadow/page.tsx",
+    "dir": "e/pixelated-shadow"
+  },
+  {
     "page": "e/procedural-tree/page.tsx",
     "dir": "e/procedural-tree"
   },
@@ -114,6 +118,14 @@
   {
     "page": "e/two-env-demo/page.tsx",
     "dir": "e/two-env-demo"
+  },
+  {
+    "page": "e/water/xp1/page.tsx",
+    "dir": "e/water/xp1"
+  },
+  {
+    "page": "e/water/xp2/page.tsx",
+    "dir": "e/water/xp2"
   },
   {
     "page": "e/zig-zag/page.tsx",
