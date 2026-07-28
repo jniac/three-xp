@@ -21,7 +21,18 @@ const nextConfig = {
 
   webpack(config) {
     config.module.exprContextCritical = false // Suppress critical dependency warnings for dynamic imports (eg.: Rapier with three.js)
+
     config.module.rules.push(
+      {
+        test: /\.(png|jpe?g|webp|gif|avif)$/i,
+        resourceQuery: /base64/,
+        type: 'asset',
+        parser: {
+          dataUrlCondition: {
+            maxSize: Infinity,
+          },
+        },
+      },
       {
         resourceQuery: /raw/, // support ?raw
         type: 'asset/source',
