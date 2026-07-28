@@ -155,9 +155,7 @@ export default function PageClient() {
     <ThreeProvider
       vertigoControls={{
         size: [1, 10],
-        inputDOF: {
-          rotation: 'fixed',
-        },
+        inputDOF: 'fixed',
       }}
     >
       <div className='p-4'>
