@@ -22,6 +22,17 @@ const nextConfig = {
   webpack(config) {
     config.module.exprContextCritical = false // Suppress critical dependency warnings for dynamic imports (eg.: Rapier with three.js)
 
+    const nextImageRule = config.module.rules.find(
+      (rule) => rule?.loader === 'next-image-loader',
+    )
+
+    if (nextImageRule) {
+      const base64Query = { not: [/base64/] }
+      nextImageRule.resourceQuery = nextImageRule.resourceQuery
+        ? { and: [nextImageRule.resourceQuery, base64Query] }
+        : base64Query
+    }
+
     config.module.rules.push(
       {
         test: /\.(png|jpe?g|webp|gif|avif)$/i,
