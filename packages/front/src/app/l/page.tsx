@@ -10,6 +10,7 @@ import * as dragAndDecayScroll from './drag-and-decay/scroll/page'
 import * as dragAndDecayToggle from './drag-and-decay/toggle/page'
 import * as occludedLines from './occluded-lines/page'
 import * as quaternion from './quaternion/page'
+import * as transformWithLocalAnchor from './transform-with-local-anchor/page'
 import * as transformWithShear0Intro from './transform-with-shear/0-intro/page'
 import * as transformWithShear1Shear from './transform-with-shear/1-shear/page'
 import * as transformWithShear2Decompose from './transform-with-shear/2-decompose/page'
@@ -26,6 +27,7 @@ const pages = {
   'drag-and-decay/toggle': dragAndDecayToggle,
   'occluded-lines': occludedLines,
   'quaternion': quaternion,
+  'transform-with-local-anchor': transformWithLocalAnchor,
   'transform-with-shear/0-intro': transformWithShear0Intro,
   'transform-with-shear/1-shear': transformWithShear1Shear,
   'transform-with-shear/2-decompose': transformWithShear2Decompose,

@@ -10,6 +10,7 @@ import * as art3 from './art-3/page'
 import * as art3StencilTestDirectTest from './art-3/stencil-test/direct-test/page'
 import * as art3StencilTestSimple from './art-3/stencil-test/simple/page'
 import * as art4 from './art-4/page'
+import * as butterfly from './butterfly/page'
 import * as circlePackingP0 from './circle-packing/p0/page'
 import * as circlePackingP1 from './circle-packing/p1/page'
 import * as depthPlay from './depth-play/page'
@@ -43,6 +44,7 @@ const pages = {
   'art-3/stencil-test/direct-test': art3StencilTestDirectTest,
   'art-3/stencil-test/simple': art3StencilTestSimple,
   'art-4': art4,
+  'butterfly': butterfly,
   'circle-packing/p0': circlePackingP0,
   'circle-packing/p1': circlePackingP1,
   'depth-play': depthPlay,

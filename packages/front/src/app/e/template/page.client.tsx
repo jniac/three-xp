@@ -7,7 +7,8 @@ import { setup } from 'some-utils-three/utils/tree'
 export function MyScene() {
   const three = useThreeWebGL()
   useGroup('my-scene', function* (group) {
-    setup(new DebugHelper().regularGrid(), group)
+    setup(new DebugHelper(), group)
+      .regularGrid()
 
   }, [])
   return null

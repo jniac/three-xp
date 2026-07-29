@@ -83,7 +83,12 @@ export class AutolitMaterial extends MeshBasicMaterial {
         }
       `)
       .fragment.after('color_fragment', /* glsl */`
-        float light = dot(normalize(sf_vWorldNormal), normalize(uLightSource));
+        vec3 normalWorld = normalize(sf_vWorldNormal);
+        // Ensure the normal is facing the correct direction based on the fragment's facing
+        if (!gl_FrontFacing) {
+          normalWorld = -normalWorld;
+        }
+        float light = dot(normalWorld, normalize(uLightSource));
         light = remapClamp(light, -1.0, 1.0, 0.0, 1.0);
         ${alteration1Glsl}
         diffuseColor.rgb = mix(uShadowColor, uColor, light);

@@ -28,6 +28,10 @@
     "dir": "e/art-4"
   },
   {
+    "page": "e/butterfly/page.tsx",
+    "dir": "e/butterfly"
+  },
+  {
     "page": "e/circle-packing/p0/page.tsx",
     "dir": "e/circle-packing/p0"
   },
@@ -162,6 +166,10 @@
   {
     "page": "l/quaternion/page.tsx",
     "dir": "l/quaternion"
+  },
+  {
+    "page": "l/transform-with-local-anchor/page.tsx",
+    "dir": "l/transform-with-local-anchor"
   },
   {
     "page": "l/transform-with-shear/0-intro/page.tsx",

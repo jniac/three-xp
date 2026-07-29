@@ -1,4 +1,4 @@
-import { Color, Group, Vector2, Vector3 } from 'three'
+import { Color, ColorRepresentation, Group, Vector2, Vector3 } from 'three'
 import { LineMaterial, LineSegments2, LineSegmentsGeometry } from 'three/examples/jsm/Addons.js'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
@@ -186,7 +186,22 @@ class Segment {
 }
 
 export class Umbellifer extends Group {
-  material: LineMaterial
+  static defaultProps = {
+    seed: 256789,
+    splitIndices: <number[][]>[[2]],
+    scaleFactor: 1,
+    lineWidthFactor: 1,
+    stemColor: <ColorRepresentation>'#d6fffe',
+    leafColor: <ColorRepresentation>'#fff020',
+  }
+
+  material = new LineMaterial({
+    color: 'white',
+    worldUnits: true,
+    vertexColors: true,
+  })
+
+  props: typeof Umbellifer.defaultProps
 
   uTime = { value: 0 }
   uNoiseAmplitude = { value: 1 }
@@ -195,41 +210,53 @@ export class Umbellifer extends Group {
   get noiseAmplitude() { return this.uNoiseAmplitude.value }
   set noiseAmplitude(value: number) { this.uNoiseAmplitude.value = value }
 
-  constructor(seed = 256789, {
-    splitIndices = <number[][]>[
-      [2],
-    ]
-  } = {}) {
+  constructor(userProps: Partial<typeof Umbellifer.defaultProps> = {}) {
     super()
+
+    this.props = { ...Umbellifer.defaultProps, ...userProps }
+    this.setProps(this.props)
+  }
+
+  setProps(userProps: Partial<typeof Umbellifer.defaultProps>): this {
+    this.props = { ...this.props, ...userProps }
+
+    const {
+      seed,
+      splitIndices,
+      scaleFactor,
+      lineWidthFactor,
+      stemColor: stemColorArg,
+      leafColor: leafColorArg,
+    } = this.props
 
     const s0 = new Segment(
       new Vector3(0, 0, 0),
-      new Vector3(0, 1, 0),
+      new Vector3(0, scaleFactor, 0),
       new Vector3(1, 0, 0),
     )
 
     R.setRandom('parkmiller', seed)
 
-    s0.split(3, { angle: '15deg', lengthVariationFactor: 1.8 })
+    s0.split(3, { angle: '15deg', lengthVariationFactor: 1.8, length: scaleFactor })
 
     for (const indices of splitIndices)
-      s0.getChild(...indices).mulLength(1.2).split(3, { angle: '20deg', lengthVariationFactor: 1.4 })
+      s0.getChild(...indices).mulLength(.65).split(3, { angle: '20deg', length: scaleFactor, lengthVariationFactor: 1.4 })
 
     for (const leaf of [...s0.allLeaves()]) {
-      leaf.split(6, { angle: '70deg', length: .28, altDir: [0, 1, 1], altDirWeight: .5 })
-      leaf.split(1, { angle: '0deg', length: .17, altDir: [0, 1, 1], altDirWeight: .5 })
+      leaf.split(6, { angle: '70deg', length: scaleFactor * .28, altDir: [0, 1, 1], altDirWeight: .5 })
+      leaf.split(1, { angle: '0deg', length: scaleFactor * .17, altDir: [0, 1, 1], altDirWeight: .5 })
     }
 
     for (const leaf of [...s0.allLeaves()])
-      leaf.split(11, { angle: '70deg', length: .12, altDir: [0, 1, 0], altDirWeight: .5, lengthVariationFactor: 1.1 })
+      leaf.split(11, { angle: '70deg', length: scaleFactor * .12, altDir: [0, 1, 0], altDirWeight: .5, lengthVariationFactor: 1.1 })
 
     for (const leaf of [...s0.allLeaves()])
-      leaf.split(13, { angle: '70deg', length: .04, altDir: [0, 1, 0], altDirWeight: .75, lengthVariationFactor: 1.1 })
+      leaf.split(13, { angle: '70deg', length: scaleFactor * .04, altDir: [0, 1, 0], altDirWeight: .75, lengthVariationFactor: 1.1 })
 
     {
       // Set colors from leaves to root:
-      const color0 = makeColor('#ecde0d').clone()
-      const color1 = makeColor('#bbfffeff').clone()
+      const stemColor = makeColor(stemColorArg).clone().convertSRGBToLinear()
+      const leafColor = makeColor(leafColorArg).clone().convertSRGBToLinear()
       const stepMax = 3
       let stepCount = 0
       let set0 = new Set<Segment>(s0.allLeaves())
@@ -240,8 +267,8 @@ export class Umbellifer extends Group {
         for (const segment of set0) {
           // segment.startColor.set(color0)
           // segment.endColor.set(color1)
-          segment.endColor.lerpColors(color0, color1, clampAlpha(stepCount / stepMax))
-          segment.startColor.lerpColors(color0, color1, clampAlpha((stepCount + 1) / stepMax))
+          segment.endColor.lerpColors(leafColor, stemColor, clampAlpha(stepCount / stepMax))
+          segment.startColor.lerpColors(leafColor, stemColor, clampAlpha((stepCount + 1) / stepMax))
           if (segment.parent)
             set1.add(segment.parent)
         }
@@ -255,18 +282,11 @@ export class Umbellifer extends Group {
     geometry.setPositions([...s0.allDescendantsPositions()])
     geometry.setColors([...s0.allDescendantsColors()])
 
-    const material = new LineMaterial({
-      color: 'white',
-      worldUnits: true,
-      linewidth: .0015,
-      vertexColors: true,
-    })
+    this.material.linewidth = .0015 * scaleFactor * lineWidthFactor
 
-    setup(new LineSegments2(geometry, material), this)
+    setup(new LineSegments2(geometry, this.material), this)
 
-    this.scale.setScalar(0.25)
-
-    this.material = material
+    return this
   }
 
   positionOnScene?: (screenSize: ScreenSize, sceneSize: Vector2) => void
