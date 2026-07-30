@@ -1,21 +1,64 @@
 'use client'
 
-import { BufferGeometry, Group, IcosahedronGeometry, Mesh, TorusGeometry } from 'three'
+import { BoxGeometry, BufferGeometry, Group, IcosahedronGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshBasicMaterialParameters, TorusGeometry } from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/base'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
-import { createBendUniforms, setupShaderForge } from 'some-utils-three/glsl/transform/bend'
+import { createBendUniforms, glsl_bend, glsl_bend_project_vertex, setupShaderForge } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
-import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { ShaderForge } from 'some-utils-three/shader-forge/index'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
+import { loop2 } from 'some-utils-ts/iteration/loop'
 
 function repeat(n: number, geometry: BufferGeometry) {
   return BufferGeometryUtils.mergeGeometries(Array.from({ length: n }, (_, i) => geometry.clone().translate(i, 0, 0)))
+}
+
+class BendAutoLitMaterial extends MeshBasicMaterial {
+  uniforms: Record<string, { value: any }>
+  constructor(
+    bendUniforms: ReturnType<typeof createBendUniforms>,
+    params?: MeshBasicMaterialParameters & Partial<{ depthOffset: number }>,
+  ) {
+    const {
+      depthOffset = 0,
+      ...superParams
+    } = { ...params }
+    super({
+      side: 2,
+      ...superParams,
+    })
+    this.uniforms = {
+      ...bendUniforms,
+      uDepthOffset: { value: depthOffset },
+    }
+    this.onBeforeCompile = shader => ShaderForge.with(shader)
+      .uniforms(this.uniforms)
+      .varying({
+        'sf_vWorldNormal': 'vec3',
+      })
+      .vertex.top(glsl_bend)
+      .vertex.replace('project_vertex', glsl_bend_project_vertex)
+      .vertex.mainAfterAll(/* glsl */`
+        sf_vWorldNormal = normalize(bendNormal);
+
+        gl_Position.w += uDepthOffset;
+      `)
+      .fragment.after('map_fragment', /* glsl */`
+        float sunLight = dot(normalize(vec3(1, 3, 2)), sf_vWorldNormal) * 0.5 + 0.5;
+        diffuseColor.rgb *= sunLight;
+      `)
+  }
+
+  static #now = Date.now()
+  customProgramCacheKey(): string {
+    return `BendAutoLitMaterial-${BendAutoLitMaterial.#now}`
+  }
 }
 
 class BendAxesDemo extends Group {
@@ -31,14 +74,13 @@ class BendAxesDemo extends Group {
     super()
 
     // Axes:
-    const material = new AutoLitMaterial({
+    const material = new BendAutoLitMaterial(this.uniforms, {
       vertexColors: true,
-      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
     })
     setup(new Mesh(repeat(15, new AxesGeometry({ heightSegments: 16 })), material), this)
 
     // BoxLineHelper:
-    const box = setup(new BoxLineHelper({
+    setup(new BoxLineHelper({
       divisions: 20,
       onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
     }), {
@@ -69,17 +111,87 @@ class BendGeometryDemo extends Group {
       new IcosahedronGeometry(0.25, 3),
       new TorusGeometry(.5, .25, 16, 32).rotateY(Math.PI / 2).translate(.5, 0, 0).toNonIndexed(),
     ])
-    const material = new AutoLitMaterial({
-      wireframe: true,
-      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
-    })
-    setup(new Mesh(repeat(5, baseGeometry), material), { parent: this, x: -5 })
-    setup(new Mesh(repeat(5, baseGeometry), material), { parent: this, x: -5, z: -2 })
+    setup(new Mesh(
+      repeat(5, baseGeometry),
+      new BendAutoLitMaterial(this.uniforms, {
+        wireframe: true,
+        color: '#ddd',
+        depthOffset: 0.00001,
+      })),
+      { parent: this, x: -5 })
+
+    setup(new Mesh(
+      repeat(5, baseGeometry),
+      new BendAutoLitMaterial(this.uniforms, {})),
+      { parent: this, x: -5 })
 
     const box2 = setup(new BoxLineHelper({
       divisions: 20,
       onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
     }), { parent: this, ...this.transform })
+  }
+
+  *initialize(three: ThreeBaseContext) {
+    yield three.ticker.onTick(tick => {
+      this.uniforms.uBendFactor.value = Math.sin(tick.time * 1.5)
+    })
+    return this
+  }
+}
+
+class BendInstanceDemo extends Group {
+  transform: TransformDeclaration = {
+    y: -5,
+    rotationY: '20deg',
+  }
+
+  uniforms = createBendUniforms(makeMatrix4(this.transform))
+
+  constructor() {
+    super()
+    const geometry = new BoxGeometry(1, 1, 1, 8, 8, 8)
+
+    const squareSide = 5
+    const mesh = setup(new InstancedMesh(
+      geometry,
+      new BendAutoLitMaterial(this.uniforms),
+      squareSide * squareSide
+    ), {
+      parent: this,
+      y: -5,
+    })
+
+    const wireMesh = setup(new InstancedMesh(
+      geometry,
+      new BendAutoLitMaterial(this.uniforms, {
+        wireframe: true,
+        color: '#ddd',
+        depthOffset: 0.0001,
+      }),
+      squareSide * squareSide
+    ), {
+      parent: this,
+      y: -5,
+    })
+
+    const dim = squareSide / 2
+    for (const it of loop2(squareSide, squareSide)) {
+      const m = makeMatrix4({
+        x: it.lerpX(-dim, dim),
+        z: it.lerpY(-dim, dim),
+      })
+      mesh.setMatrixAt(it.i, m)
+      wireMesh.setMatrixAt(it.i, m)
+    }
+
+    // BoxLineHelper:
+    setup(new BoxLineHelper({
+      divisions: 20,
+      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
+    }), {
+      parent: this,
+      ...this.transform,
+    })
   }
 
   *initialize(three: ThreeBaseContext) {
@@ -102,6 +214,9 @@ function MyScene() {
     setup(yield* new BendGeometryDemo()
       .initialize(three), group)
 
+    setup(yield* new BendInstanceDemo()
+      .initialize(three), group)
+
   }, 'always')
 
   return null
@@ -111,7 +226,8 @@ export function ClientPage() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 10,
+        size: 14,
+        rotation: `-30deg, 30deg, 0deg`,
       }}
     >
       <div className='layer thru p-16'>
@@ -121,6 +237,11 @@ export function ClientPage() {
         <p>
           Demonstration of a vertex bend transformation using Shader Forge.
         </p>
+        <ul>
+          <li>✅ Position 😅</li>
+          <li>✅ Normal 👍</li>
+          <li>✅ Instancing & Batching 👍</li>
+        </ul>
       </div>
 
       <MyScene />
