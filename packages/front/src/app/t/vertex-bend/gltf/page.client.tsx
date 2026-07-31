@@ -14,7 +14,7 @@ import { ShaderForge } from 'some-utils-three/shader-forge'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { deepAssign } from 'some-utils-ts/object/deep'
-import { GLTFLoader, HDRLoader } from 'three/examples/jsm/Addons.js'
+import { GLTFLoader, UltraHDRLoader } from 'three/examples/jsm/Addons.js'
 import { BufferGeometry, EquirectangularReflectionMapping, Matrix4, Mesh, MeshPhysicalMaterial, MeshPhysicalMaterialParameters, MeshStandardMaterial, TorusKnotGeometry } from 'three/src/Three.WebGPU.js'
 
 class MyState {
@@ -102,8 +102,8 @@ function MyScene() {
     setup(new DebugHelper(), group)
       .regularGrid()
 
-    new HDRLoader()
-      .load(config.assets('env/kloofendal_43d_clear_puresky_4k.hdr'), texture => {
+    new UltraHDRLoader()
+      .load(config.assets('env/royal_esplanade_2k.hdr.jpg'), texture => {
         texture.mapping = EquirectangularReflectionMapping
         three.scene.environment = texture
       })
