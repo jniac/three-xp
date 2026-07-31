@@ -34,6 +34,7 @@ import * as triangleIntersection from './triangle-intersection/page'
 import * as variableDemo from './variable/demo/page'
 import * as variableSample from './variable/sample/page'
 import * as vertexBendBasic from './vertex-bend/basic/page'
+import * as vertexBendGltf from './vertex-bend/gltf/page'
 import * as vertexBendUmbellifer from './vertex-bend/umbellifer/page'
 import * as vertigo from './vertigo/page'
 import * as voxel from './voxel/page'
@@ -70,6 +71,7 @@ const pages = {
   'variable/demo': variableDemo,
   'variable/sample': variableSample,
   'vertex-bend/basic': vertexBendBasic,
+  'vertex-bend/gltf': vertexBendGltf,
   'vertex-bend/umbellifer': vertexBendUmbellifer,
   'vertigo': vertigo,
   'voxel': voxel,

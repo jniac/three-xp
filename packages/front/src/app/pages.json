@@ -360,6 +360,10 @@
     "dir": "t/vertex-bend/basic"
   },
   {
+    "page": "t/vertex-bend/gltf/page.tsx",
+    "dir": "t/vertex-bend/gltf"
+  },
+  {
     "page": "t/vertex-bend/umbellifer/page.tsx",
     "dir": "t/vertex-bend/umbellifer"
   },
