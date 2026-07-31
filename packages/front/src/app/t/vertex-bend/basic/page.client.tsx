@@ -3,7 +3,9 @@
 import { BoxGeometry, BufferGeometry, Group, IcosahedronGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshBasicMaterialParameters, TorusGeometry } from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
+import { InspectorView } from 'some-utils-misc/inspector'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { useEffects } from 'some-utils-react/hooks/effects'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/base'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
@@ -14,6 +16,8 @@ import { ShaderForge } from 'some-utils-three/shader-forge/index'
 import { makeMatrix4 } from 'some-utils-three/utils/make'
 import { setup } from 'some-utils-three/utils/tree'
 import { loop2 } from 'some-utils-ts/iteration/loop'
+import { Message } from 'some-utils-ts/message'
+import { deepAssign } from 'some-utils-ts/object/deep'
 
 function repeat(n: number, geometry: BufferGeometry) {
   return BufferGeometryUtils.mergeGeometries(Array.from({ length: n }, (_, i) => geometry.clone().translate(i, 0, 0)))
@@ -130,13 +134,6 @@ class BendGeometryDemo extends Group {
       onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
     }), { parent: this, ...this.transform })
   }
-
-  *initialize(three: ThreeBaseContext) {
-    yield three.ticker.onTick(tick => {
-      this.uniforms.uBendFactor.value = Math.sin(tick.time * 1.5)
-    })
-    return this
-  }
 }
 
 class BendInstanceDemo extends Group {
@@ -193,13 +190,20 @@ class BendInstanceDemo extends Group {
       ...this.transform,
     })
   }
+}
 
-  *initialize(three: ThreeBaseContext) {
-    yield three.ticker.onTick(tick => {
-      this.uniforms.uBendFactor.value = Math.sin(tick.time * 1.5)
-    })
-    return this
+class MyState {
+  animate = true
+  static bendFactor = {
+    type: `
+      number
+      slider(-1, 1)
+    `,
+    description: `
+      Bend factor for the vertex bend transformation (in radians).
+    `,
   }
+  bendFactor = 0
 }
 
 function MyScene() {
@@ -208,18 +212,51 @@ function MyScene() {
     setup(new DebugHelper(), group)
       .regularGrid()
 
-    setup(yield* new BendAxesDemo()
-      .initialize(three), group)
+    setup(new BendAxesDemo(), group)
+    setup(new BendGeometryDemo(), group)
+    setup(new BendInstanceDemo(), group)
 
-    setup(yield* new BendGeometryDemo()
-      .initialize(three), group)
+    const state = new MyState()
+    yield Message.exposeInstance(MyState, state)
 
-    setup(yield* new BendInstanceDemo()
-      .initialize(three), group)
+    let time = 0
+    yield three.ticker.onTick(tick => {
+      if (state.animate) {
+        time += tick.deltaTime
+        state.bendFactor = Math.sin(time * 1.5)
+      }
+
+      for (const child of group.children) {
+        if (child instanceof BendAxesDemo || child instanceof BendGeometryDemo || child instanceof BendInstanceDemo) {
+          child.uniforms.uBendFactor.value = state.bendFactor
+        }
+      }
+    })
 
   }, 'always')
 
   return null
+}
+
+function MyUI() {
+  const { ref } = useEffects<HTMLDivElement>(async function* (div) {
+    const state = await Message.waitForInstance(MyState)
+    const inspector = new InspectorView({ header: { title: 'Vertex Bend Demo' } })
+    div.replaceChildren(inspector.div)
+    inspector.generateFields(state, MyState)
+    inspector.onAnyChange((key, value) => {
+      deepAssign(state, { [key]: value })
+      if (key === 'bendFactor') {
+        state.animate = false
+      }
+    })
+  }, [])
+  return (
+    <div
+      ref={ref}
+      className='p-4 border rounded border-white/20 bg-black/20 backdrop-blur-lg w-fit'
+    ></div>
+  )
 }
 
 export function ClientPage() {
@@ -230,18 +267,19 @@ export function ClientPage() {
         rotation: `-30deg, 30deg, 0deg`,
       }}
     >
-      <div className='layer thru p-16'>
+      <div className='layer thru flex flex-col items-start p-16 gap-2'>
         <h1 className='text-4xl font-bold'>
           Vertex Shader - Bend
         </h1>
         <p>
-          Demonstration of a vertex bend transformation using Shader Forge.
+          Demonstration of a bend transformation implemented in the vertex shader.
         </p>
         <ul>
           <li>✅ Position 😅</li>
           <li>✅ Normal 👍</li>
           <li>✅ Instancing & Batching 👍</li>
         </ul>
+        <MyUI />
       </div>
 
       <MyScene />
