@@ -110,7 +110,9 @@ export class Butterfly extends Group {
   update(deltaTime: number) {
     this.state.time += deltaTime
 
-    const wingOpening = easeInOut(triangle(this.state.time, { f: 1 / 2 }), 2, 1 / 4)
+    const frequency = 1
+
+    const wingOpening = easeInOut(triangle(this.state.time, { frequency }), 1.5, 1 / 4)
     const wingAngle = lerp(.2, 1.2, wingOpening)
     this.parts.wing1.rotation.x = wingAngle
     this.parts.wing2.rotation.x = -wingAngle
@@ -120,10 +122,10 @@ export class Butterfly extends Group {
       const { v1, v2, v3, correction } = this.#update_private
       const t = (this.state.time * .05) % 1
 
-      const elevation = easeInOut(triangle(this.state.time, { f: 1 / 2, p: -.1 }), 1.5, 1 / 4)
+      const elevation = easeInOut(triangle(this.state.time, { frequency, phase: -.1 }), 1.5, 1 / 4)
       path.getPointAt(t, v1)
       this.state.pathCurrentPoint.copy(v1)
-      v3.set(0, elevation * .75, 0)
+      v3.set(0, elevation * .5, 0)
       this.position.copy(v3.add(v1))
 
       path.getTangentAt(t, v2)
