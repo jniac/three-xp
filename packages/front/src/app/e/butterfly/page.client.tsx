@@ -29,7 +29,7 @@ export default function PageClient() {
     <ThreeProvider
       // fxaa
       vertigoControls={{
-        size: 17,
+        size: 20,
         // inputDOF: 'fixed',
       }}
     >

@@ -19,7 +19,7 @@ const nextConfig = {
   distDir: isProd ? '../../docs' : '.next',
   assetPrefix: isProd ? '/three-xp/' : '',
 
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.module.exprContextCritical = false // Suppress critical dependency warnings for dynamic imports (eg.: Rapier with three.js)
 
     const nextImageRule = config.module.rules.find(
@@ -79,6 +79,20 @@ const nextConfig = {
       test: /^@svg\/.*\.svg$/,
       use: ['@svgr/webpack'],
     })
+
+    // three-msdf-text-utils@1.5.0 references build/worker.js, but the file is
+    // missing from the published package. The APIs used by this app do not
+    // need the worker, so replace only that missing package-internal module.
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^\.\/worker\.js$/, (resource) => {
+        if (resource.context.includes('three-msdf-text-utils/build')) {
+          resource.request = path.join(
+            import.meta.dirname,
+            'src/shims/three-msdf-text-utils-worker.js',
+          )
+        }
+      }),
+    )
 
     return config
   },
