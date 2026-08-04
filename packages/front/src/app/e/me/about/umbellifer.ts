@@ -1,5 +1,7 @@
 import { Color, ColorRepresentation, Group, Vector2, Vector3 } from 'three'
-import { LineMaterial, LineSegments2, LineSegmentsGeometry } from 'three/examples/jsm/Addons.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { fromVector3Declaration } from 'some-utils-three/declaration/vector'
@@ -12,6 +14,7 @@ import { AngleDeclaration, fromAngleDeclaration, Vector3Declaration } from 'some
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { glsl_utils } from 'some-utils-ts/glsl/utils'
 import { RandomUtils as R } from 'some-utils-ts/random/random-utils'
+
 import { ScreenSize } from '../responsive'
 
 /**
