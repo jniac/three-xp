@@ -1,20 +1,22 @@
 'use client'
 
-
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { setupShaderForge } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { Umbellifer } from './umbellifer'
+import { Umbellifer } from '@/app/e/me/about/umbellifer'
 
 function MyScene() {
   useGroup('slerp-scene', function* (group, three) {
     setup(new DebugHelper(), group)
       .regularGrid({ size: 4 })
 
-    const umbellifer = setup(new Umbellifer(), group)
+    const umbellifer = setup(new Umbellifer({
+      scaleFactor: .333,
+      lineWidthFactor: 2,
+    }), group)
     umbellifer.bendAmplitude = 2
     umbellifer.noiseAmplitude = 2
     umbellifer.enableBend()

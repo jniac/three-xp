@@ -336,8 +336,9 @@ export class Umbellifer extends Group {
           start = modelMatrix * start;
           end = modelMatrix * end;
 
-          start = applyBend(start, uBendFactor, uBendMatrix, uBendMatrixInverse);
-          end = applyBend(end, uBendFactor, uBendMatrix, uBendMatrixInverse);
+          vec3 dummyNormal = vec3(1.0, 0.0, 0.0);
+          applyBend(start, dummyNormal, uBendFactor, uBendMatrix, uBendMatrixInverse);
+          applyBend(end, dummyNormal, uBendFactor, uBendMatrix, uBendMatrixInverse);
 
           float time = uTime * 0.15;
           float noiseScale = 0.825;
