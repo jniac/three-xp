@@ -5,16 +5,16 @@ import { setup } from 'some-utils-three/utils/tree'
 import { glsl_color_conversion } from 'some-utils-ts/glsl/color-conversion'
 import { glsl_stegu_snoise } from 'some-utils-ts/glsl/stegu-snoise'
 import { lerp } from 'some-utils-ts/math/basic'
-
 import { easeInOut } from 'some-utils-ts/math/easing'
 import { triangle } from 'some-utils-ts/math/waveform'
-import butterFlyTypeABase64 from './assets/butterfly-type-a.png?base64'
+
+import butterFlyTypeASvgStr from './assets/butterfly-type-a.svg?raw'
 
 class ButterflyMaterial extends MeshBasicMaterial {
   static shared = (() => {
     const createTexture = () => {
       const img = new Image()
-      img.src = butterFlyTypeABase64
+      img.src = `data:image/svg+xml;base64,${btoa(butterFlyTypeASvgStr)}`
       img.onload = () => {
         texture.needsUpdate = true
       }
