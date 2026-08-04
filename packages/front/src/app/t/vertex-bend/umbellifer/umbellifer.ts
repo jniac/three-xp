@@ -1,5 +1,7 @@
 import { Color, Group, Vector2, Vector3 } from 'three'
-import { LineMaterial, LineSegments2, LineSegmentsGeometry } from 'three/examples/jsm/Addons.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { fromVector3Declaration } from 'some-utils-three/declaration/vector'
@@ -278,8 +280,10 @@ export class Umbellifer extends Group {
           start = modelMatrix * start;
           end = modelMatrix * end;
 
-          start = applyBend(start, uBendFactor, uBendMatrix, uBendMatrixInverse);
-          end = applyBend(end, uBendFactor, uBendMatrix, uBendMatrixInverse);
+          vec3 dummyNormal = vec3(1.0, 0.0, 0.0);
+
+          applyBend(start, dummyNormal, uBendFactor, uBendMatrix, uBendMatrixInverse);
+          applyBend(end, dummyNormal, uBendFactor, uBendMatrix, uBendMatrixInverse);
 
           float time = uTime * 0.15;
           float noiseScale = 0.825;
