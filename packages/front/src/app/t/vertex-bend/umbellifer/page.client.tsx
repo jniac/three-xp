@@ -1,7 +1,7 @@
 'use client'
 
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
-import { setupShaderForge } from 'some-utils-three/glsl/transform/bend'
+import { setupBendVertexShader } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { setup } from 'some-utils-three/utils/tree'
@@ -27,7 +27,7 @@ function MyScene() {
     setup(new BoxLineHelper({
       letters: true,
       onBeforeCompile: shader => {
-        setupShaderForge(shader, umbellifer.bendUniforms!)
+        setupBendVertexShader(shader, umbellifer.bendUniforms!)
       },
     }), {
       parent: group,

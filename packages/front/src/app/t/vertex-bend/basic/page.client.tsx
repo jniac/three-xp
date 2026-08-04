@@ -9,7 +9,7 @@ import { useEffects } from 'some-utils-react/hooks/effects'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { ThreeBaseContext } from 'some-utils-three/experimental/contexts/base'
 import { AxesGeometry } from 'some-utils-three/geometries/axis'
-import { createBendUniforms, glsl_bend, glsl_bend_project_vertex, setupShaderForge } from 'some-utils-three/glsl/transform/bend'
+import { createBendUniforms, glsl_bend, glsl_bend_project_vertex, setupBendVertexShader } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { ShaderForge } from 'some-utils-three/shader-forge/index'
@@ -86,7 +86,7 @@ class BendAxesDemo extends Group {
     // BoxLineHelper:
     setup(new BoxLineHelper({
       divisions: 20,
-      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
+      onBeforeCompile: shader => setupBendVertexShader(shader, this.uniforms),
     }), {
       parent: this,
       ...this.transform,
@@ -131,7 +131,7 @@ class BendGeometryDemo extends Group {
 
     const box2 = setup(new BoxLineHelper({
       divisions: 20,
-      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
+      onBeforeCompile: shader => setupBendVertexShader(shader, this.uniforms),
     }), { parent: this, ...this.transform })
   }
 }
@@ -184,7 +184,7 @@ class BendInstanceDemo extends Group {
     // BoxLineHelper:
     setup(new BoxLineHelper({
       divisions: 20,
-      onBeforeCompile: shader => setupShaderForge(shader, this.uniforms),
+      onBeforeCompile: shader => setupBendVertexShader(shader, this.uniforms),
     }), {
       parent: this,
       ...this.transform,

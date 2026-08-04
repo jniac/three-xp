@@ -5,7 +5,7 @@ import { config } from '@/config'
 import { InspectorView } from 'some-utils-misc/inspector'
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { createBendUniforms, glsl_bend, setupShaderForge } from 'some-utils-three/glsl/transform/bend'
+import { createBendUniforms, glsl_bend, setupBendVertexShader } from 'some-utils-three/glsl/transform/bend'
 import { BoxLineHelper } from 'some-utils-three/helpers/box-line'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { isMesh } from 'some-utils-three/is'
@@ -112,7 +112,7 @@ function MyScene() {
 
     const box = setup(new BoxLineHelper({
       divisions: 20,
-      onBeforeCompile: shader => setupShaderForge(shader, bendUniforms),
+      onBeforeCompile: shader => setupBendVertexShader(shader, bendUniforms),
     }), group)
 
     const tool = setup(new TransformTool(), group)
