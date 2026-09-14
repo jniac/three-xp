@@ -123,11 +123,11 @@ class PathSegment {
   }
 
   getPosition0(out = new Vector3()): Vector3 {
-    return this.walker.getTriangle(this.triangleIndex).getPosition(this.uv0, out)
+    return this.walker.getTriangleView(this.triangleIndex).getPosition(this.uv0, out)
   }
 
   getPosition1(out = new Vector3()): Vector3 {
-    return this.walker.getTriangle(this.triangleIndex).getPosition(this.uv1, out)
+    return this.walker.getTriangleView(this.triangleIndex).getPosition(this.uv1, out)
   }
 }
 
@@ -293,13 +293,13 @@ export class WalkResult {
   }
 
   getFinalPosition(out = new Vector3()): Vector3 {
-    return this.walker.getTriangle(this.finalTriangleIndex).getPosition(this.finalUV, out)
+    return this.walker.getTriangleView(this.finalTriangleIndex).getPosition(this.finalUV, out)
   }
 }
 
 export class SurfaceWalker {
-  pointsBuffer: Float32Array = new Float32Array(0);
-  indicesBuffer = null as Uint16Array | null;
+  pointsBuffer: Float32Array = new Float32Array(0)
+  indicesBuffer = null as Uint16Array | null
 
   /**
    * Triangle adjacency information, as an array of triangleCount * 3 elements.
@@ -312,9 +312,7 @@ export class SurfaceWalker {
    * 
    * Value is 0xFFFF if there is no adjacent triangle on that edge (boundary edge).
    */
-  triangleAdjacency = new Uint16Array(0);
-
-  path: PathSegment[] = [];
+  triangleAdjacency = new Uint16Array(0)
 
   get triangleCount() {
     if (this.indicesBuffer) {
@@ -330,7 +328,7 @@ export class SurfaceWalker {
       new Vector3(),
       new Vector3(),
     ] as [Vector3, Vector3, Vector3],
-  };
+  }
   getTriangleVertices(triangleIndex: number, out?: [Vector3, Vector3, Vector3]): [Vector3, Vector3, Vector3] {
     const { ABC } = SurfaceWalker.#getTriangleVertices_cache
     const A = out?.[0] ?? ABC[0]
@@ -353,7 +351,7 @@ export class SurfaceWalker {
     B.set(arr[bi + 0], arr[bi + 1], arr[bi + 2])
     C.set(arr[ci + 0], arr[ci + 1], arr[ci + 2])
 
-    return ABC
+    return out ?? ABC
   }
 
   /**
@@ -438,7 +436,7 @@ export class SurfaceWalker {
   }
 
   #getTriangle_cache = new TriangleView(this, -1);
-  getTriangle(triangleIndex: number, out?: TriangleView): TriangleView {
+  getTriangleView(triangleIndex: number, out?: TriangleView): TriangleView {
     return (out ?? this.#getTriangle_cache).set(this, triangleIndex)
   }
 

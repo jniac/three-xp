@@ -4,6 +4,7 @@ import PageClient from './page.client'
 
 export const metadata = new XpMetadata({
   slug: 'gaussian-mipmaps',
+  status: 'done',
 })
 
 export default function Page() {

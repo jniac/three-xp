@@ -107,12 +107,12 @@ export function Triangles(props: TransformDeclaration) {
       helper.debugTriangle([geometry, 3], { text: 3, color: triangle3DColors[3] })
       helper.debugTriangle([geometry, 4], { text: 4, color: triangle3DColors[0] })
 
-      const t0_dest = walker.getTriangle(0).getPosition(startUV.clone().add(deltaUV))
+      const t0_dest = walker.getTriangleView(0).getPosition(startUV.clone().add(deltaUV))
       helper.point(t0_dest, { color: '#3ff', shape: 'ring', size: .3 })
 
       const t1_dest_uv = walker.solver.t1_I_uv.clone().add(walker.solver.t1_remaining_delta_uv)
-      const t1_dest = walker.path?.[1]
-        ? walker.getTriangle(walker.path[1].triangleIndex).getPosition(t1_dest_uv)
+      const t1_dest = result.path[1]
+        ? walker.getTriangleView(result.path[1].triangleIndex).getPosition(t1_dest_uv)
         : t0_dest
       helper.point(t1_dest, { color: '#3ff', shape: 'x', size: .3 })
 
@@ -148,7 +148,7 @@ export function Triangles(props: TransformDeclaration) {
         if (dragging) {
           const { intersected, point } = three.pointer.intersectPlane('xy')
           if (intersected) {
-            const uv = walker.getTriangle(0).getUV(point.sub(group.position))
+            const uv = walker.getTriangleView(0).getUV(point.sub(group.position))
             deltaUV.subVectors(uv, startUV)
           }
         }
