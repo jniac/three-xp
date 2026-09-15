@@ -13,6 +13,7 @@ import { AutoLitWireframeMesh } from './AutoLitWireframeMesh'
 import { OptimizedTriangleWalker } from './deepseek'
 import { GeometryTriangleHelper } from './GeometryTriangleHelper'
 import { HalfEdgeMesh } from './half-edge-mesh'
+import { CubeWalkDemo } from './views/CubeWalkDemo'
 import { TorusKnotGroup, TorusKnotInspector } from './views/TorusKnot'
 import { Triangles } from './views/Triangles'
 
@@ -136,16 +137,17 @@ export function MyScene() {
   return null
 }
 
-
 export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
         size: 7,
+        focus: [4, 0, 0],
       }}>
       <ThreeSettings />
       <Triangles x={-5} />
       <TorusKnotGroup />
+      <CubeWalkDemo x={4} />
       <div className='thru p-8 flex flex-col gap-1 items-start'>
         <RaycastInfo />
         <TorusKnotInspector />

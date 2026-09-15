@@ -1,6 +1,6 @@
 import { BufferGeometry, Vector2, Vector3 } from 'three'
 
-import { fromVector2Declaration, fromVector3Declaration, Vector2Declaration, Vector3Declaration } from 'some-utils-three/declaration'
+import { fromVector2Declaration, fromVector3Declaration, Vector2Declaration, Vector2DeclarationLoose, Vector3Declaration } from 'some-utils-three/declaration'
 
 import { HashMapArray } from './hash-map'
 import { distancePointToLineSq, findFirstEdgeIntersection, Matrix2, solveTriangle2D, transposeIntersectionUV } from './math'
@@ -556,9 +556,10 @@ export class SurfaceWalker {
    */
   walk(
     startTriangleIndex: number,
-    startUVArg: Vector2Declaration,
-    deltaUVArg: Vector2Declaration,
+    startUVArg: Vector2DeclarationLoose,
+    deltaUVArg: Vector2DeclarationLoose,
     maxIterations: number = 1000,
+    maxDistance: number = Infinity,
   ): WalkResult {
     const now = () => globalThis.performance?.now?.() ?? Date.now()
     const tStart = now()
