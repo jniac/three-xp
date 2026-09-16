@@ -1,94 +1,131 @@
 'use client'
 
-import { BoxGeometry, BufferGeometry, Vector3 } from 'three'
+import { BoxGeometry, BufferGeometry, Group, Vector3 } from 'three'
 
 import { useGroup } from 'some-utils-misc/three-provider'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { TriangleHandler } from 'some-utils-three/math/TriangleHandler'
 import { setup } from 'some-utils-three/utils/tree'
 
-import { AutoLitWireframeMesh } from '../AutoLitWireframeMesh'
+import { loop } from 'some-utils-ts/iteration/loop'
 import { SurfaceWalker } from '../surface-walker'
+import { AutoLitWireframeMesh } from '../utils/AutoLitWireframeMesh'
 
-class Triangle {
-  geometry: BufferGeometry
-
+class HomogeneousTriangleRays extends Group {
   constructor(geometry: BufferGeometry) {
-    this.geometry = geometry
-  }
+    super()
 
-  getPoint(
-    triangleIndex: number,
-    barycentric: Iterable<number>,
-    out = new Vector3()
-  ) {
-    const position = this.geometry.attributes.position
-    let i0: number, i1: number, i2: number
+    const color = '#0fc'
+    // const triangleIndex = 93
+    const triangleIndex = 85
+    const bOrigin = new Vector3(1 / 3, 1 / 3, 0)
+    const radius = .75
+    const helper = setup(new DebugHelper(), this).zOffset(.01)
 
-    if (this.geometry.index) {
-      i0 = this.geometry.index.getX(triangleIndex * 3 + 0)
-      i1 = this.geometry.index.getX(triangleIndex * 3 + 1)
-      i2 = this.geometry.index.getX(triangleIndex * 3 + 2)
-    } else {
-      i0 = triangleIndex * 3 + 0
-      i1 = triangleIndex * 3 + 1
-      i2 = triangleIndex * 3 + 2
+    const triangleHandler = new TriangleHandler()
+      .fromGeometry(geometry, triangleIndex)
+
+    const walker = new SurfaceWalker()
+    walker.fromGeometry(geometry)
+
+    helper.circle({
+      center: triangleHandler.pointToWorld(bOrigin),
+      radius,
+      axis: triangleHandler.normal(),
+      quality: 'ultra'
+    }, { color })
+
+    const directionConverter = triangleHandler.createAngleToRectifiedBarycentricDirectionConverter()
+    for (const it of loop(32)) {
+      const angle = it.t * Math.PI * 2
+      // const bDirection = new Vector3(Math.cos(angle), Math.sin(angle), 0)
+      const result = walker.walk(triangleIndex, bOrigin, directionConverter(angle), { maxDistance: radius })
+      if (result.path.length > 0) {
+        helper.polyline([
+          result.path[0].getPosition0(),
+          ...result.path.map(segment => segment.getPosition1()),
+        ], { color, points: { shape: 'circle', size: .025 } })
+      }
     }
-
-    const ax = position.getX(i0)
-    const ay = position.getY(i0)
-    const az = position.getZ(i0)
-
-    const bx = position.getX(i1)
-    const by = position.getY(i1)
-    const bz = position.getZ(i1)
-
-    const cx = position.getX(i2)
-    const cy = position.getY(i2)
-    const cz = position.getZ(i2)
-
-    const [u, v] = barycentric
-    const w = 1 - u - v
-
-    out.set(
-      ax * w + bx * u + cx * v,
-      ay * w + by * u + cy * v,
-      az * w + bz * u + cz * v,
-    )
-    return out
   }
 }
 
 export function CubeWalkDemo(props: TransformDeclaration) {
-  useGroup('CubeWalkDemo', props, function* (group) {
+  useGroup('CubeWalkDemo', props, function* (group, three) {
     const s = 2, d = 4
-    const cube = setup(new AutoLitWireframeMesh(new BoxGeometry(s, s, s, d, d, d)), group)
+    const cubeGeometry = new BoxGeometry(s, s, s, d, d, d)
+      .rotateX(.2)
+      .rotateY(.3)
+    const cube = setup(new AutoLitWireframeMesh(
+      cubeGeometry,
+      { baseColor: 'hsl(240, 50%, 33%)', wireframeColor: 'hsl(240, 50%, 50%)' },
+    ), group)
 
     const walker = new SurfaceWalker()
     walker.fromGeometry(cube.geometry)
+
+    setup(new HomogeneousTriangleRays(cube.geometry), group)
 
     setup(new DebugHelper(), group)
       .zOffset(.01)
       .debugGeometry(cube.geometry)
 
-    const helper = setup(new DebugHelper(), group).onTop()
+    const helper = setup(new DebugHelper(), group).zOffset(.01)
+    const draw = (
+      triangleHandler: TriangleHandler,
+      barycentricOrigin: Vector3,
+      radius: number,
+      result: ReturnType<SurfaceWalker['walk']>,
+      color = '#f00'
+    ) => {
+      helper.circle({
+        center: triangleHandler.pointToWorld(barycentricOrigin),
+        radius,
+        axis: triangleHandler.normal(),
+        quality: 'ultra'
+      }, { color })
 
-    const triangleIndex = 138
-    const barycentric = [0.5, 0.5]
-    const radius = 1.5
+      if (result.path.length > 0) {
+        helper.polyline([
+          result.path[0].getPosition0(),
+          ...result.path.map(segment => segment.getPosition1()),
+        ], { color: color, points: { shape: 'circle', size: .025 } })
+      }
+    }
 
-    const result = walker.walk(triangleIndex, barycentric, [2.1, 1.1], radius)
+    let triangleIndex1 = 138
+    const bOrigin1 = new Vector3(1 / 3, 1 / 3, 0)
+    const bDirection1 = new Vector3(15, 10, 0)
+    const radius1 = 1.25
 
-    helper.clear()
-    helper.circle({
-      center: new Triangle(cube.geometry).getPoint(triangleIndex, barycentric),
-      radius,
-      quality: 'ultra'
-    }, { color: '#f00' })
-    helper.polyline([
-      result.path[0].getPosition0(),
-      ...result.path.map(segment => segment.getPosition1()),
-    ], { color: '#f00', points: { shape: 'circle', size: .025 } })
+    const color1 = '#f00'
+    const triangleHandler1 = new TriangleHandler().fromGeometry(cube.geometry, triangleIndex1)
+
+    yield three.onTick(() => {
+      const [I] = three.pointer.raycast(cube)
+      if (I) {
+        const localPoint = I.point.clone().sub(group.position)
+        if (three.pointer.isButtonDownEnter()) {
+          triangleIndex1 = I.faceIndex!
+          triangleHandler1.fromGeometry(cube.geometry, triangleIndex1)
+          triangleHandler1.pointToLocal(localPoint, bOrigin1)
+        } else {
+          const worldPoint = triangleHandler1.pointToWorld(bOrigin1)
+          const worldDir = worldPoint.negate().add(localPoint)
+          if (worldDir.lengthSq() > 10e-6) {
+            triangleHandler1.vectorToLocal(worldDir, bDirection1)
+          }
+        }
+      }
+
+      const result1 = walker.walk(triangleIndex1, bOrigin1, bDirection1, {
+        maxDistance: radius1,
+      })
+
+      helper.clear()
+      draw(triangleHandler1, bOrigin1, radius1, result1, color1)
+    })
   }, [])
   return null
 }

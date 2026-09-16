@@ -12,8 +12,8 @@ import { onTick, Ticker } from 'some-utils-ts/ticker'
 
 import { useTriggerRender } from 'some-utils-react/hooks/render'
 import { RandomUtils } from 'some-utils-ts/random/random-utils'
-import { AutoLitWireframeMesh } from '../AutoLitWireframeMesh'
 import { SurfaceWalker } from '../surface-walker'
+import { AutoLitWireframeMesh } from '../utils/AutoLitWireframeMesh'
 
 class State {
   angle = 0.3868 * 2 * Math.PI

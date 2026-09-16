@@ -1,4 +1,4 @@
-import { BufferGeometry, Vector2, Vector3 } from 'three'
+import { BufferGeometry, Matrix3, Matrix4, Vector2, Vector3 } from 'three'
 
 import { fromVector2Declaration, fromVector3Declaration, Vector2Declaration, Vector2DeclarationLoose, Vector3Declaration } from 'some-utils-three/declaration'
 
@@ -158,7 +158,7 @@ class Triangle2DSolver {
   t1_u = new Vector2()
   t1_v = new Vector2()
 
-  // Results: intersection point and remaining delta in t1 space
+  // Results: intersection point and direction in t1 space
   t1_I_uv = new Vector2()
   t1_remaining_delta_uv = new Vector2()
 
@@ -172,7 +172,6 @@ class Triangle2DSolver {
    * 
    * @param tri0 - Current triangle
    * @param e0 - Edge index in tri0 where intersection occurs (0=AB, 1=BC, 2=CA)
-   * @param t0_I_t - Parametric position along the movement where intersection occurs [0,1]
    * @param t0_start_uv - Starting barycentric coordinates in tri0
    * @param t0_delta_uv - Movement delta in tri0 barycentric space
    * @param t0_I_uv - Intersection point in tri0 barycentric space
@@ -182,7 +181,6 @@ class Triangle2DSolver {
   solve(
     tri0: TriangleView,
     e0: number,
-    t0_I_t: number,
     t0_start_uv: Vector2,
     t0_delta_uv: Vector2,
     t0_I_uv: Vector2,
@@ -247,8 +245,8 @@ class Triangle2DSolver {
     this.m1_inv.setBasis(this.t1_u, this.t1_v).invert()
     this.m_01.multiplyMatrices(this.m1_inv, this.m0)
 
-    // Transform remaining delta from tri0 space to tri1 space
-    this.t1_remaining_delta_uv.copy(t0_delta_uv).multiplyScalar(1 - t0_I_t)
+    // Transform the full direction from tri0 space to tri1 space
+    this.t1_remaining_delta_uv.copy(t0_delta_uv)
     this.m_01.multiplyVector2(this.t1_remaining_delta_uv)
 
     return this
@@ -256,9 +254,9 @@ class Triangle2DSolver {
 }
 
 enum WalkResultStatus {
-  Completed,
   BoundaryHit,
   MaxIterations,
+  MaxDistance,
 }
 
 /**
@@ -281,10 +279,10 @@ export class WalkResult {
     /** Path segments traversed (each segment is within one triangle) */
     public path: PathSegment[],
 
-    /** Remaining delta UV that couldn't be consumed (in final triangle's barycentric space) */
+    /** Walk direction in the final triangle's barycentric space */
     public remainingDeltaUV: Vector2,
 
-    /** Whether the walk completed fully (true) or stopped at a boundary (false) */
+    /** Reason why the walk stopped */
     public status: WalkResultStatus,
   ) { }
 
@@ -536,30 +534,38 @@ export class SurfaceWalker {
     currentUV: new Vector2(),
     remainingDelta: new Vector2(),
     intersectionUV: new Vector2(),
+    segmentDeltaUV: new Vector2(),
+    segmentDeltaWorld: new Vector3(),
+    distanceMatrix: new Matrix3(),
   }
 
   /**
    * Walks across the mesh surface following a direction vector in barycentric space.
    * 
-   * The walk starts at `startUV` in triangle `startTriangleIndex` and attempts to move
-   * by `deltaUV` (in barycentric coordinates). The walk continues across triangle boundaries
+   * The walk starts at `startUV` in triangle `startTriangleIndex` and follows
+   * `deltaUV` as a direction in barycentric coordinates. The walk continues across triangle boundaries
    * until either:
-   * - The full deltaUV is consumed (status = Completed)
    * - A boundary edge is reached with no adjacent triangle (status = BoundaryHit)
-   * - Maximum iterations are reached (status = MaxIterationsReached)
+   * - Maximum iterations are reached (status = MaxIterations)
+   * - The maximum distance is reached (status = MaxDistance)
    * 
    * @param startTriangleIndex - Index of the starting triangle
    * @param startUVArg - Starting barycentric coordinates (u, v) where u+v <= 1
-   * @param deltaUVArg - Movement delta in barycentric space
+   * @param deltaUVArg - Walk direction in barycentric space; its magnitude is ignored
    * @param maxIterations - Safety limit on triangle crossings (default 1000)
+   * @param maxDistance - Maximum distance along the surface (default Infinity)
+   * @param matrix - Optional transform used when measuring the distance
    * @returns WalkResult containing final position, path, and completion status
    */
   walk(
     startTriangleIndex: number,
     startUVArg: Vector2DeclarationLoose,
     deltaUVArg: Vector2DeclarationLoose,
-    maxIterations: number = 1000,
-    maxDistance: number = Infinity,
+    {
+      maxIterations = 1000 as number,
+      maxDistance = Infinity as number,
+      matrix = null as Matrix4 | null,
+    } = {}
   ): WalkResult {
     const now = () => globalThis.performance?.now?.() ?? Date.now()
     const tStart = now()
@@ -570,20 +576,32 @@ export class SurfaceWalker {
     const state = this.#walkState
     state.currentUV.copy(startUV)
     state.remainingDelta.copy(deltaUV)
+    if (matrix) {
+      state.distanceMatrix.setFromMatrix4(matrix)
+    } else {
+      state.distanceMatrix.identity()
+    }
 
     const path: PathSegment[] = []
     let currentTriangleIndex = startTriangleIndex
     let iterations = 0
+    let distance = 0
 
-    while (iterations < maxIterations) {
-      iterations++
+    const addSegment = (endUV: Vector2): WalkResult | null => {
+      const triangle = this.#tri0.set(this, currentTriangleIndex)
+      state.segmentDeltaUV.subVectors(endUV, state.currentUV)
+      state.segmentDeltaWorld
+        .copy(triangle.AB)
+        .multiplyScalar(state.segmentDeltaUV.x)
+        .addScaledVector(triangle.AC, state.segmentDeltaUV.y)
+        .applyMatrix3(state.distanceMatrix)
 
-      // Check if we cross an edge in the current triangle
-      const intersection = findFirstEdgeIntersection(state.currentUV, state.remainingDelta)
+      const segmentDistance = state.segmentDeltaWorld.length()
+      const availableDistance = Math.max(0, maxDistance - distance)
 
-      if (intersection.valid === false) {
-        // No edge crossing - movement stays within current triangle
-        const finalUV = new Vector2().copy(state.currentUV).add(state.remainingDelta)
+      if (Number.isFinite(availableDistance) && segmentDistance >= availableDistance) {
+        const ratio = segmentDistance > 0 ? availableDistance / segmentDistance : 0
+        const finalUV = state.currentUV.clone().lerp(endUV, ratio)
         path.push(new PathSegment(
           this,
           currentTriangleIndex,
@@ -597,21 +615,39 @@ export class SurfaceWalker {
           currentTriangleIndex,
           finalUV,
           path,
-          new Vector2(0, 0),
-          WalkResultStatus.Completed,
+          state.remainingDelta.clone(),
+          WalkResultStatus.MaxDistance,
         )
+      }
+
+      distance += segmentDistance
+      path.push(new PathSegment(
+        this,
+        currentTriangleIndex,
+        state.currentUV.clone(),
+        endUV.clone()
+      ))
+      return null
+    }
+
+    while (iterations < maxIterations) {
+      iterations++
+
+      // Check if we cross an edge in the current triangle
+      const intersection = findFirstEdgeIntersection(state.currentUV, state.remainingDelta)
+
+      if (intersection.valid === false) {
+        break
       }
 
       // We hit an edge - add segment to path
       const e0 = intersection.edgeIndex  // Edge index in current triangle
       state.intersectionUV.copy(intersection.uv)
 
-      path.push(new PathSegment(
-        this,
-        currentTriangleIndex,
-        state.currentUV.clone(),
-        state.intersectionUV.clone()
-      ))
+      const maxDistanceResult = addSegment(state.intersectionUV)
+      if (maxDistanceResult) {
+        return maxDistanceResult
+      }
 
       // Check if there's an adjacent triangle across this edge
       const adjacency = this.getTriangleAdjacency(currentTriangleIndex)
@@ -625,7 +661,7 @@ export class SurfaceWalker {
           currentTriangleIndex,
           state.intersectionUV.clone(),
           path,
-          state.remainingDelta.clone().multiplyScalar(1 - intersection.t),
+          state.remainingDelta.clone(),
           WalkResultStatus.BoundaryHit,
         )
       }
@@ -642,7 +678,6 @@ export class SurfaceWalker {
       this.#solver.solve(
         this.#tri0,
         e0,
-        intersection.t,
         state.currentUV,
         state.remainingDelta,
         state.intersectionUV,

@@ -10,8 +10,8 @@ import { setup } from 'some-utils-three/utils/tree'
 import { almostEqual } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { AutoLitWireframeMesh } from '@/app/e/mesh-walk/AutoLitWireframeMesh'
 import { HashMap } from '@/app/e/mesh-walk/surface-walker/hash-map'
+import { AutoLitWireframeMesh } from '@/app/e/mesh-walk/utils/AutoLitWireframeMesh'
 
 function ThreeSettings() {
   const three = useThreeWebGL()

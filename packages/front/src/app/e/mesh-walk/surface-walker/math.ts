@@ -42,8 +42,8 @@ const findFirstEdgeIntersectionResultCache = {
 /**
  * ## 🧐 ALGO!
  * 
- * Computes the first edge intersection of a movement within a triangle in UV
- * space (using barycentric coordinates).
+ * Computes the first edge intersection of a ray within a triangle in UV space
+ * (using barycentric coordinates).
  * 
  * Notes:
  * - The result is cached and will be overwritten on each call.
@@ -63,7 +63,7 @@ export function findFirstEdgeIntersection(
   const t = Math.min(t0, t1, t2)
 
   const result = findFirstEdgeIntersectionResultCache
-  result.valid = t >= 0 && t <= 1
+  result.valid = Number.isFinite(t) && t >= 0
   result.t = t
   result.edgeIndex = t === t0 ? 2 : t === t1 ? 0 : t === t2 ? 1 : -1
   result.uv.set(

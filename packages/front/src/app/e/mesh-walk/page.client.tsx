@@ -9,10 +9,10 @@ import { onTick } from 'some-utils-ts/ticker'
 
 import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useEffects } from 'some-utils-react/hooks/effects'
-import { AutoLitWireframeMesh } from './AutoLitWireframeMesh'
-import { OptimizedTriangleWalker } from './deepseek'
-import { GeometryTriangleHelper } from './GeometryTriangleHelper'
-import { HalfEdgeMesh } from './half-edge-mesh'
+import { OptimizedTriangleWalker } from './obsolete/deepseek'
+import { AutoLitWireframeMesh } from './utils/AutoLitWireframeMesh'
+import { GeometryTriangleHelper } from './utils/GeometryTriangleHelper'
+import { HalfEdgeMesh } from './utils/half-edge-mesh'
 import { CubeWalkDemo } from './views/CubeWalkDemo'
 import { TorusKnotGroup, TorusKnotInspector } from './views/TorusKnot'
 import { Triangles } from './views/Triangles'
@@ -142,7 +142,7 @@ export function PageClient() {
     <ThreeProvider
       vertigoControls={{
         size: 7,
-        focus: [4, 0, 0],
+        focus: [2, 0, 0],
       }}>
       <ThreeSettings />
       <Triangles x={-5} />
