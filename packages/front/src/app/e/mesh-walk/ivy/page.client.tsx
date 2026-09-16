@@ -5,11 +5,11 @@ import { GLTFLoader } from 'three/examples/jsm/Addons.js'
 import { ThreeProvider, useGroup } from 'some-utils-misc/three-provider'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
+import { HashMap } from 'some-utils-three/mesh-surface/hash-map'
 import { SkyMesh } from 'some-utils-three/objects/sky-mesh'
 import { setup } from 'some-utils-three/utils/tree'
 import { applyStringMatcher } from 'some-utils-ts/string/match'
 import { StringMatcher } from 'some-utils-ts/types'
-import { HashMap } from '../surface-walker/hash-map'
 
 async function extractFromGltf<T extends Object3D>(url: string, name: StringMatcher, type: new (...args: any[]) => T) {
   const gltfLoader = new GLTFLoader()

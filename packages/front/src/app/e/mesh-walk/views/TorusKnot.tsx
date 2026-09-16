@@ -3,16 +3,16 @@ import { IcosahedronGeometry, PlaneGeometry, SphereGeometry, TorusKnotGeometry, 
 
 import { useGroup } from 'some-utils-misc/three-provider'
 import { useEffects } from 'some-utils-react/hooks/effects'
+import { useTriggerRender } from 'some-utils-react/hooks/render'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
+import { SurfaceWalker } from 'some-utils-three/mesh-surface/surface-walker'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { ObservableNumber } from 'some-utils-ts/observables'
+import { RandomUtils } from 'some-utils-ts/random/random-utils'
 import { onTick, Ticker } from 'some-utils-ts/ticker'
 
-import { useTriggerRender } from 'some-utils-react/hooks/render'
-import { RandomUtils } from 'some-utils-ts/random/random-utils'
-import { SurfaceWalker } from '../surface-walker'
 import { AutoLitWireframeMesh } from '../utils/AutoLitWireframeMesh'
 
 class State {

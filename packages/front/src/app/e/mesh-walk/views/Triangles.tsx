@@ -4,12 +4,12 @@ import { handlePointer } from 'some-utils-dom/handle/pointer'
 import { useGroup } from 'some-utils-misc/three-provider'
 import { VertigoControls } from 'some-utils-three/camera/vertigo/controls'
 import { debugHelper, DebugHelper } from 'some-utils-three/helpers/debug'
+import { SurfaceWalker } from 'some-utils-three/mesh-surface/surface-walker'
 import { setup } from 'some-utils-three/utils/tree'
 import { Message } from 'some-utils-ts/message'
 import { onTick } from 'some-utils-ts/ticker'
 
 import { TransformDeclaration } from 'some-utils-three/declaration'
-import { SurfaceWalker } from '../surface-walker'
 
 const drawTriangle2DSolver_cache = {
   p0: new Vector2(),

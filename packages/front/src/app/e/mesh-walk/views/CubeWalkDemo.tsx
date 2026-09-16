@@ -6,10 +6,10 @@ import { useGroup } from 'some-utils-misc/three-provider'
 import { TransformDeclaration } from 'some-utils-three/declaration'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { TriangleHandler } from 'some-utils-three/math/TriangleHandler'
+import { SurfaceWalker } from 'some-utils-three/mesh-surface/surface-walker'
 import { setup } from 'some-utils-three/utils/tree'
-
 import { loop } from 'some-utils-ts/iteration/loop'
-import { SurfaceWalker } from '../surface-walker'
+
 import { AutoLitWireframeMesh } from '../utils/AutoLitWireframeMesh'
 
 class HomogeneousTriangleRays extends Group {
