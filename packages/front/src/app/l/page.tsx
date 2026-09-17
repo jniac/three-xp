@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import { SummaryPage } from '@/components/summary'
 
 import * as depthOffset2 from './depth-offset-2/page'
+import * as depthOffset3 from './depth-offset-3/page'
 import * as depthOffset from './depth-offset/page'
 import * as dragAndDecayClean from './drag-and-decay/clean/page'
 import * as dragAndDecayDebugDragMobile from './drag-and-decay/debug/drag-mobile/page'
@@ -22,6 +23,7 @@ import * as webgpu from './webgpu/page'
 
 const pages = {
   'depth-offset-2': depthOffset2,
+  'depth-offset-3': depthOffset3,
   'depth-offset': depthOffset,
   'drag-and-decay/clean': dragAndDecayClean,
   'drag-and-decay/debug/drag-mobile': dragAndDecayDebugDragMobile,

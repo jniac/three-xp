@@ -85,12 +85,17 @@ export function MyScene() {
 function UI() {
   return (
     <div className='thru fixed inset-0 p-4 flex flex-col gap-1 items-start'>
-      <pre className='bg-black/50 p-4 rounded text-white backdrop-blur-2xl border border-[#338]'>
+      <pre className='bg-black/50 p-4 rounded text-white backdrop-blur-2xl border border-[#338] line-through'>
         gl_Position.z += -uDepthOffset;
       </pre>
-      <p>
+      <p className='line-through'>
         And that's all.
       </p>
+      <button>
+        <a href='./depth-offset-3' className='text-blue-400 underline'>
+          Go to depth-offset-3
+        </a>
+      </button>
     </div>
   )
 }

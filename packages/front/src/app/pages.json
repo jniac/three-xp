@@ -140,6 +140,10 @@
     "dir": "l/depth-offset-2"
   },
   {
+    "page": "l/depth-offset-3/page.tsx",
+    "dir": "l/depth-offset-3"
+  },
+  {
     "page": "l/depth-offset/page.tsx",
     "dir": "l/depth-offset"
   },
