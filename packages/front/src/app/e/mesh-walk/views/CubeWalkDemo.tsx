@@ -40,7 +40,7 @@ class HomogeneousTriangleRays extends Group {
     for (const it of loop(32)) {
       const angle = it.t * Math.PI * 2
       // const bDirection = new Vector3(Math.cos(angle), Math.sin(angle), 0)
-      const result = walker.walk(triangleIndex, bOrigin, directionConverter(angle), { maxDistance: radius })
+      const result = walker.walk(triangleIndex, bOrigin, directionConverter(angle), radius)
       if (result.path.length > 0) {
         helper.polyline([
           result.path[0].getPosition0(),
@@ -119,9 +119,7 @@ export function CubeWalkDemo(props: TransformDeclaration) {
         }
       }
 
-      const result1 = walker.walk(triangleIndex1, bOrigin1, bDirection1, {
-        maxDistance: radius1,
-      })
+      const result1 = walker.walk(triangleIndex1, bOrigin1, bDirection1, radius1)
 
       helper.clear()
       draw(triangleHandler1, bOrigin1, radius1, result1, color1)

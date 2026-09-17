@@ -70,7 +70,7 @@ export function MyScene() {
     R.setRandom('parkmiller')
 
     setup(new Mesh(new PlaneGeometry(10, 10), new MeshBasicMaterial({
-      map: new DebugTexture()
+      map: new DebugTexture({ size: 4096 })
     })), {
       parent: group,
       rotationX: '-90deg',
@@ -80,16 +80,19 @@ export function MyScene() {
       const geometry = new PlaneGeometry(1, 2)
       const helper = setup(new DebugHelper(), group).zOffset(.01)
       for (const it of loop(10)) {
+        const x = it.lerp(-4.5, 4.5)
         const z = it.lerp(-.5, .4)
         setup(new Mesh(geometry, new CustomMeshBasicMaterial({
           depthOffset: z,
           color: `hsl(${it.lerp(0, 360)}, 100%, 30%)`,
+          side: 2,
         })), {
-          x: it.lerp(-4.5, 4.5),
+          x,
           parent: group,
         })
 
         helper
+          .text([x, 1.2, 0], `${z.toFixed(2)}`, { color: '#f0f', size: .5 })
           .rect({
             center: [it.lerp(-4.5, 4.5), 0, 0],
             size: [1, 2],
@@ -116,8 +119,11 @@ export function MyScene() {
 
 function UI() {
   return (
-    <div className='thru fixed inset-0 p-4 flex flex-col gap-1 items-start'>
-      <pre className='bg-black/50 p-4 rounded text-white backdrop-blur-2xl border border-[#338]'>
+    <div className='thru fixed inset-0 p-4 flex flex-col gap-4 items-start'>
+      <h1 className='text-2xl font-bold p-1'>
+        Depth Offset Shader
+      </h1>
+      <pre className='bg-black/50 p-4 rounded text-white backdrop-blur-2xl border border-[#338] whitespace-pre-line'>
         {`mvPosition = modelViewMatrix * mvPosition;
         
         float depthRatio = (mvPosition.z + uDepthOffset) / mvPosition.z;
@@ -125,7 +131,7 @@ function UI() {
 
         gl_Position = projectionMatrix * mvPosition;`}
       </pre>
-      <p>
+      <p className='p-1'>
         And that's all.
       </p>
     </div>
@@ -136,7 +142,8 @@ export function PageClient() {
   return (
     <ThreeProvider
       vertigoControls={{
-        size: 4,
+        size: 10,
+        rotation: '-20deg, 0deg, 0deg',
       }}
     >
       <ThreeSettings />
