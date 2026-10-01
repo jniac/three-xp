@@ -2,6 +2,7 @@
 import { BoxGeometry, Color, ColorRepresentation, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Ray, TorusKnotGeometry, Vector3 } from 'three'
 
 import { ThreeProvider, useGroup, useThreeWebGL } from 'some-utils-misc/three-provider'
+import { HashMap } from 'some-utils-three/collections/hash-map'
 import { MeshIntersection, rayGeometryAllIntersections, rayMeshAllIntersections, rayMeshFirstIntersection } from 'some-utils-three/experimental/geometry/intersection'
 import { DebugHelper } from 'some-utils-three/helpers/debug'
 import { AutoLitMaterial } from 'some-utils-three/materials/auto-lit'
@@ -10,7 +11,6 @@ import { setup } from 'some-utils-three/utils/tree'
 import { almostEqual } from 'some-utils-ts/math/basic'
 import { onTick } from 'some-utils-ts/ticker'
 
-import { HashMap } from '@/app/e/mesh-walk/surface-walker/hash-map'
 import { AutoLitWireframeMesh } from '@/app/e/mesh-walk/utils/AutoLitWireframeMesh'
 
 function ThreeSettings() {
